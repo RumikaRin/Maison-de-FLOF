@@ -129,6 +129,18 @@ export default function ProfilePage() {
         setWishlistColors(JSON.parse(savedColors));
       } catch (e) { }
     }
+
+    if (currentUserEmail) {
+      fetch(`/api/profile/favorites?email=${encodeURIComponent(currentUserEmail)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setWishlistColors(data);
+            localStorage.setItem("sonvn-color-wishlist", JSON.stringify(data));
+          }
+        })
+        .catch((err) => console.error("Error loading profile favorites:", err));
+    }
   }, [router]);
 
   if (!mounted) return null;
@@ -145,6 +157,15 @@ export default function ProfilePage() {
     }
     setWishlistColors(updated);
     localStorage.setItem("sonvn-color-wishlist", JSON.stringify(updated));
+
+    // Sync toggle with database backend
+    if (user && user.email) {
+      fetch("/api/profile/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, code })
+      }).catch((err) => console.error("Error toggling favorite in DB:", err));
+    }
   };
 
   const handleLogout = () => {

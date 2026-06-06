@@ -34,6 +34,7 @@ export default function ColorsPage() {
   const [selectedTone, setSelectedTone] = useState("all");
   const [selectedColor, setSelectedColor] = useState<typeof PALETTE_COLORS[0] | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [colors, setColors] = useState<typeof PALETTE_COLORS>(PALETTE_COLORS);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -41,6 +42,35 @@ export default function ColorsPage() {
     const saved = localStorage.getItem("sonvn-color-wishlist");
     if (saved) {
       try { setFavorites(JSON.parse(saved)); } catch (e) { }
+    }
+    
+    // Fetch dynamic colors from database API
+    fetch("/api/colors")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setColors(data);
+        }
+      })
+      .catch((err) => console.error("Failed to load dynamic colors:", err));
+
+    // Sync wishlist from backend database if user session exists
+    const storedUser = localStorage.getItem("sonvn-user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.email) {
+          fetch(`/api/profile/favorites?email=${encodeURIComponent(parsed.email)}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (Array.isArray(data)) {
+                setFavorites(data);
+                localStorage.setItem("sonvn-color-wishlist", JSON.stringify(data));
+              }
+            })
+            .catch((err) => console.error("Failed to load DB wishlist:", err));
+        }
+      } catch (e) {}
     }
   }, []);
 
@@ -53,9 +83,24 @@ export default function ColorsPage() {
     }
     setFavorites(newFavs);
     localStorage.setItem("sonvn-color-wishlist", JSON.stringify(newFavs));
+
+    // Sync toggle with database backend
+    const storedUser = localStorage.getItem("sonvn-user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.email) {
+          fetch("/api/profile/favorites", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: parsed.email, code })
+          }).catch((err) => console.error("Failed to sync toggle with DB:", err));
+        }
+      } catch (e) {}
+    }
   };
 
-  const filteredColors = PALETTE_COLORS.filter((c) => {
+  const filteredColors = colors.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (c.nameEn && c.nameEn.toLowerCase().includes(searchQuery.toLowerCase())) ||
