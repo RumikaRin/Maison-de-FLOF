@@ -7,6 +7,16 @@ import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Heart, X } from "lucide-react";
+import { useTrans } from "@/lib/dictionary";
+import { PALETTE_COLORS } from "@/app/colors/page";
+import {
+  getComplementaryColors,
+  getAnalogousColors,
+  getTriadicColors,
+  hexToRgb,
+  hexToHsl
+} from "@/lib/color-utils";
 
 
 interface UserSession {
@@ -18,10 +28,13 @@ interface UserSession {
 export default function ProfilePage() {
   const router = useRouter();
   const { language } = useLanguageStore();
+  const t = useTrans(language);
 
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
-  const [activeTab, setActiveTab] = useState<"history" | "profile" | "password" | "addresses">("history");
+  const [activeTab, setActiveTab] = useState<"history" | "profile" | "password" | "addresses" | "favorites">("history");
+  const [wishlistColors, setWishlistColors] = useState<string[]>([]);
+  const [selectedColor, setSelectedColor] = useState<any | null>(null);
 
   // Profile Form state
   const [profileName, setProfileName] = useState("");
@@ -109,10 +122,30 @@ export default function ProfilePage() {
       localStorage.setItem(`sonvn-addresses-${currentUserEmail}`, JSON.stringify(initialMock));
       setAddresses(initialMock);
     }
+
+    const savedColors = localStorage.getItem("sonvn-color-wishlist");
+    if (savedColors) {
+      try {
+        setWishlistColors(JSON.parse(savedColors));
+      } catch (e) {}
+    }
   }, [router]);
 
   if (!mounted) return null;
   if (!user) return null;
+
+  const handleToggleFavoriteColor = (code: string) => {
+    let updated: string[];
+    if (wishlistColors.includes(code)) {
+      updated = wishlistColors.filter(c => c !== code);
+      toast.success(language === "vi" ? "Đã xóa màu khỏi danh sách yêu thích!" : "Removed color from favorites!");
+    } else {
+      updated = [...wishlistColors, code];
+      toast.success(language === "vi" ? "Đã thêm màu vào danh sách yêu thích!" : "Added color to favorites!");
+    }
+    setWishlistColors(updated);
+    localStorage.setItem("sonvn-color-wishlist", JSON.stringify(updated));
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("sonvn-user");
@@ -282,6 +315,22 @@ export default function ProfilePage() {
     }
   };
 
+  let compColor = "";
+  let analogous: string[] = [];
+  let triadic: string[] = [];
+  let rgbVal = "";
+  let hslVal = "";
+
+  if (selectedColor) {
+    compColor = getComplementaryColors(selectedColor.hex)[0];
+    analogous = getAnalogousColors(selectedColor.hex);
+    triadic = getTriadicColors(selectedColor.hex);
+    const rgb = hexToRgb(selectedColor.hex);
+    rgbVal = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+    const hsl = hexToHsl(selectedColor.hex);
+    hslVal = `${hsl.h}°, ${hsl.s}%, ${hsl.l}%`;
+  }
+
   return (
     <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-12 bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh]">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -354,6 +403,18 @@ export default function ProfilePage() {
               )}
             >
               <span>{language === "vi" ? "Sổ địa chỉ" : "Address Book"}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("favorites")}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-xl text-left transition-colors duration-200",
+                activeTab === "favorites"
+                  ? "bg-warm-900 text-white shadow-sm"
+                  : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
+              )}
+            >
+              <span>{language === "vi" ? "Màu sắc đã lưu" : "Saved Colors"}</span>
             </button>
 
             <button
@@ -726,8 +787,184 @@ export default function ProfilePage() {
               )}
             </div>
           )}
+
+          {activeTab === "favorites" && (
+            <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
+              <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
+                {language === "vi" ? "Màu sắc đã lưu" : "Saved Colors"}
+              </h3>
+
+              {wishlistColors.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {wishlistColors.map((code) => {
+                    const color = PALETTE_COLORS.find(c => c.code === code);
+                    if (!color) return null;
+                    return (
+                      <div
+                        key={color.code}
+                        onClick={() => setSelectedColor(color)}
+                        className="bg-white rounded-2xl border border-warm-200 p-3 flex flex-col gap-3 group relative hover:shadow-md transition-all duration-300 cursor-pointer"
+                      >
+                        <div
+                          className="h-24 rounded-xl border border-black/5 flex items-center justify-center relative shadow-inner"
+                          style={{ backgroundColor: color.hex }}
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleFavoriteColor(color.code);
+                            }}
+                            className="absolute top-2 right-2 p-1.5 bg-white/95 rounded-full shadow-sm text-rose-500 hover:scale-110 transition-all duration-200 flex items-center justify-center"
+                            title={language === "vi" ? "Bỏ thích" : "Unlike"}
+                          >
+                            <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
+                          </button>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-warm-400 font-mono tracking-wider block">MÃ: {color.code}</span>
+                          <h4 className="font-bold text-xs text-warm-900 truncate mt-0.5">
+                            {language === "vi" ? color.name : (color.nameEn || color.name)}
+                          </h4>
+                          <span className="text-[10px] font-mono text-warm-550 block mt-0.5">{color.hex}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center p-10 text-warm-500 text-sm">
+                  {language === "vi" ? "Bạn chưa lưu màu sắc nào." : "You have no saved colors."}
+                  <div className="mt-4">
+                    <Link href="/colors" className="text-jotun-teal font-bold hover:underline">
+                      {language === "vi" ? "Khám phá bảng màu ngay" : "Explore Color Palette"}
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Color Detail Side Panel */}
+      {selectedColor && (
+        <div 
+          onClick={() => setSelectedColor(null)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-end"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-14 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up"
+          >
+            <button
+              onClick={() => setSelectedColor(null)}
+              className="absolute top-4 right-6 h-9 w-9 rounded-full border border-warm-200 hover:bg-warm-100 flex items-center justify-center transition-all text-warm-700 hover:scale-105"
+              title={language === "vi" ? "Đóng" : "Close"}
+            >
+              <X className="h-4 w-4" />
+            </button>
+ 
+            {/* Swatch Display */}
+            <div
+              className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-2 overflow-hidden"
+              style={{ backgroundColor: selectedColor.hex }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl" />
+              <div className="relative z-10 flex justify-between items-end">
+                <div>
+                  <span className="text-[11px] font-mono tracking-wider text-white/80">#{selectedColor.code}</span>
+                  <h2 className="text-2xl font-bold font-serif mt-1 text-white">
+                    {language === "vi" ? selectedColor.name : (selectedColor.nameEn || selectedColor.name)}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => handleToggleFavoriteColor(selectedColor.code)}
+                  className="bg-white/95 hover:bg-white px-4 py-2 rounded-xl flex items-center gap-1.5 text-warm-900 text-xs font-bold transition-all duration-300 shadow-sm"
+                >
+                  <Heart className={cn("h-3.5 w-3.5 transition-colors", wishlistColors.includes(selectedColor.code) ? "fill-rose-500 text-rose-500" : "text-warm-400")} />
+                  <span>{wishlistColors.includes(selectedColor.code) ? (language === "vi" ? "Đã thích" : "Liked") : t.addToFavorites}</span>
+                </button>
+              </div>
+            </div>
+ 
+            {/* Color Codes SECTION */}
+            <div className="grid grid-cols-3 gap-4 border-y border-warm-200 py-4">
+              <div>
+                <span className="block text-[10px] text-warm-400 uppercase font-bold tracking-wider mb-1">Hex</span>
+                <span className="font-mono text-sm font-semibold text-warm-900">{selectedColor.hex}</span>
+              </div>
+              <div>
+                <span className="block text-[10px] text-warm-400 uppercase font-bold tracking-wider mb-1">RGB</span>
+                <span className="font-mono text-sm font-semibold text-warm-900">{rgbVal}</span>
+              </div>
+              <div>
+                <span className="block text-[10px] text-warm-400 uppercase font-bold tracking-wider mb-1">HSL</span>
+                <span className="font-mono text-sm font-semibold text-warm-900">{hslVal}</span>
+              </div>
+            </div>
+ 
+            {/* Complementary Colors */}
+            <div>
+              <h3 className="font-serif font-bold text-lg mb-4 text-warm-900">
+                {t.complementaryColors}
+              </h3>
+ 
+              <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-warm-200 mb-4 shadow-xs">
+                <div
+                  className="h-14 w-14 rounded-xl border border-black/5 shrink-0"
+                  style={{ backgroundColor: compColor }}
+                />
+                <div>
+                  <span className="text-xs text-warm-500 font-semibold block mb-0.5">
+                    {language === "vi" ? "Màu tương phản (180°)" : "Complementary (180°)"}
+                  </span>
+                  <span className="font-mono text-sm font-bold text-warm-900">{compColor}</span>
+                </div>
+              </div>
+ 
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.analogousColors}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {analogous.map((hex, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
+                        <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
+                        <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+ 
+                <div>
+                  <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.triadicColors}</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {triadic.map((hex, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
+                        <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
+                        <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+ 
+            {/* Compatibility */}
+            <div className="p-4 border border-[#88734C]/20 bg-[#88734C]/5 rounded-xl flex gap-3 text-xs text-warm-850">
+              <div>
+                <h4 className="font-bold mb-0.5">
+                  ✓ {language === "vi" ? "Tương thích pha màu tự động" : "Auto tinting compatible"}
+                </h4>
+                <p className="leading-relaxed opacity-90">
+                  {language === "vi"
+                    ? "Mã màu này được lập trình cho máy pha sơn tự động của Maison de FLOF, sử dụng cho Majestic và Jotashield."
+                    : "This color code is programmed for Maison de FLOF automatic tinting machines for Majestic and Jotashield."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

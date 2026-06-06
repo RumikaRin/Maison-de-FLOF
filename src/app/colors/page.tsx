@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
-import { Heart, ChevronDown } from "lucide-react";
+import { Heart, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,7 +24,7 @@ import {
 } from "@/lib/color-utils";
 import { cn } from "@/lib/utils";
 
-const PALETTE_COLORS = [
+export const PALETTE_COLORS = [
   // White
   { code: "0001", name: "Trắng Tinh Khôi", nameEn: "Pure White", hex: "#FFFFFF", toneFamily: "neutral", colorFamily: "white" },
   { code: "1001", name: "Trắng Ngà", nameEn: "Ivory White", hex: "#F5F0E8", toneFamily: "warm", colorFamily: "white" },
@@ -300,18 +300,25 @@ export default function ColorsPage() {
 
       {/* Color Detail Side Panel */}
       {selectedColor && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-end">
-          <div className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen p-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left">
+        <div 
+          onClick={() => setSelectedColor(null)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-end"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-14 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up"
+          >
             <button
               onClick={() => setSelectedColor(null)}
-              className="absolute top-6 right-6 px-3 py-1.5 rounded-xl border border-warm-200 hover:bg-warm-100 transition-colors text-xs font-bold text-warm-700"
+              className="absolute top-4 right-6 h-9 w-9 rounded-full border border-warm-200 hover:bg-warm-100 flex items-center justify-center transition-all text-warm-700 hover:scale-105"
+              title={language === "vi" ? "Đóng" : "Close"}
             >
-              [Đóng]
+              <X className="h-4 w-4" />
             </button>
-
+ 
             {/* Swatch Display */}
             <div
-              className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-4 overflow-hidden"
+              className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-2 overflow-hidden"
               style={{ backgroundColor: selectedColor.hex }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl" />
@@ -324,14 +331,14 @@ export default function ColorsPage() {
                 </div>
                 <button
                   onClick={() => handleToggleFavorite(selectedColor.code)}
-                  className="bg-white/15 hover:bg-white/25 backdrop-blur-md px-4 py-2 border border-white/20 rounded-xl flex items-center gap-1.5 text-white text-xs font-bold transition-all duration-300"
+                  className="bg-white/95 hover:bg-white px-4 py-2 rounded-xl flex items-center gap-1.5 text-warm-900 text-xs font-bold transition-all duration-300 shadow-sm"
                 >
-                  <Heart className={cn("h-3.5 w-3.5 transition-colors", favorites.includes(selectedColor.code) ? "fill-white text-white" : "text-white/80")} />
+                  <Heart className={cn("h-3.5 w-3.5 transition-colors", favorites.includes(selectedColor.code) ? "fill-rose-500 text-rose-500" : "text-warm-400")} />
                   <span>{favorites.includes(selectedColor.code) ? (language === "vi" ? "Đã thích" : "Liked") : t.addToFavorites}</span>
                 </button>
               </div>
             </div>
-
+ 
             {/* Color Codes SECTION */}
             <div className="grid grid-cols-3 gap-4 border-y border-warm-200 py-4">
               <div>
@@ -347,14 +354,14 @@ export default function ColorsPage() {
                 <span className="font-mono text-sm font-semibold text-warm-900">{hslVal}</span>
               </div>
             </div>
-
+ 
             {/* Complementary Colors */}
             <div>
               <h3 className="font-serif font-bold text-lg mb-4 text-warm-900">
                 {t.complementaryColors}
               </h3>
-
-              <div className="flex items-center gap-4 p-4 bg-warm-50/50 rounded-xl border border-warm-250 mb-4">
+ 
+              <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-warm-200 mb-4 shadow-xs">
                 <div
                   className="h-14 w-14 rounded-xl border border-black/5 shrink-0"
                   style={{ backgroundColor: compColor }}
@@ -366,25 +373,25 @@ export default function ColorsPage() {
                   <span className="font-mono text-sm font-bold text-warm-900">{compColor}</span>
                 </div>
               </div>
-
+ 
               <div className="space-y-4">
                 <div>
                   <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.analogousColors}</h4>
                   <div className="grid grid-cols-2 gap-3">
                     {analogous.map((hex, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-warm-50/50 border border-warm-250 rounded-xl">
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
                         <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
                         <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-
+ 
                 <div>
                   <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.triadicColors}</h4>
                   <div className="grid grid-cols-2 gap-3">
                     {triadic.map((hex, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-warm-50/50 border border-warm-250 rounded-xl">
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
                         <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
                         <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
                       </div>
@@ -393,9 +400,9 @@ export default function ColorsPage() {
                 </div>
               </div>
             </div>
-
+ 
             {/* Compatibility */}
-            <div className="p-4 border border-emerald-500/20 bg-emerald-500/5 rounded-xl flex gap-3 text-xs text-emerald-800">
+            <div className="p-4 border border-[#88734C]/20 bg-[#88734C]/5 rounded-xl flex gap-3 text-xs text-warm-850">
               <div>
                 <h4 className="font-bold mb-0.5">
                   ✓ {language === "vi" ? "Tương thích pha màu tự động" : "Auto tinting compatible"}
