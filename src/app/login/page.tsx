@@ -169,29 +169,6 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Quick log in helpers */}
-        <div className="border-t border-warm-100 pt-5 flex flex-col gap-2">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-jotun-teal uppercase tracking-wider">
-            <span>{language === "vi" ? "Đăng nhập nhanh dùng thử (Demo)" : "Quick Demo Access"}</span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              onClick={() => handleQuickLogin("admin@flof.vn")}
-              className="text-[10px] font-bold text-left p-2.5 border border-warm-200 rounded-xl hover:bg-warm-50/50 flex justify-between items-center group bg-white text-warm-700 transition-all duration-200"
-            >
-              <span>🔑 Admin: <code className="text-jotun-teal bg-jotun-teal/5 px-1 py-0.5 rounded">admin@flof.vn</code></span>
-              <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-jotun-teal text-xs font-bold font-mono">→</span>
-            </button>
-            <button
-              onClick={() => handleQuickLogin("customer1@flof.vn")}
-              className="text-[10px] font-bold text-left p-2.5 border border-warm-200 rounded-xl hover:bg-warm-50/50 flex justify-between items-center group bg-white text-warm-700 transition-all duration-200"
-            >
-              <span>👤 Customer: <code className="text-jotun-teal bg-jotun-teal/5 px-1 py-0.5 rounded">customer1@flof.vn</code></span>
-              <span className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-jotun-teal text-xs font-bold font-mono">→</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
