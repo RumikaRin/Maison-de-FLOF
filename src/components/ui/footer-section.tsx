@@ -6,30 +6,20 @@ import { useLanguageStore } from "@/store/language-store"
 import { useTrans } from "@/lib/dictionary"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Facebook, Instagram, Linkedin, Moon, Send, Sun, Twitter } from "lucide-react"
+import { Facebook, Instagram, Linkedin, Send, Twitter } from "lucide-react"
 import { toast } from "sonner"
 
 function Footerdemo() {
-  const [isDarkMode, setIsDarkMode] = React.useState(false)
   const { language } = useLanguageStore()
   const t = useTrans(language)
   const [email, setEmail] = React.useState("")
-
-  React.useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-    }
-  }, [isDarkMode])
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,19 +182,7 @@ function Footerdemo() {
               </TooltipProvider>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Sun className="h-4 w-4 text-warm-500" />
-              <Switch
-                id="dark-mode"
-                checked={isDarkMode}
-                onCheckedChange={setIsDarkMode}
-                className="bg-warm-200"
-              />
-              <Moon className="h-4 w-4 text-warm-500" />
-              <Label htmlFor="dark-mode" className="sr-only">
-                Toggle dark mode
-              </Label>
-            </div>
+
           </div>
         </div>
 
