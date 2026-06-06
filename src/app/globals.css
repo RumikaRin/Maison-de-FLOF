@@ -1,0 +1,233 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Maison de FLOF Design System — Premium Ivory Theme
+   Cubic-bezier vars · Double-Bezel · Grain overlay · Scroll-reveal
+   ============================================================ */
+
+@layer base {
+  :root {
+    --background: 40 33% 98%;    /* ivory #FAF9F6 */
+    --foreground: 220 20% 15%;
+    
+    --card: 40 33% 98%;
+    --card-foreground: 220 20% 15%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
+    
+    --primary: 186 100% 27%;     /* Jotun Teal #007B8A */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 42 100% 49%;    /* Jotun Yellow #F9B000 */
+    --secondary-foreground: 220 20% 10%;
+    
+    --muted: 40 10% 95%;
+    --muted-foreground: 220 10% 46%;
+    
+    --accent: 40 10% 93%;
+    --accent-foreground: 220 20% 15%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 40 10% 90%;
+    --input: 40 10% 90%;
+    --ring: 186 100% 27%;
+    
+    --radius: 0.5rem;
+
+    /* Premium easing curves */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-premium: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 220 10% 92%;
+    
+    --card: 220 18% 12%;
+    --card-foreground: 220 10% 92%;
+    
+    --popover: 220 18% 12%;
+    --popover-foreground: 220 10% 92%;
+    
+    --primary: 186 85% 35%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 42 100% 55%;
+    --secondary-foreground: 220 20% 10%;
+    
+    --muted: 220 15% 16%;
+    --muted-foreground: 220 10% 65%;
+    
+    --accent: 220 15% 18%;
+    --accent-foreground: 220 10% 92%;
+    
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 186 85% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans transition-colors duration-300 relative overflow-x-hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0.018;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+  }
+  h1, h2, h3 {
+    @apply font-serif tracking-wide;
+  }
+  h4, h5, h6 {
+    @apply font-sans font-semibold;
+  }
+}
+
+/* ============================================================
+   DOUBLE-BEZEL (Doppelrand) — Nested Architecture Utilities
+   Outer shell + inner core for premium machined feel
+   ============================================================ */
+@layer components {
+  .bezel-outer {
+    @apply bg-black/[0.02] ring-1 ring-black/[0.05] rounded-[2rem] p-1.5;
+  }
+  .bezel-inner {
+    @apply bg-white rounded-[calc(2rem-0.375rem)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)];
+  }
+  .bezel-outer-dark {
+    @apply bg-white/[0.03] ring-1 ring-white/[0.08] rounded-[2rem] p-1.5;
+  }
+  .bezel-inner-dark {
+    @apply bg-zinc-900 rounded-[calc(2rem-0.375rem)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)];
+  }
+
+  /* Button-in-Button trailing icon pattern */
+  .btn-island {
+    @apply relative inline-flex items-center gap-3 rounded-full font-semibold
+           transition-all duration-700;
+    transition-timing-function: var(--ease-premium);
+  }
+  .btn-island:active {
+    @apply scale-[0.98];
+  }
+  .btn-island-icon {
+    @apply w-8 h-8 rounded-full flex items-center justify-center
+           transition-all duration-500;
+    transition-timing-function: var(--ease-premium);
+  }
+  .btn-island:hover .btn-island-icon {
+    @apply translate-x-0.5 -translate-y-[1px] scale-105;
+  }
+
+  /* Premium section spacing */
+  .section-premium {
+    @apply py-28 md:py-32;
+  }
+
+  /* Eyebrow pill tag */
+  .eyebrow-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 
+           text-[10px] uppercase tracking-[0.2em] font-medium
+           bg-black/[0.04] text-zinc-500 border border-black/[0.04];
+  }
+}
+
+/* ============================================================
+   SCROLL REVEAL & TRANSITIONS — Custom premium curves
+   ============================================================ */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(4px);
+  transition: opacity 0.8s var(--ease-premium), transform 0.8s var(--ease-premium), filter 0.8s var(--ease-premium);
+}
+.scroll-reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* ============================================================
+   COLOR VISUALIZER — Blend layers
+   ============================================================ */
+.room-mask {
+  mix-blend-mode: multiply;
+  opacity: 0.85;
+  transition: background-color 0.4s ease;
+}
+
+.room-highlight {
+  mix-blend-mode: overlay;
+  opacity: 0.3;
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR — Minimal
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Prevent fixed header shift when scrollbar is hidden by Radix UI / scroll lock */
+body[data-scroll-locked] header {
+  padding-right: var(--removed-body-scroll-bar-size, 0px) !important;
+}
+
+/* Style all select dropdowns globally (including Admin panel) for a consistent premium look */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.85rem center !important;
+  background-size: 0.9rem !important;
+  padding-right: 2.5rem !important;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+select:focus {
+  outline: none !important;
+  border-color: #007B8A !important; /* Jotun Teal */
+  box-shadow: 0 0 0 2px rgba(0, 123, 138, 0.15) !important;
+}
+
+

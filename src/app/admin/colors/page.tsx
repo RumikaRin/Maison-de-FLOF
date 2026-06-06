@@ -1,0 +1,461 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useLanguageStore } from "@/store/language-store";
+import { MOCK_COLORS, PaintColor } from "@/lib/mock-data";
+import { toast } from "sonner";
+import { CustomSelect } from "@/components/ui/custom-select";
+import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
+
+
+export default function AdminColorsPage() {
+  const { language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
+
+  // Core state
+  const [colors, setColors] = useState<PaintColor[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedColorFamily, setSelectedColorFamily] = useState("all");
+
+  // Modal control
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
+
+  // Form states
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [nameEn, setNameEn] = useState("");
+  const [hex, setHex] = useState("#FFFFFF");
+  const [toneFamily, setToneFamily] = useState("neutral");
+  const [colorFamily, setColorFamily] = useState("white");
+
+  useEffect(() => {
+    setMounted(true);
+    setColors(MOCK_COLORS);
+  }, []);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
+
+  if (!mounted) return null;
+
+  // Search & Filter
+  const filteredColors = colors.filter((c) => {
+    const matchesSearch =
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.code.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFamily = selectedColorFamily === "all" || c.colorFamily === selectedColorFamily;
+
+    return matchesSearch && matchesFamily;
+  });
+
+  const openAddModal = () => {
+    setModalMode("add");
+    setEditingColorId(null);
+    setCode("");
+    setName("");
+    setNameEn("");
+    setHex("#007B8A");
+    setToneFamily("neutral");
+    setColorFamily("white");
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (color: PaintColor) => {
+    setModalMode("edit");
+    setEditingColorId(color.id);
+    setCode(color.code);
+    setName(color.name);
+    setNameEn(color.nameEn);
+    setHex(color.hex);
+    setToneFamily(color.toneFamily || "neutral");
+    setColorFamily(color.colorFamily || "white");
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!code || !name || !nameEn || !hex) {
+      toast.error(
+        language === "vi" ? "Vui lòng điền đầy đủ các thông tin." : "Please fill in all inputs."
+      );
+      return;
+    }
+
+    if (modalMode === "add") {
+      // Check duplicate code
+      if (colors.some((c) => c.code === code)) {
+        toast.error(
+          language === "vi" ? "Mã màu này đã tồn tại." : "This color code already exists."
+        );
+        return;
+      }
+
+      const newColor: PaintColor = {
+        id: `col-${Date.now()}`,
+        code,
+        name,
+        nameEn,
+        hex,
+        toneFamily,
+        colorFamily
+      };
+
+      setColors([newColor, ...colors]);
+      toast.success(
+        language === "vi" ? "Đã thêm mã màu thành công!" : "Color added successfully!"
+      );
+    } else {
+      // Edit
+      setColors(
+        colors.map((c) =>
+          c.id === editingColorId
+            ? { ...c, code, name, nameEn, hex, toneFamily, colorFamily }
+            : c
+        )
+      );
+      toast.success(
+        language === "vi" ? "Đã cập nhật thông tin mã màu!" : "Color updated successfully!"
+      );
+    }
+
+    setIsModalOpen(false);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm(language === "vi" ? "Bạn chắc chắn muốn xóa mã màu này?" : "Delete this color code?")) {
+      setColors(colors.filter((c) => c.id !== id));
+      toast.success(
+        language === "vi" ? "Đã xóa mã màu thành công." : "Color deleted successfully."
+      );
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Header and Add CTA */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold font-serif">
+            {language === "vi" ? "Quản Lý Mã Màu Sơn" : "Colors Management"}
+          </h1>
+          <p className="text-muted-foreground text-xs">
+            {language === "vi"
+              ? "Cập nhật, thêm mới hoặc chỉnh sửa mã màu sơn phối trong hệ thống."
+              : "Update, add new, or edit coordinated paint colors in the database."}
+          </p>
+        </div>
+        <button
+          onClick={openAddModal}
+          className="bg-warm-900 text-white font-bold text-xs px-5 py-3 rounded-xl hover:bg-warm-800 transition-colors flex items-center justify-center gap-1.5 self-start shadow-sm"
+        >
+          {language === "vi" ? "Thêm Mã Màu Mới" : "Add New Color"}
+        </button>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-2 relative">
+          <input
+            type="text"
+            placeholder={
+              language === "vi" ? "Tìm theo tên màu, mã số..." : "Search by color name, code..."
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-900 transition-shadow"
+          />
+        </div>
+
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between font-bold text-xs bg-white border-warm-200 text-warm-900 rounded-xl px-4 py-2.5 h-10 shadow-sm focus:ring-2 focus:ring-jotun-teal/20 focus:border-jotun-teal text-left"
+            >
+              <span className="truncate">
+                {(() => {
+                  const items = [
+                    { value: "all", label: language === "vi" ? "Tất cả nhóm màu" : "All Color Families" },
+                    { value: "white", label: language === "vi" ? "Trắng (White)" : "White" },
+                    { value: "beige", label: language === "vi" ? "Be / Kem (Beige)" : "Beige" },
+                    { value: "grey", label: language === "vi" ? "Xám (Grey)" : "Grey" },
+                    { value: "yellow", label: language === "vi" ? "Vàng (Yellow)" : "Yellow" },
+                    { value: "orange", label: language === "vi" ? "Cam (Orange)" : "Orange" },
+                    { value: "red", label: language === "vi" ? "Đỏ (Red)" : "Red" },
+                    { value: "blue", label: language === "vi" ? "Xanh dương (Blue)" : "Blue" },
+                    { value: "green", label: language === "vi" ? "Xanh lá (Green)" : "Green" },
+                    { value: "brown", label: language === "vi" ? "Nâu (Brown)" : "Brown" },
+                  ];
+                  return items.find((i) => i.value === selectedColorFamily)?.label || "";
+                })()}
+              </span>
+              <ChevronDown className="h-4 w-4 text-warm-450 opacity-60 shrink-0 ml-2" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50">
+            <DropdownMenuRadioGroup value={selectedColorFamily} onValueChange={setSelectedColorFamily}>
+              {[
+                { value: "all", label: language === "vi" ? "Tất cả nhóm màu" : "All Color Families" },
+                { value: "white", label: language === "vi" ? "Trắng (White)" : "White" },
+                { value: "beige", label: language === "vi" ? "Be / Kem (Beige)" : "Beige" },
+                { value: "grey", label: language === "vi" ? "Xám (Grey)" : "Grey" },
+                { value: "yellow", label: language === "vi" ? "Vàng (Yellow)" : "Yellow" },
+                { value: "orange", label: language === "vi" ? "Cam (Orange)" : "Orange" },
+                { value: "red", label: language === "vi" ? "Đỏ (Red)" : "Red" },
+                { value: "blue", label: language === "vi" ? "Xanh dương (Blue)" : "Blue" },
+                { value: "green", label: language === "vi" ? "Xanh lá (Green)" : "Green" },
+                { value: "brown", label: language === "vi" ? "Nâu (Brown)" : "Brown" },
+              ].map((fam) => (
+                <DropdownMenuRadioItem
+                  key={fam.value}
+                  value={fam.value}
+                  className="text-xs font-semibold text-warm-900 cursor-pointer"
+                >
+                  {fam.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Table grid of colors */}
+      <div className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-warm-150 text-warm-450 font-bold uppercase tracking-wider text-[10px] bg-warm-50/50">
+                <th className="py-3 px-6 w-[12%]">{language === "vi" ? "Xem trước" : "Preview"}</th>
+                <th className="py-3 px-4 w-[12%]">{language === "vi" ? "Mã số" : "Code"}</th>
+                <th className="py-3 px-4 w-[23%]">{language === "vi" ? "Tên Tiếng Việt" : "Vietnamese Name"}</th>
+                <th className="py-3 px-4 w-[23%]">{language === "vi" ? "Tên Tiếng Anh" : "English Name"}</th>
+                <th className="py-3 px-4 w-[18%]">{language === "vi" ? "Nhóm màu / Tông" : "Family / Tone"}</th>
+                <th className="py-3 pr-6 text-right w-[12%]">{language === "vi" ? "Thao tác" : "Actions"}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-warm-100 font-semibold text-warm-800">
+              {filteredColors.map((color) => (
+                <tr key={color.id} className="hover:bg-warm-50/30 transition-colors">
+                  <td className="py-3.5 px-6">
+                    <div
+                      className="h-7 w-12 rounded-lg border border-black/10 shadow-sm"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                  </td>
+                  <td className="py-3.5 px-4 font-mono font-bold text-warm-900">{color.code}</td>
+                  <td className="py-3.5 px-4 text-warm-850">{color.name}</td>
+                  <td className="py-3.5 px-4 text-warm-500">{color.nameEn}</td>
+                  <td className="py-3.5 px-4 text-xs font-bold uppercase">
+                    {color.colorFamily && (
+                      <span className="px-2 py-0.5 bg-warm-100 text-warm-600 rounded-lg mr-1">
+                        {color.colorFamily}
+                      </span>
+                    )}
+                    {color.toneFamily && (
+                      <span className="px-2 py-0.5 bg-jotun-teal/10 text-jotun-teal rounded-lg">
+                        {color.toneFamily}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3.5 pr-6 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => openEditModal(color)}
+                        className="text-[11px] font-bold text-white bg-warm-900 hover:bg-warm-800 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-warm-900"
+                        title={language === "vi" ? "Chỉnh sửa" : "Edit"}
+                      >
+                        {language === "vi" ? "Sửa" : "Edit"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(color.id)}
+                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600"
+                        title={language === "vi" ? "Xóa" : "Delete"}
+                      >
+                        {language === "vi" ? "Xóa" : "Delete"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* CRUD Add/Edit Modal overlay */}
+      {isModalOpen && (
+        <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-fade-in text-left">
+          <div onClick={(e) => e.stopPropagation()} className="bg-white border border-warm-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-visible">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
+              <h3 className="font-serif font-bold text-base text-warm-900">
+                {modalMode === "add"
+                  ? language === "vi"
+                    ? "Thêm mã màu sơn mới"
+                    : "Add New Paint Color"
+                  : language === "vi"
+                  ? "Chỉnh sửa thông tin mã màu"
+                  : "Edit Paint Color"}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1"
+              >
+                {language === "vi" ? "[Đóng]" : "[Close]"}
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSubmit} className="p-6 pb-12 flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {language === "vi" ? "Mã số màu" : "Color Code"} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={code}
+                    disabled={modalMode === "edit"}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="E.g. 1001"
+                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {language === "vi" ? "Mã Hex màu" : "Hex Value"} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={hex}
+                      onChange={(e) => setHex(e.target.value)}
+                      className="h-9 w-9 border border-border rounded p-0 cursor-pointer shrink-0"
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={hex}
+                      onChange={(e) => setHex(e.target.value)}
+                      placeholder="#FFFFFF"
+                      className="w-full px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                  {language === "vi" ? "Tên Tiếng Việt" : "Vietnamese Name"} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={language === "vi" ? "Trắng Ngà..." : "Ivory White..."}
+                  className="px-3 py-2 rounded border border-border bg-background text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                  {language === "vi" ? "Tên Tiếng Anh" : "English Name"} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  placeholder="Ivory White..."
+                  className="px-3 py-2 rounded border border-border bg-background text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {language === "vi" ? "Nhóm màu" : "Color Family"}
+                  </label>
+                  <CustomSelect
+                    value={colorFamily}
+                    onValueChange={setColorFamily}
+                    options={[
+                      { value: "white", label: "White" },
+                      { value: "beige", label: "Beige" },
+                      { value: "grey", label: "Grey" },
+                      { value: "yellow", label: "Yellow" },
+                      { value: "orange", label: "Orange" },
+                      { value: "red", label: "Red" },
+                      { value: "blue", label: "Blue" },
+                      { value: "green", label: "Green" },
+                      { value: "brown", label: "Brown" },
+                    ]}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {language === "vi" ? "Tông màu" : "Tone Family"}
+                  </label>
+                  <CustomSelect
+                    value={toneFamily}
+                    onValueChange={setToneFamily}
+                    options={[
+                      { value: "neutral", label: "Neutral" },
+                      { value: "warm", label: "Warm" },
+                      { value: "cool", label: "Cool" },
+                      { value: "bold", label: "Bold / Accent" },
+                      { value: "earth", label: "Earth Tone" },
+                      { value: "pastel", label: "Pastel" },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* Submit panel */}
+              <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
+                >
+                  {language === "vi" ? "Hủy" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
+                >
+                  {language === "vi" ? "Xác nhận" : "Confirm"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

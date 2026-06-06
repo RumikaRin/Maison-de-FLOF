@@ -1,0 +1,503 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum RoleType {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPING
+  COMPLETED
+  CANCELLED
+}
+
+enum InventoryType {
+  IMPORT
+  EXPORT
+  ADJUSTMENT
+  AUDIT
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum NotificationType {
+  ORDER
+  STOCK
+  QUOTE
+  SYSTEM
+}
+
+enum PaintFinish {
+  MATTE
+  EGGSHELL
+  SATIN
+  SEMI_GLOSS
+  GLOSS
+}
+
+enum PaintType {
+  INTERIOR
+  EXTERIOR
+  PRIMER
+  WATERPROOF
+  WOOD
+  METAL
+  SPECIALTY
+}
+
+enum QuoteStatus {
+  PENDING
+  CONTACTED
+  QUOTED
+  CLOSED
+}
+
+enum SurfaceType {
+  WALL
+  CEILING
+  WOOD
+  METAL
+  CONCRETE
+}
+
+model Role {
+  id        String   @id @default(cuid())
+  name      String
+  type      RoleType @unique
+  users     User[]
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  emailVerified DateTime?
+  password      String?
+  name          String?
+  phone         String?
+  image         String?
+  roleId        String
+  role          Role           @relation(fields: [roleId], references: [id])
+  customer      Customer?
+  addresses     Address[]
+  reviews       Review[]
+  notifications Notification[]
+  blogs         Blog[]
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([roleId])
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Customer {
+  id            String         @id @default(cuid())
+  userId        String         @unique
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalSpent    Decimal        @default(0) @db.Decimal(12, 2)
+  customerType  String         @default("RETAIL")
+  companyName   String?
+  taxCode       String?
+  orders        Order[]
+  wishlists     Wishlist[]
+  wishlistColors WishlistColor[]
+  quoteRequests QuoteRequest[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  district     String
+  province     String
+  country      String   @default("Vietnam")
+  isDefault    Boolean  @default(false)
+  orders       Order[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  nameEn      String?
+  slug        String     @unique
+  description String?    @db.Text
+  image       String?
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  paints      Paint[]
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([parentId])
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logo        String?
+  website     String?
+  phone       String?
+  email       String?
+  address     String?
+  contact     String?
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  paints      Paint[]
+  dealers     Dealer[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PaintColor {
+  id            String           @id @default(cuid())
+  code          String           @unique
+  name          String
+  nameEn        String?
+  hex           String
+  rgb           String?
+  hsl           String?
+  ncsCode       String?
+  ralCode       String?
+  collectionId  String?
+  collection    ColorCollection? @relation(fields: [collectionId], references: [id])
+  toneFamily    String
+  colorFamily   String
+  isPopular     Boolean          @default(false)
+  isTrending    Boolean          @default(false)
+  previewImage  String?
+  paints        PaintColorLink[]
+  wishlists     WishlistColor[]
+  createdAt     DateTime         @default(now())
+
+  @@index([colorFamily])
+  @@index([toneFamily])
+  @@index([collectionId])
+}
+
+model ColorCollection {
+  id          String       @id @default(cuid())
+  name        String
+  nameEn      String?
+  slug        String       @unique
+  description String?      @db.Text
+  image       String?
+  year        Int
+  isActive    Boolean      @default(true)
+  colors      PaintColor[]
+  createdAt   DateTime     @default(now())
+}
+
+model Paint {
+  id             String                 @id @default(cuid())
+  sku            String                 @unique
+  name           String
+  nameEn         String?
+  slug           String                 @unique
+  categoryId     String
+  category       Category               @relation(fields: [categoryId], references: [id])
+  supplierId     String?
+  supplier       Supplier?              @relation(fields: [supplierId], references: [id])
+  description    String?                @db.Text
+  descriptionEn  String?                @db.Text
+  features       String?                @db.Text
+  featuresEn     String?                @db.Text
+  application    String?                @db.Text
+  specifications String?                @db.Text
+  coverage       Decimal?               @db.Decimal(8, 2)
+  coatsRequired  Int                    @default(2)
+  dryingTime     String?
+  paintType      PaintType
+  finish         PaintFinish            @default(MATTE)
+  surfaces       SurfaceType[]
+  volume         Decimal                @db.Decimal(8, 2)
+  volumeUnit     String                 @default("L")
+  price          Decimal                @db.Decimal(12, 2)
+  costPrice      Decimal                @default(0) @db.Decimal(12, 2)
+  stock          Int                    @default(0)
+  minStock       Int                    @default(5)
+  images         String[]
+  isFeatured     Boolean                @default(false)
+  isActive       Boolean                @default(true)
+  soldCount      Int                    @default(0)
+  colors         PaintColorLink[]
+  orderItems     OrderItem[]
+  reviews        Review[]
+  wishlists      Wishlist[]
+  inventoryLogs  InventoryTransaction[]
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([categoryId])
+  @@index([supplierId])
+  @@index([paintType])
+  @@index([isActive, isFeatured])
+}
+
+model PaintColorLink {
+  id      String     @id @default(cuid())
+  paintId String
+  paint   Paint      @relation(fields: [paintId], references: [id], onDelete: Cascade)
+  colorId String
+  color   PaintColor @relation(fields: [colorId], references: [id], onDelete: Cascade)
+
+  @@unique([paintId, colorId])
+  @@index([paintId])
+  @@index([colorId])
+}
+
+model Dealer {
+  id           String    @id @default(cuid())
+  name         String
+  phone        String
+  email        String?
+  address      String
+  province     String
+  district     String
+  latitude     Decimal?  @db.Decimal(10, 7)
+  longitude    Decimal?  @db.Decimal(10, 7)
+  isAuthorized Boolean   @default(true)
+  isActive     Boolean   @default(true)
+  supplierId   String?
+  supplier     Supplier? @relation(fields: [supplierId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([province])
+  @@index([isActive])
+  @@index([supplierId])
+}
+
+model QuoteRequest {
+  id          String      @id @default(cuid())
+  customerId  String?
+  customer    Customer?   @relation(fields: [customerId], references: [id])
+  fullName    String
+  phone       String
+  email       String
+  companyName String?
+  projectName String?
+  projectType String
+  area        Decimal?    @db.Decimal(10, 2)
+  paintType   String?
+  message     String      @db.Text
+  status      QuoteStatus @default(PENDING)
+  adminNote   String?     @db.Text
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  addressId     String?
+  address       Address?    @relation(fields: [addressId], references: [id])
+  status        OrderStatus @default(PENDING)
+  subtotal      Decimal     @db.Decimal(12, 2)
+  discount      Decimal     @default(0) @db.Decimal(12, 2)
+  shippingFee   Decimal     @default(0) @db.Decimal(12, 2)
+  total         Decimal     @db.Decimal(12, 2)
+  couponId      String?
+  coupon        Coupon?     @relation(fields: [couponId], references: [id])
+  note          String?
+  paymentMethod String      @default("COD")
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([addressId])
+  @@index([couponId])
+}
+
+model OrderItem {
+  id       String  @id @default(cuid())
+  orderId  String
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paintId  String
+  paint    Paint   @relation(fields: [paintId], references: [id])
+  colorId  String?
+  quantity Int
+  price    Decimal @db.Decimal(12, 2)
+  total    Decimal @db.Decimal(12, 2)
+
+  @@index([orderId])
+  @@index([paintId])
+}
+
+model Coupon {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  type        CouponType
+  value       Decimal    @db.Decimal(12, 2)
+  minSpend    Decimal    @default(0) @db.Decimal(12, 2)
+  maxSpend    Decimal?   @db.Decimal(12, 2)
+  isActive    Boolean    @default(true)
+  startDate   DateTime
+  endDate     DateTime
+  usageLimit  Int?
+  usageCount  Int        @default(0)
+  orders      Order[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  paintId   String
+  paint     Paint    @relation(fields: [paintId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String   @db.Text
+  adminReply String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([paintId])
+  @@index([userId])
+}
+
+model Wishlist {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  paintId    String
+  paint      Paint    @relation(fields: [paintId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, paintId])
+  @@index([customerId])
+  @@index([paintId])
+}
+
+model WishlistColor {
+  id         String     @id @default(cuid())
+  customerId String
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  colorId    String
+  color      PaintColor @relation(fields: [colorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+
+  @@unique([customerId, colorId])
+  @@index([customerId])
+  @@index([colorId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+}
+
+model Blog {
+  id        String   @id @default(cuid())
+  title     String
+  titleEn   String?
+  slug      String   @unique
+  summary   String   @db.Text
+  summaryEn String?  @db.Text
+  content   String   @db.Text
+  contentEn String?  @db.Text
+  image     String?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+}
+
+model InventoryTransaction {
+  id          String        @id @default(cuid())
+  paintId     String
+  paint       Paint         @relation(fields: [paintId], references: [id], onDelete: Cascade)
+  type        InventoryType
+  quantity    Int
+  reason      String?
+  referenceId String?       // Order ID or Purchase Order ID
+  createdAt   DateTime      @default(now())
+
+  @@index([paintId])
+}
