@@ -77,7 +77,7 @@ export default function ColorsPage() {
     setMounted(true);
     const saved = localStorage.getItem("sonvn-color-wishlist");
     if (saved) {
-      try { setFavorites(JSON.parse(saved)); } catch (e) {}
+      try { setFavorites(JSON.parse(saved)); } catch (e) { }
     }
   }, []);
 
@@ -300,11 +300,11 @@ export default function ColorsPage() {
 
       {/* Color Detail Side Panel */}
       {selectedColor && (
-        <div 
+        <div
           onClick={() => setSelectedColor(null)}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-end"
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-14 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up"
           >
@@ -315,7 +315,7 @@ export default function ColorsPage() {
             >
               <X className="h-4 w-4" />
             </button>
- 
+
             {/* Swatch Display */}
             <div
               className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-2 overflow-hidden"
@@ -338,7 +338,7 @@ export default function ColorsPage() {
                 </button>
               </div>
             </div>
- 
+
             {/* Color Codes SECTION */}
             <div className="grid grid-cols-3 gap-4 border-y border-warm-200 py-4">
               <div>
@@ -354,13 +354,13 @@ export default function ColorsPage() {
                 <span className="font-mono text-sm font-semibold text-warm-900">{hslVal}</span>
               </div>
             </div>
- 
+
             {/* Complementary Colors */}
             <div>
               <h3 className="font-serif font-bold text-lg mb-4 text-warm-900">
                 {t.complementaryColors}
               </h3>
- 
+
               <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-warm-200 mb-4 shadow-xs">
                 <div
                   className="h-14 w-14 rounded-xl border border-black/5 shrink-0"
@@ -373,7 +373,7 @@ export default function ColorsPage() {
                   <span className="font-mono text-sm font-bold text-warm-900">{compColor}</span>
                 </div>
               </div>
- 
+
               <div className="space-y-4">
                 <div>
                   <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.analogousColors}</h4>
@@ -386,7 +386,7 @@ export default function ColorsPage() {
                     ))}
                   </div>
                 </div>
- 
+
                 <div>
                   <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.triadicColors}</h4>
                   <div className="grid grid-cols-2 gap-3">
@@ -400,7 +400,7 @@ export default function ColorsPage() {
                 </div>
               </div>
             </div>
- 
+
             {/* Compatibility */}
             <div className="p-4 border border-[#88734C]/20 bg-[#88734C]/5 rounded-xl flex gap-3 text-xs text-warm-850">
               <div>

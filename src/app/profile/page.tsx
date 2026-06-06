@@ -854,7 +854,7 @@ export default function ProfilePage() {
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-14 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up"
+            className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-20 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up"
           >
             <button
               onClick={() => setSelectedColor(null)}
