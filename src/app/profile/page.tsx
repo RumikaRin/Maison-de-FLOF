@@ -9,13 +9,13 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Heart, X } from "lucide-react";
 import { useTrans } from "@/lib/dictionary";
-import { PALETTE_COLORS } from "@/app/colors/page";
 import {
   getComplementaryColors,
   getAnalogousColors,
   getTriadicColors,
   hexToRgb,
-  hexToHsl
+  hexToHsl,
+  PALETTE_COLORS
 } from "@/lib/color-utils";
 
 
@@ -127,7 +127,7 @@ export default function ProfilePage() {
     if (savedColors) {
       try {
         setWishlistColors(JSON.parse(savedColors));
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [router]);
 
@@ -165,19 +165,19 @@ export default function ProfilePage() {
       toast.error(language === "vi" ? "Vui lòng điền đầy đủ Tên và Email" : "Please fill in Name and Email");
       return;
     }
-    const updatedUser = { 
-      ...user, 
-      name: profileName, 
+    const updatedUser = {
+      ...user,
+      name: profileName,
       email: profileEmail,
       phone: profilePhone,
       address: profileAddress
     };
     localStorage.setItem("sonvn-user", JSON.stringify(updatedUser));
     setUser(updatedUser as any);
-    
+
     // Broadcast updates to Header dynamic session sync listener
     window.dispatchEvent(new Event("sonvn-user-update"));
-    
+
     toast.success(language === "vi" ? "Cập nhật thông tin thành công!" : "Profile updated successfully!");
   };
 
@@ -269,7 +269,7 @@ export default function ProfilePage() {
   const handleDeleteAddress = (id: string) => {
     const target = addresses.find(a => a.id === id);
     let updatedAddresses = addresses.filter(addr => addr.id !== id);
-    
+
     // If we deleted the default address, set the first remaining one as default
     if (target?.isDefault && updatedAddresses.length > 0) {
       updatedAddresses[0].isDefault = true;
@@ -733,11 +733,10 @@ export default function ProfilePage() {
                     addresses.map((addr) => (
                       <div
                         key={addr.id}
-                        className={`p-5 border rounded-2xl flex flex-col sm:flex-row justify-between sm:items-start gap-4 transition-all duration-300 ${
-                          addr.isDefault 
-                            ? "border-warm-900 bg-warm-900/[0.02] shadow-sm" 
+                        className={`p-5 border rounded-2xl flex flex-col sm:flex-row justify-between sm:items-start gap-4 transition-all duration-300 ${addr.isDefault
+                            ? "border-warm-900 bg-warm-900/[0.02] shadow-sm"
                             : "border-warm-200/80 bg-warm-50/10 hover:bg-warm-50/50"
-                        }`}
+                          }`}
                       >
                         <div className="flex flex-col gap-1.5 text-left">
                           <div className="flex items-center gap-3">
@@ -848,13 +847,13 @@ export default function ProfilePage() {
 
       {/* Color Detail Side Panel */}
       {selectedColor && (
-        <div 
+        <div
           onClick={() => setSelectedColor(null)}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-end"
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-20 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up"
+            className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-14 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up"
           >
             <button
               onClick={() => setSelectedColor(null)}
@@ -863,7 +862,7 @@ export default function ProfilePage() {
             >
               <X className="h-4 w-4" />
             </button>
- 
+
             {/* Swatch Display */}
             <div
               className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-2 overflow-hidden"
@@ -886,7 +885,7 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
- 
+
             {/* Color Codes SECTION */}
             <div className="grid grid-cols-3 gap-4 border-y border-warm-200 py-4">
               <div>
@@ -902,13 +901,13 @@ export default function ProfilePage() {
                 <span className="font-mono text-sm font-semibold text-warm-900">{hslVal}</span>
               </div>
             </div>
- 
+
             {/* Complementary Colors */}
             <div>
               <h3 className="font-serif font-bold text-lg mb-4 text-warm-900">
                 {t.complementaryColors}
               </h3>
- 
+
               <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-warm-200 mb-4 shadow-xs">
                 <div
                   className="h-14 w-14 rounded-xl border border-black/5 shrink-0"
@@ -921,7 +920,7 @@ export default function ProfilePage() {
                   <span className="font-mono text-sm font-bold text-warm-900">{compColor}</span>
                 </div>
               </div>
- 
+
               <div className="space-y-4">
                 <div>
                   <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.analogousColors}</h4>
@@ -934,7 +933,7 @@ export default function ProfilePage() {
                     ))}
                   </div>
                 </div>
- 
+
                 <div>
                   <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.triadicColors}</h4>
                   <div className="grid grid-cols-2 gap-3">
@@ -948,7 +947,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
- 
+
             {/* Compatibility */}
             <div className="p-4 border border-[#88734C]/20 bg-[#88734C]/5 rounded-xl flex gap-3 text-xs text-warm-850">
               <div>

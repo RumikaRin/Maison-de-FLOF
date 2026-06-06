@@ -20,47 +20,10 @@ import {
   getAnalogousColors,
   getTriadicColors,
   hexToRgb,
-  hexToHsl
+  hexToHsl,
+  PALETTE_COLORS
 } from "@/lib/color-utils";
 import { cn } from "@/lib/utils";
-
-export const PALETTE_COLORS = [
-  // White
-  { code: "0001", name: "Trắng Tinh Khôi", nameEn: "Pure White", hex: "#FFFFFF", toneFamily: "neutral", colorFamily: "white" },
-  { code: "1001", name: "Trắng Ngà", nameEn: "Ivory White", hex: "#F5F0E8", toneFamily: "warm", colorFamily: "white" },
-  { code: "1002", name: "Trắng Sữa", nameEn: "Milk White", hex: "#FFF8F0", toneFamily: "warm", colorFamily: "white" },
-  { code: "1003", name: "Trắng Ánh Bạc", nameEn: "Silver White", hex: "#F2F4F5", toneFamily: "cool", colorFamily: "white" },
-  // Beige
-  { code: "2001", name: "Kem Vani", nameEn: "Vanilla Cream", hex: "#F3E5D0", toneFamily: "warm", colorFamily: "beige" },
-  { code: "2002", name: "Be Cát", nameEn: "Desert Sand", hex: "#D4C4A8", toneFamily: "warm", colorFamily: "beige" },
-  { code: "2003", name: "Nâu Sữa Nhạt", nameEn: "Latte Light", hex: "#EADCC9", toneFamily: "warm", colorFamily: "beige" },
-  // Grey
-  { code: "3001", name: "Xám Nhạt", nameEn: "Light Grey", hex: "#D3D3D3", toneFamily: "neutral", colorFamily: "grey" },
-  { code: "3002", name: "Xám Bạc", nameEn: "Silver Grey", hex: "#C0C0C0", toneFamily: "cool", colorFamily: "grey" },
-  { code: "3003", name: "Xám Than", nameEn: "Charcoal Grey", hex: "#4A4A4A", toneFamily: "neutral", colorFamily: "grey" },
-  { code: "3004", name: "Xám Sương Mù", nameEn: "Mist Grey", hex: "#E2E5E6", toneFamily: "cool", colorFamily: "grey" },
-  // Yellow
-  { code: "4001", name: "Vàng Chanh", nameEn: "Lemon Yellow", hex: "#F7E856", toneFamily: "warm", colorFamily: "yellow" },
-  { code: "4002", name: "Vàng Nắng", nameEn: "Sunny Gold", hex: "#FFD93D", toneFamily: "warm", colorFamily: "yellow" },
-  { code: "4003", name: "Vàng Hoa Cúc", nameEn: "Marigold", hex: "#F2C94C", toneFamily: "warm", colorFamily: "yellow" },
-  // Orange
-  { code: "5001", name: "Cam San Hô", nameEn: "Coral Orange", hex: "#FF7F50", toneFamily: "warm", colorFamily: "orange" },
-  { code: "5002", name: "Cam Đất Ấm", nameEn: "Terracotta", hex: "#CC7722", toneFamily: "earth", colorFamily: "orange" },
-  // Red
-  { code: "6001", name: "Đỏ Rượu Vang", nameEn: "Wine Red", hex: "#722F37", toneFamily: "bold", colorFamily: "red" },
-  { code: "6002", name: "Đỏ Gạch", nameEn: "Brick Red", hex: "#CB4154", toneFamily: "bold", colorFamily: "red" },
-  // Blue
-  { code: "7001", name: "Xanh Biển Khơi", nameEn: "Ocean Blue", hex: "#0077B6", toneFamily: "cool", colorFamily: "blue" },
-  { code: "7002", name: "Xanh Pastel", nameEn: "Pastel Blue", hex: "#AEC6CF", toneFamily: "pastel", colorFamily: "blue" },
-  { code: "7003", name: "Xanh Teal Cao Cấp", nameEn: "Teal Blue", hex: "#008080", toneFamily: "bold", colorFamily: "blue" },
-  // Green
-  { code: "8001", name: "Xanh Lá Mạ", nameEn: "Light Green", hex: "#77DD77", toneFamily: "pastel", colorFamily: "green" },
-  { code: "8002", name: "Xanh Rêu", nameEn: "Moss Green", hex: "#4A6741", toneFamily: "earth", colorFamily: "green" },
-  { code: "8003", name: "Xanh Olive", nameEn: "Olive Green", hex: "#808000", toneFamily: "earth", colorFamily: "green" },
-  // Brown
-  { code: "9001", name: "Nâu Gỗ Nhạt", nameEn: "Wood Brown", hex: "#8B4513", toneFamily: "earth", colorFamily: "brown" },
-  { code: "9002", name: "Nâu Cà Phê", nameEn: "Coffee Brown", hex: "#6F4E37", toneFamily: "earth", colorFamily: "brown" }
-];
 
 export default function ColorsPage() {
   const { language } = useLanguageStore();
