@@ -44,9 +44,18 @@ function ProductsPageContent() {
       try {
         setPaints(JSON.parse(storedPaints));
       } catch (e) {}
-    } else {
-      localStorage.setItem("sonvn-paints", JSON.stringify(MOCK_PAINTS));
     }
+
+    // Load dynamic products from DB API
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setPaints(data);
+          localStorage.setItem("sonvn-paints", JSON.stringify(data));
+        }
+      })
+      .catch((err) => console.error("Error loading products from DB API:", err));
 
     // Parse URL params if any (e.g. from homepage category click)
     const catParam = searchParams.get("category");

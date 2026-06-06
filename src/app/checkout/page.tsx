@@ -153,6 +153,24 @@ function CheckoutContent() {
       ordersArray.unshift(newOrder); // Add to the top
       localStorage.setItem("sonvn-orders", JSON.stringify(ordersArray));
 
+      // Sync order to database API
+      if (currentUserEmail !== "guest") {
+        fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: currentUserEmail,
+            items: items.map((item: any) => ({
+              paintId: item.paint.id,
+              quantity: item.quantity,
+              price: item.paint.price
+            })),
+            total: total,
+            paymentMethod: paymentMethod === "COD" ? "COD" : "TRANSFER"
+          })
+        }).catch((err) => console.error("Error creating order in DB:", err));
+      }
+
       clearCart();
       toast.success(
         language === "vi" ? "Đặt hàng thành công!" : "Order placed successfully!"

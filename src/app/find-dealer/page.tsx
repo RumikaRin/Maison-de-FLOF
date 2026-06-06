@@ -151,41 +151,27 @@ export default function FindDealerPage() {
 
   useEffect(() => {
     setMounted(true);
-
+ 
     const storedDealers = localStorage.getItem("sonvn-dealers");
     if (storedDealers) {
       try {
         const parsed = JSON.parse(storedDealers);
         if (Array.isArray(parsed)) {
           setDealers(parsed);
-        } else if (parsed && typeof parsed === "object") {
-          // Flatten grouped dealers structure from homepage: {"hanoi": [...], "hcm": [...]}
-          const flat: Dealer[] = [];
-          Object.keys(parsed).forEach((provKey) => {
-            const list = parsed[provKey] || [];
-            list.forEach((dl: any, idx: number) => {
-              flat.push({
-                id: `${provKey}-${idx}`,
-                name: dl.name,
-                nameEn: dl.nameEn || dl.name,
-                phone: dl.phone,
-                email: dl.email || "",
-                address: dl.address,
-                addressEn: dl.addressEn || dl.address,
-                province: provKey === "hanoi" ? "Hà Nội" : provKey === "hcm" ? "Hồ Chí Minh" : "Khác",
-                district: "",
-                brand: dl.brand || "Jotun",
-                lng: dl.lng,
-                lat: dl.lat
-              });
-            });
-          });
-          setDealers(flat);
         }
-      } catch (e) {
-        setDealers(MOCK_DEALERS);
-      }
+      } catch (e) {}
     }
+
+    // Load active dealers from database API
+    fetch("/api/dealers")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDealers(data);
+          localStorage.setItem("sonvn-dealers", JSON.stringify(data));
+        }
+      })
+      .catch((err) => console.error("Error loading dealers from DB API:", err));
   }, []);
 
   useEffect(() => {

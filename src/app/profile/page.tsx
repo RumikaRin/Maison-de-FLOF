@@ -88,14 +88,24 @@ export default function ProfilePage() {
       } catch (e) {
         setOrders([]);
       }
-    } else {
-      // Set initial mock data if no orders exist yet
-      const initialMock = [
-        { id: "FLOF-839201", date: "2026-06-04", userEmail: "customer1@flof.vn", customer: "Nguyễn Văn Khách", items: "Jotun Majestic 5L x 2, Trắng Ngà (1001)", total: 2850000, status: "PROCESSING" },
-        { id: "FLOF-193021", date: "2026-05-18", userEmail: "customer1@flof.vn", customer: "Nguyễn Văn Khách", items: "Dulux Weathershield 5L x 1, Xám Bạc (3002)", total: 1280000, status: "COMPLETED" }
-      ];
-      localStorage.setItem("sonvn-orders", JSON.stringify(initialMock));
-      setOrders(initialMock.filter((ord: any) => ord.userEmail === currentUserEmail));
+    }
+
+    if (currentUserEmail) {
+      fetch(`/api/orders?email=${encodeURIComponent(currentUserEmail)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setOrders(data);
+            const localOrders = localStorage.getItem("sonvn-orders");
+            let ordersArray = [];
+            if (localOrders) {
+              try { ordersArray = JSON.parse(localOrders); } catch (e) {}
+            }
+            const otherUsersOrders = ordersArray.filter((o: any) => o.userEmail !== currentUserEmail);
+            localStorage.setItem("sonvn-orders", JSON.stringify([...data, ...otherUsersOrders]));
+          }
+        })
+        .catch((err) => console.error("Error loading orders from DB API:", err));
     }
 
     // Load dynamic addresses scoped by email

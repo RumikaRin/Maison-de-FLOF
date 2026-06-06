@@ -43,11 +43,23 @@ export default function BlogListingPage() {
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [blogs, setBlogs] = useState<any[]>(MOCK_BLOGS);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { 
+    setMounted(true); 
+    fetch("/api/blog")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setBlogs(data);
+        }
+      })
+      .catch((err) => console.error("Error loading blogs from DB API:", err));
+  }, []);
+
   if (!mounted) return null;
 
-  const filteredBlogs = MOCK_BLOGS.filter((blog) => {
+  const filteredBlogs = blogs.filter((blog) => {
     const matchesSearch =
       blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       blog.titleEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,7 +70,7 @@ export default function BlogListingPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set(MOCK_BLOGS.map((blog) => language === "vi" ? blog.category : blog.categoryEn))).filter(Boolean);
+  const categories = Array.from(new Set(blogs.map((blog) => language === "vi" ? blog.category : blog.categoryEn))).filter(Boolean);
 
   const CATEGORY_COLORS: Record<string, string> = {
     "Xu hướng màu sắc": "bg-rose-50 text-rose-600 border-rose-100",
