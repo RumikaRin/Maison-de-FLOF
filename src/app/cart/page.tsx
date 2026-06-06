@@ -316,10 +316,6 @@ export default function CartPage() {
                   </button>
                 </form>
                 {couponError && <p className="text-red-500 text-[10px] mt-1 font-semibold">{couponError}</p>}
-                <div className="mt-2 text-[10px] text-warm-500 flex flex-col gap-1 border-t border-warm-100 pt-2">
-                  <p>💡 Thử các mã: <code className="font-bold text-warm-900 font-mono">FLOF10</code> (10% off)</p>
-                  <p>💡 Hoặc: <code className="font-bold text-warm-900 font-mono">JOTUN100</code> (100k off đơn từ 1tr)</p>
-                </div>
               </div>
 
               {/* Price Calculations */}
