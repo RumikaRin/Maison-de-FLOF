@@ -397,22 +397,23 @@ export default function HomePage() {
     <div className="relative w-full overflow-hidden bg-jotun-ivory text-warm-900 transition-colors duration-300">
 
       {/* 1. HERO SECTION — Editorial Split Layout */}
-      <section className="relative w-full pt-32 pb-24 md:py-32 overflow-hidden bg-jotun-ivory">
+      <section className="relative w-full pt-20 pb-16 md:pt-24 md:pb-20 overflow-hidden bg-jotun-ivory">
         {/* Subtle grid accent background */}
         <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
 
-        <div className="w-full max-w-[1880px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
 
           {/* Left Text Column */}
           <motion.div
             variants={heroContainerVariants}
             initial="hidden"
             animate="visible"
-            className="lg:col-span-5 flex flex-col gap-6 text-left items-start"
+            className="lg:col-span-6 flex flex-col gap-8 text-left items-start"
           >
             <motion.h1
               variants={heroItemVariants}
-              className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight leading-tight text-warm-955"
+              className="text-3xl sm:text-4xl lg:text-[3rem] font-serif font-bold tracking-tight text-warm-955"
+              style={{ lineHeight: 1.35 }}
             >
               {language === "vi" ? (
                 <>Kiến tạo không gian sống <br /><span className="font-normal italic text-jotun-teal">Đậm chất nghệ thuật</span></>
@@ -423,7 +424,7 @@ export default function HomePage() {
 
             <motion.p
               variants={heroItemVariants}
-              className="text-warm-600 text-base md:text-lg font-light leading-relaxed max-w-xl"
+              className="text-warm-600 text-sm lg:text-[1.05rem] font-light leading-relaxed max-w-xl"
             >
               {language === "vi"
                 ? "Hơn 1000+ sắc màu sơn cao cấp từ Maison de FLOF mang đến sự kết hợp hoàn mỹ giữa nghệ thuật và công nghệ bảo vệ bề mặt, tôn vinh kiến trúc ngôi nhà Việt."
@@ -437,9 +438,9 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-            className="lg:col-span-7 w-full flex justify-center items-center"
+            className="lg:col-span-6 w-full flex justify-center items-center"
           >
-            <div className="relative h-[420px] sm:h-[600px] lg:h-[650px] w-full overflow-hidden bg-white shadow-2xl rounded-3xl border border-black/5 max-w-[960px]">
+            <div className="relative h-[400px] sm:h-[540px] lg:h-[620px] w-full overflow-hidden bg-white shadow-2xl rounded-3xl border border-black/5 max-w-[960px]">
               <Image
                 src="/hero_bg.png"
                 alt={language === "vi" ? "Không gian sống cao cấp" : "Premium living space"}
@@ -454,19 +455,19 @@ export default function HomePage() {
       </section>
 
       {/* 1.5 PROMOTION SECTION — Premium Double-Bezel Showcase */}
-      <section className="py-32 bg-jotun-ivory-100 border-b border-black/5">
+      <section className="py-20 md:py-24 bg-jotun-ivory-100 border-b border-black/5">
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-          className="w-full max-w-[1880px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24"
+          className="w-full max-w-[1600px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Product Shoot Card */}
-            <div className="lg:col-span-5 relative h-[520px] w-full flex items-center justify-center">
+            <div className="lg:col-span-5 relative h-[440px] md:h-[540px] w-full flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-tr from-jotun-teal/5 to-transparent rounded-2xl -z-10" />
-              <div className="relative w-full max-w-[480px] h-[480px] bg-white rounded-[2.5rem] border border-black/5 flex items-center justify-center p-2 shadow-2xl">
+              <div className="relative w-full max-w-[420px] h-[420px] md:max-w-[500px] md:h-[500px] bg-white rounded-[2rem] border border-black/5 flex items-center justify-center p-2 shadow-2xl">
                 <Image
                   src="/product_interior.png"
                   alt="Majestic Premium Paint"
@@ -477,30 +478,21 @@ export default function HomePage() {
             </div>
 
             {/* Promo Content */}
-            <div className="lg:col-span-7 flex flex-col items-start text-left gap-6">
+            <div className="lg:col-span-7 flex flex-col items-start text-left gap-4">
 
-              <h2 className="font-serif font-bold text-4xl md:text-5xl lg:text-6xl text-warm-900 leading-tight">
+              <h2 className="font-serif font-bold text-2xl md:text-3.5xl lg:text-[2.5rem] text-warm-900 leading-tight">
                 {language === "vi" ? (
-                  <>Majestic Đẹp Nguyên Bản — <br /><span className="text-jotun-teal italic">Sắc Sảo & Láng Mịn</span></>
+                  <>Majestic Đẹp Nguyên Bản <br /><span className="text-jotun-teal italic">Sắc Sảo & Láng Mịn</span></>
                 ) : (
-                  <>Majestic Pure Beauty — <br /><span className="text-jotun-teal italic">Sharp & Smooth Finish</span></>
+                  <>Majestic Pure Beauty <br /><span className="text-jotun-teal italic">Sharp & Smooth Finish</span></>
                 )}
               </h2>
-              <p className="text-base text-warm-600 leading-relaxed max-w-2xl">
+              <p className="text-sm lg:text-[1.05rem] text-warm-600 leading-relaxed max-w-2xl">
                 {language === "vi"
                   ? "Phiên bản sơn nội thất Majestic mới nhất định hình tiêu chuẩn sang trọng cho ngôi nhà của bạn. Với công nghệ tạo màu sắc rực rỡ sắc nét và khả năng lau chùi vượt trội, Majestic bảo vệ không gian sống trong lành, kháng khuẩn và bền bỉ tối đa."
                   : "The latest Majestic interior paint sets a new standard of luxury for your home. With vivid color technology and superior washability, Majestic protects clean, antibacterial, and maximally durable living spaces."
                 }
               </p>
-              <Link
-                href="/products/jotun-majestic-dep-hoan-hao-bong-5l"
-                className="btn-island bg-warm-900 hover:bg-warm-800 text-white text-sm px-6 py-3.5 mt-2"
-              >
-                <span>{language === "vi" ? "Tìm hiểu sản phẩm" : "Explore product"}</span>
-                <span className="btn-island-icon bg-white/10">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </Link>
             </div>
           </div>
         </motion.div>
@@ -514,7 +506,7 @@ export default function HomePage() {
         <div className="absolute top-1/2 left-12 w-3 h-3 rounded-full bg-[#88734C]/30 animate-pulse pointer-events-none" />
         <div className="absolute bottom-1/3 right-12 w-4 h-4 rounded-full bg-[#A9BBC8]/30 animate-pulse pointer-events-none" />
 
-        <div className="w-full max-w-[1880px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 relative z-10">
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -531,7 +523,7 @@ export default function HomePage() {
               <PaintBucket className="w-4 h-4 text-[#88734C]" />
               {language === "vi" ? "SẮC MÀU THỜI THƯỢNG" : "TRENDING PALETTE"}
             </motion.span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-warm-900 mb-2 leading-tight">
+            <h2 className="text-3xl md:text-4.5xl lg:text-[3rem] font-serif font-bold text-warm-900 mb-2 leading-tight">
               {language === "vi" ? "Khám Phá Màu Sắc Của Chúng Tôi" : "Explore Our Paint Colors"}
             </h2>
             <motion.div
@@ -944,7 +936,7 @@ export default function HomePage() {
       </section>
 
       {/* 3. CÔNG CỤ PHỐI MÀU / INTERACTIVE COLOR VISUALIZER PROMO */}
-      <section id="visualizer-section" className="py-24 bg-jotun-ivory-100 border-b border-black/5 relative overflow-hidden text-left">
+      <section id="visualizer-section" className="py-16 md:py-20 bg-jotun-ivory-100 border-b border-black/5 relative overflow-hidden text-left">
         {/* Subtle Dotted Grid Background */}
         <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1px,transparent_1px)] [background-size:24px_24px] opacity-70 pointer-events-none" />
 
@@ -953,17 +945,17 @@ export default function HomePage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.08 }}
           transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-          className="w-full max-w-[1880px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 relative z-10"
+          className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 relative z-10"
         >
           {/* Main Visualizer Header & Layout matching Image 2 */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-16">
             {/* Left Column: Title & Intro */}
-            <div className="lg:col-span-5 flex flex-col gap-6">
+            <div className="lg:col-span-5 flex flex-col gap-4">
               <span className="text-[10px] font-bold text-[#88734C] uppercase tracking-widest flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
                 {language === "vi" ? "CÔNG CỤ KỸ THUẬT SỐ" : "DIGITAL PAINT UTILITY"}
               </span>
-              <h2 className="font-serif font-bold text-4xl md:text-5xl text-warm-900 leading-tight">
+              <h2 className="font-serif font-bold text-2xl md:text-3.5xl lg:text-[2.5rem] text-warm-900 leading-tight">
                 {language === "vi" ? "Công Cụ Phối Màu" : "Color Visualizer"}
               </h2>
               <p className="text-sm text-warm-600 leading-relaxed">
@@ -993,7 +985,7 @@ export default function HomePage() {
 
             {/* Right Column: Visual of mobile mockup matching Image 2 */}
             <div className="lg:col-span-7 relative flex justify-center items-center">
-              <div className="relative w-full max-w-[600px] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-black/5 bg-white">
+              <div className="relative w-full max-w-[620px] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-black/5 bg-white">
                 <Image
                   src="/visualizer_mockup.png"
                   alt="Modern Visualizer Design with Dual Colors"
@@ -1009,7 +1001,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-warm-250 pt-16">
             {/* Feature 1: Explore Jotun Colors */}
             <div className="bg-white/60 border border-warm-200/50 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
-              <div className="relative w-40 h-40 shrink-0 rounded-xl overflow-hidden shadow-md bg-warm-100">
+              <div className="relative w-48 h-48 shrink-0 rounded-xl overflow-hidden shadow-md bg-warm-100">
                 <Image
                   src="https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=400"
                   alt="Explore Colors"
@@ -1035,7 +1027,7 @@ export default function HomePage() {
 
             {/* Feature 2: Test colors before/after */}
             <div className="bg-white/60 border border-warm-200/50 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
-              <div className="relative w-40 h-40 shrink-0 rounded-xl overflow-hidden shadow-md bg-warm-100">
+              <div className="relative w-48 h-48 shrink-0 rounded-xl overflow-hidden shadow-md bg-warm-100">
                 <Image
                   src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=400"
                   alt="Test colors"
@@ -1064,7 +1056,7 @@ export default function HomePage() {
 
       {/* 4. SẢN PHẨM NỔI BẬT */}
       <section className="py-28 bg-white">
-        <div className="w-full max-w-[1880px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1073,10 +1065,10 @@ export default function HomePage() {
             className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6"
           >
             <div className="max-w-xl text-left">
-              <h2 className="text-3xl font-serif font-bold text-warm-900 mb-2">
+              <h2 className="text-2xl md:text-3.5xl lg:text-4xl font-serif font-bold text-warm-900 mb-2">
                 {language === "vi" ? "Sản Phẩm Sơn Nước Nổi Bật" : "Featured Paint Products"}
               </h2>
-              <p className="text-warm-500 text-xs">
+              <p className="text-warm-550 text-xs">
                 {language === "vi"
                   ? "Danh sách các dòng sơn chính hãng chất lượng cao bán chạy nhất hiện nay."
                   : "Top-selling premium authentic paint lines of the highest quality available today."}
@@ -1174,7 +1166,7 @@ export default function HomePage() {
                         </span>
                       </div>
                     ) : (
-                      <span className="text-lg font-extrabold text-warm-900 font-mono">
+                      <span className="text-base font-extrabold text-warm-900 font-mono">
                         {formatPrice(paint.price)}
                       </span>
                     )}
@@ -1184,7 +1176,7 @@ export default function HomePage() {
                     >
                       <span>{language === "vi" ? "Mua ngay" : "Buy now"}</span>
                       <span className="btn-island-icon bg-white/20">
-                        <ArrowRight className="h-3 w-3" />
+                        <ArrowRight className="h-4 w-4" />
                       </span>
                     </button>
                   </div>
@@ -1197,7 +1189,7 @@ export default function HomePage() {
 
       {/* 5. TƯ VẤN & XU HƯỚNG TỪ CHUYÊN GIA / EXPERT BLOGS & GUIDES */}
       <section id="blogs-section" className="py-28 bg-jotun-ivory-100 border-b border-black/5">
-        <div className="w-full max-w-[1880px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1291,7 +1283,7 @@ export default function HomePage() {
 
       {/* 6. CÔNG TRÌNH THỰC TẾ (Before/After & Gallery) */}
       <section className="py-28 bg-white">
-        <div className="w-full max-w-[1880px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1299,7 +1291,7 @@ export default function HomePage() {
             transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-serif font-bold text-warm-900 mb-2">
+            <h2 className="text-2xl md:text-3.5xl lg:text-4xl font-serif font-bold text-warm-900 mb-2">
               {language === "vi" ? "Các Dự Án Đã Hoàn Thiện" : "Completed Projects"}
             </h2>
             <p className="text-warm-500 text-xs">
@@ -1322,7 +1314,7 @@ export default function HomePage() {
                 ref={sliderRef}
                 onMouseMove={handleMouseMove}
                 onTouchMove={handleTouchMove}
-                className="relative h-[480px] md:h-[600px] w-full rounded-2xl overflow-hidden cursor-ew-resize bg-zinc-900 select-none shadow-xl border border-black/5"
+                className="relative h-[440px] md:h-[620px] w-full rounded-2xl overflow-hidden cursor-ew-resize bg-zinc-900 select-none shadow-xl border border-black/5"
               >
                 <Image
                   src="/living_sage.png"
@@ -1368,7 +1360,7 @@ export default function HomePage() {
               <h3 className="font-serif font-bold text-2xl text-warm-900">
                 {language === "vi" ? "Kiến tạo mảng màu sang trọng" : "Crafting Luxurious Color Palettes"}
               </h3>
-              <p className="text-xs text-warm-500 leading-relaxed">
+              <p className="text-xs text-warm-550 leading-relaxed">
                 {language === "vi"
                   ? "Maison de FLOF vinh hạnh đồng hành cùng hàng nghìn nhà thầu uy tín kiến tạo nên vẻ đẹp sang trọng, đẳng cấp và trường tồn cho các công trình trọng điểm tại Việt Nam."
                   : "Maison de FLOF is honored to partner with thousands of reputable contractors, creating timeless luxury and prestige for key projects across Vietnam."}
@@ -1381,7 +1373,7 @@ export default function HomePage() {
                   <motion.div
                     key={i}
                     whileHover={{ scale: 1.02 }}
-                    className="relative h-36 md:h-48 overflow-hidden rounded-xl group cursor-pointer border border-black/5 shadow-sm"
+                    className="relative h-44 md:h-60 overflow-hidden rounded-xl group cursor-pointer border border-black/5 shadow-sm"
                   >
                     <Image
                       src={src}

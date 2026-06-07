@@ -89,14 +89,33 @@ export default function ProfilePage() {
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data)) {
-            setOrders(data);
             const localOrders = localStorage.getItem("sonvn-orders");
-            let ordersArray = [];
+            let ordersArray: any[] = [];
             if (localOrders) {
               try { ordersArray = JSON.parse(localOrders); } catch (e) {}
             }
+
+            // Merge database orders with local storage orders, keeping unique IDs
+            const merged = [...data];
+            const currentUserLocalOrders = ordersArray.filter((o: any) => o.userEmail === currentUserEmail);
+            currentUserLocalOrders.forEach((localOrd) => {
+              if (!merged.some((dbOrd) => dbOrd.id === localOrd.id)) {
+                merged.push(localOrd);
+              }
+            });
+
+            // Sort merged orders by date/id descending
+            merged.sort((a, b) => {
+              const dateA = a.date || "";
+              const dateB = b.date || "";
+              if (dateA !== dateB) return dateB.localeCompare(dateA);
+              return b.id.localeCompare(a.id);
+            });
+
+            setOrders(merged);
+
             const otherUsersOrders = ordersArray.filter((o: any) => o.userEmail !== currentUserEmail);
-            localStorage.setItem("sonvn-orders", JSON.stringify([...data, ...otherUsersOrders]));
+            localStorage.setItem("sonvn-orders", JSON.stringify([...merged, ...otherUsersOrders]));
           }
         })
         .catch((err) => console.error("Error loading orders from DB API:", err));
@@ -440,47 +459,53 @@ export default function ProfilePage() {
         {/* Right column settings panels */}
         <div className="lg:col-span-8 flex flex-col gap-6">
           {activeTab === "history" && (
-            <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
-              <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
-                {language === "vi" ? "Lịch sử mua hàng" : "Purchase History"}
-              </h3>
+            <div className="bezel-outer">
+              <div className="bezel-inner p-6 text-left shadow-sm">
+                <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
+                  {language === "vi" ? "Lịch sử mua hàng" : "Purchase History"}
+                </h3>
 
-              {orders.length > 0 ? (
-                <div className="flex flex-col gap-5">
-                  {orders.map((ord) => (
-                    <div
-                      key={ord.id}
-                      className="p-5 border border-warm-200/80 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-warm-50/20 hover:bg-warm-50 hover:border-warm-350 hover:shadow-md transition-all duration-300"
-                    >
-                      <div className="flex flex-col gap-1 text-xs">
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold font-mono text-jotun-teal text-sm">{ord.id}</span>
-                          {getStatusBadge(ord.status)}
+                {orders.length > 0 ? (
+                  <div className="flex flex-col gap-5">
+                    {orders.map((ord) => (
+                      <div
+                        key={ord.id}
+                        className="p-5 border border-warm-200/80 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-warm-50/20 hover:bg-warm-50 hover:border-warm-350 hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="flex flex-col gap-1 text-xs">
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold font-mono text-jotun-teal text-sm">{ord.id}</span>
+                            {getStatusBadge(ord.status)}
+                          </div>
+                          <p className="text-warm-800 mt-1.5 leading-relaxed font-semibold">
+                            {typeof ord.items === "string"
+                              ? ord.items
+                              : Array.isArray(ord.items)
+                                ? ord.items.map((i: any) => typeof i === "string" ? i : `${i.paint?.name || i.name || (language === "vi" ? "Sản phẩm" : "Paint")} x ${i.quantity || 1}`).join(", ")
+                                : JSON.stringify(ord.items || "")}
+                          </p>
+                          <span className="text-[10px] text-warm-500 flex items-center gap-1 mt-1 font-mono">
+                            {ord.date}
+                          </span>
                         </div>
-                        <p className="text-warm-800 mt-1.5 leading-relaxed font-semibold">
-                          {ord.items}
-                        </p>
-                        <span className="text-[10px] text-warm-500 flex items-center gap-1 mt-1 font-mono">
-                          {ord.date}
-                        </span>
-                      </div>
 
-                      <div className="text-left sm:text-right font-mono shrink-0">
-                        <span className="text-[10px] text-warm-500 block">
-                          {language === "vi" ? "Tổng tiền" : "Total amount"}
-                        </span>
-                        <span className="font-bold text-base text-warm-900">
-                          {formatPrice(ord.total)}
-                        </span>
+                        <div className="text-left sm:text-right font-mono shrink-0">
+                          <span className="text-[10px] text-warm-500 block">
+                            {language === "vi" ? "Tổng tiền" : "Total amount"}
+                          </span>
+                          <span className="font-bold text-base text-warm-900">
+                            {formatPrice(ord.total)}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-10 text-warm-500">
-                  {language === "vi" ? "Bạn chưa thực hiện đơn hàng nào." : "You have no orders yet."}
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-10 text-warm-500">
+                    {language === "vi" ? "Bạn chưa thực hiện đơn hàng nào." : "You have no orders yet."}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

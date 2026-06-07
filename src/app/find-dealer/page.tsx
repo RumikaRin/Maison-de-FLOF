@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { cn } from "@/lib/utils";
-import { ChevronDown, MapPin, Phone, Sparkles, Send, Mail, User } from "lucide-react";
+import { ChevronDown, MapPin, Phone, Sparkles, Send, Mail, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Map, MapMarker, MarkerContent, MarkerTooltip } from "@/components/ui/mapcn-marker-tooltip";
 import {
@@ -151,18 +153,19 @@ export default function FindDealerPage() {
 
   useEffect(() => {
     setMounted(true);
- 
+
     const storedDealers = localStorage.getItem("sonvn-dealers");
     if (storedDealers) {
       try {
         const parsed = JSON.parse(storedDealers);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           setDealers(parsed);
+          return; // Skip loading from API to preserve user's local edits made in Admin
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
-    // Load active dealers from database API
+    // Load active dealers from database API (runs only once to initialize LocalStorage if empty)
     fetch("/api/dealers")
       .then((res) => res.json())
       .then((data) => {
@@ -221,32 +224,98 @@ export default function FindDealerPage() {
 
   return (
     <div className="min-h-screen bg-jotun-ivory text-warm-900 transition-colors duration-300">
-      {/* Page Header */}
-      <div className="py-16 md:py-20 relative bg-jotun-ivory overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
-        <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-[1440px] mx-auto px-6 md:px-12 text-center relative z-10"
-        >
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-warm-900 mb-4 tracking-tight">
-            {t.dealerTitle}
-          </h1>
-          <p className="text-warm-500 text-sm max-w-2xl mx-auto leading-relaxed font-medium">
-            {t.dealerSub}
-          </p>
-        </motion.div>
-      </div>
+      {/* Page Header — Editorial Split Layout (Image 1 Style) */}
+      <section className="relative w-full pt-20 pb-16 md:pt-24 md:pb-20 overflow-hidden bg-jotun-ivory text-left border-b border-black/5">
+        {/* Subtle grid accent background */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
 
-      <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-10">
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 items-center grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-10">
+          
+          {/* Left Column: Premium Showroom Image (7 cols) - Animated */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="lg:col-span-7 relative flex justify-center items-center"
+          >
+            <div className="relative w-full max-w-[620px] aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-black/5 bg-white">
+              <Image
+                src="/showroom_hero.png"
+                alt={language === "vi" ? "Showroom sơn cao cấp" : "Premium Paint Showroom"}
+                fill
+                className="object-cover transition-transform duration-700 hover:scale-103"
+                priority
+              />
+            </div>
+          </motion.div>
+
+          {/* Right Column: Text Content (5 cols) - Animated */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
+            className="lg:col-span-5 flex flex-col gap-6 items-start justify-center text-left"
+          >
+            <h1
+              className="text-3xl sm:text-4xl lg:text-[2.75rem] font-serif font-bold text-warm-900 tracking-tight"
+              style={{ lineHeight: 1.35 }}
+            >
+              {language === "vi" ? (
+                <>Tìm Đại Lý Sơn <br /><span className="font-normal italic text-jotun-teal">Gần Nhất</span></>
+              ) : (
+                <>Find Our Nearest <br /><span className="font-normal italic text-jotun-teal">Dealer</span></>
+              )}
+            </h1>
+            <p className="text-sm text-warm-650 leading-relaxed font-light">
+              {language === "vi"
+                ? "Tìm kiếm các đại lý ủy quyền chính hãng của Jotun, Dulux và Nippon trên toàn quốc. Nhận tư vấn trực tiếp từ đội ngũ chuyên gia để chọn dòng sơn chất lượng cao nhất cho tổ ấm của bạn."
+                : "Search authorized Jotun, Dulux, and Nippon paint dealers nationwide based on your location. Get direct advice from experts to select the absolute highest quality paint lines for your home."}
+            </p>
+
+            <div className="flex flex-col gap-3 text-xs font-semibold text-warm-600 border-l border-[#88734C]/30 pl-4 py-1">
+              <p className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-jotun-teal shrink-0" />
+                {language === "vi" ? "Cam kết 100% sơn chính hãng ủy quyền" : "100% genuine authorized paint guarantee"}
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-jotun-teal shrink-0" />
+                {language === "vi" ? "Bảng giá niêm yết công khai rõ ràng" : "Public and transparent pricing"}
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-jotun-teal shrink-0" />
+                {language === "vi" ? "Hỗ trợ pha màu máy vi tính tự động" : "Computerized automatic tinting support"}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Centered Transition Banner (Image 1 Style) - Animated */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="py-12 bg-white border-b border-black/5"
+      >
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 text-center">
+          <p className="text-warm-600 text-sm md:text-base max-w-3xl mx-auto leading-relaxed font-light">
+            {language === "vi"
+              ? "Trải nghiệm dịch vụ chuyên nghiệp tại mạng lưới đại lý ủy quyền. Lựa chọn màu sắc, nhận tư vấn kỹ thuật và ước lượng khối lượng sơn cần thiết cho dự án của bạn."
+              : "Experience professional services at our authorized dealer network. Select colors, receive technical advice, and estimate the paint volume needed for your project."}
+          </p>
+        </div>
+      </motion.section>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="w-full max-w-[1400px] mx-auto px-6 md:px-12 py-10"
+      >
         {/* Filter bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="bg-white border border-warm-200/80 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between mb-8"
-        >
+        <div className="bg-white border border-warm-200/80 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between mb-8">
           <div className="relative w-full md:w-72">
             <input
               type="text"
@@ -316,41 +385,20 @@ export default function FindDealerPage() {
               {filteredDealers.length} {language === "vi" ? "đại lý" : "dealers"}
             </span>
           </div>
-        </motion.div>
+        </div>
 
         {/* Dealer Split View (List + Map) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-8">
-          {/* Left: Dealer list (5 cols) */}
-          <motion.div
-            key={selectedProvince + selectedBrand + searchQuery}
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="lg:col-span-5 flex flex-col gap-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-warm-200"
-          >
+          {/* Left: Dealer list (5 cols) - Static (No Animation) */}
+          <div className="lg:col-span-5 flex flex-col gap-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-warm-200">
             {filteredDealers.length > 0 ? (
               filteredDealers.map((d) => (
-                <motion.div
+                <div
                   key={d.id}
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.015, y: -2 }}
-                  whileTap={{ scale: 0.985 }}
                   onClick={() => handleDealerClick(d)}
-                  className="bg-white rounded-2xl border border-warm-200/80 p-5 flex flex-col gap-4 justify-between hover:shadow-md hover:border-jotun-teal/30 transition-all duration-300 shadow-sm cursor-pointer text-left"
+                  className="bg-white rounded-2xl border border-warm-200/80 p-5 flex flex-col gap-4 justify-between hover:shadow-md hover:border-jotun-teal/30 hover:-translate-y-0.5 active:scale-[0.985] transition-all duration-300 shadow-sm cursor-pointer text-left"
                 >
                   <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-lg text-xs font-bold border",
-                        BRAND_COLORS[d.brand] || "bg-warm-50 text-warm-700 border-warm-150"
-                      )}>
-                        {d.brand}
-                      </span>
-                      <div className="text-[10px] font-bold text-emerald-800 bg-emerald-500/5 border border-emerald-500/10 px-2 py-0.5 rounded-lg">
-                        <span>Authorized</span>
-                      </div>
-                    </div>
-
                     <h3 className="font-serif font-bold text-base text-warm-900">
                       {language === "vi" ? d.name : (d.nameEn || d.name)}
                     </h3>
@@ -369,18 +417,20 @@ export default function FindDealerPage() {
                   <div className="flex gap-2 border-t border-warm-100 pt-4" onClick={(e) => e.stopPropagation()}>
                     <a
                       href={`tel:${d.phone}`}
-                      className="flex-1 py-2 bg-warm-900 hover:bg-warm-850 text-white text-[11px] font-bold rounded-xl text-center transition-colors shadow-sm"
+                      className="flex-1 py-2 bg-warm-900 hover:bg-warm-850 text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-sm"
                     >
-                      {t.callDealer}
+                      <Phone className="h-3.5 w-3.5" />
+                      <span>{t.callDealer}</span>
                     </a>
                     <button
-                      className="flex-1 py-2 border border-warm-200 hover:bg-warm-50/50 text-warm-750 text-[11px] font-bold rounded-xl transition-colors"
+                      className="flex-1 py-2 border border-warm-200 hover:bg-warm-50/50 text-warm-750 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors"
                       onClick={() => handleDealerClick(d)}
                     >
-                      {language === "vi" ? "Định vị" : "Locate"}
+                      <MapPin className="h-3.5 w-3.5 text-jotun-teal" />
+                      <span>{language === "vi" ? "Định vị" : "Locate"}</span>
                     </button>
                   </div>
-                </motion.div>
+                </div>
               ))
             ) : (
               <div className="bg-warm-50/50 border border-dashed border-warm-200/80 rounded-2xl h-72 flex flex-col items-center justify-center text-center p-6 gap-2">
@@ -390,9 +440,9 @@ export default function FindDealerPage() {
                 <p className="text-warm-600 font-medium">{t.noDealersFound}</p>
               </div>
             )}
-          </motion.div>
+          </div>
 
-          {/* Right: Live Interactive Map (7 cols) */}
+          {/* Right: Live Interactive Map (7 cols) - Static (No Animation) */}
           <div className="lg:col-span-7 min-h-[500px] rounded-2xl border border-black/5 overflow-hidden shadow-sm relative">
             <Map viewport={mapViewport}>
               {filteredDealers.map((dl) => (
@@ -418,7 +468,7 @@ export default function FindDealerPage() {
             </Map>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -146,24 +146,8 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* Right Content Column (Top Header + Main Content) */}
+      {/* Right Content Column (Main Content) */}
       <div className="flex-grow flex flex-col min-w-0">
-        {/* Desktop Top Header */}
-        <header className="hidden md:flex items-center justify-end px-10 py-4 border-b border-warm-200/80 bg-white shadow-xs">
-          <div className="flex items-center gap-3 bg-warm-50/50 p-2 px-4 rounded-xl border border-warm-150">
-            <div className="h-8 w-8 bg-jotun-teal text-white rounded-full flex items-center justify-center font-bold text-xs">
-              AD
-            </div>
-            <div className="text-left">
-              <span className="text-xs font-bold block text-warm-850">
-                {language === "vi" ? "Quản Trị Viên" : "Administrator"}
-              </span>
-              <span className="text-[9px] text-warm-500 font-mono font-bold uppercase tracking-wider">
-                ADMIN ROLE
-              </span>
-            </div>
-          </div>
-        </header>
 
         {/* Main Content Area */}
         <main className="flex-grow p-6 md:p-10 overflow-y-auto max-w-[1600px] mx-auto w-full">

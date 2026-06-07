@@ -8,79 +8,106 @@ import { Map, MapMarker, MarkerContent } from "@/components/ui/mapcn-marker-tool
 import { MapPin, Search, Plus, Trash2, Edit2, X } from "lucide-react";
 
 interface Dealer {
+  id: string;
   name: string;
   nameEn: string;
+  phone: string;
+  email: string;
   address: string;
   addressEn: string;
-  phone: string;
+  province: string;
+  district: string;
+  brand: string;
   lng: number;
   lat: number;
 }
 
-type DealersState = Record<"hanoi" | "hcm", Dealer[]>;
-
-interface TableDealer extends Dealer {
-  cityKey: "hanoi" | "hcm";
-  indexInCity: number;
-}
-
-const FALLBACK_DEALERS: DealersState = {
-  "hanoi": [
-    {
-      name: "Đại Lý Sơn Cầu Giấy",
-      nameEn: "Cau Giay Paint Dealer",
-      address: "Số 15 Cầu Giấy, Láng Thượng, Hà Nội",
-      addressEn: "15 Cau Giay, Lang Thuong, Hanoi",
-      phone: "1800 1511",
-      lng: 105.8016,
-      lat: 21.0267
-    },
-    {
-      name: "Trung Tâm Pha Màu Jotun Mỹ Đình",
-      nameEn: "My Dinh Jotun Tinting Center",
-      address: "28 Lê Đức Thọ, Mỹ Đình, Hà Nội",
-      addressEn: "28 Le Duc Tho, My Dinh, Hanoi",
-      phone: "0900 000 001",
-      lng: 105.7725,
-      lat: 21.0286
-    }
-  ],
-  "hcm": [
-    {
-      name: "Thế Giới Sơn Sài Gòn Q1",
-      nameEn: "Saigon Paint World District 1",
-      address: "88 Lê Lợi, Phường Bến Thành, Quận 1, TP.HCM",
-      addressEn: "88 Le Loi, Ben Thanh Ward, District 1, HCMC",
-      phone: "0911 222 333",
-      lng: 106.6994,
-      lat: 10.7728
-    },
-    {
-      name: "Đại Lý Sơn Jotun Dulux Thủ Đức",
-      nameEn: "Thu Duc Jotun & Dulux Paint Shop",
-      address: "420 Võ Văn Ngân, Bình Thọ, Thủ Đức, TP.HCM",
-      addressEn: "420 Vo Van Ngân, Binh Tho, Thu Duc, HCMC",
-      phone: "0933 444 555",
-      lng: 106.7722,
-      lat: 10.8492
-    }
-  ]
-};
+const FALLBACK_DEALERS: Dealer[] = [
+  {
+    id: "1",
+    name: "Showroom Sơn FLOF Hà Nội",
+    nameEn: "FLOF Hanoi Paint Boutique",
+    phone: "0243123456",
+    email: "hanoi@flof.vn",
+    address: "Số 15 Cầu Giấy, Láng Thượng, Cầu Giấy",
+    addressEn: "15 Cau Giay, Lang Thuong, Cau Giay",
+    province: "Hà Nội",
+    district: "Cầu Giấy",
+    brand: "Jotun",
+    lng: 105.8016,
+    lat: 21.0267
+  },
+  {
+    id: "2",
+    name: "Trung Tâm Phối Màu Jotun Tây Hồ",
+    nameEn: "Tay Ho Jotun Tinting Center",
+    phone: "0243789456",
+    email: "tayho@flof.vn",
+    address: "Số 102 Lạc Long Quân, Bưởi, Tây Hồ",
+    addressEn: "102 Lac Long Quan, Buoi, Tay Ho",
+    province: "Hà Nội",
+    district: "Tây Hồ",
+    brand: "Jotun",
+    lng: 105.8066,
+    lat: 21.0664
+  },
+  {
+    id: "3",
+    name: "Đại Lý Sơn Dulux Quận 1",
+    nameEn: "Dulux Paint Shop District 1",
+    phone: "0283999888",
+    email: "q1@flof.vn",
+    address: "240 Trần Hưng Đạo, Nguyễn Cư Trinh, Quận 1",
+    addressEn: "240 Tran Hung Dao, Nguyen Cu Trinh, District 1",
+    province: "Hồ Chí Minh",
+    district: "Quận 1",
+    brand: "Dulux",
+    lng: 106.6894,
+    lat: 10.7628
+  },
+  {
+    id: "4",
+    name: "Nhà Phân Phối Sơn Jotun Bình Thạnh",
+    nameEn: "Binh Thanh Jotun Paint Distributor",
+    phone: "0283511222",
+    email: "binhthanh@flof.vn",
+    address: "45 Điện Biên Phủ, Phường 15, Bình Thạnh",
+    addressEn: "45 Dien Bien Phu, Ward 15, Binh Thanh",
+    province: "Hồ Chí Minh",
+    district: "Bình Thạnh",
+    brand: "Jotun",
+    lng: 106.7022,
+    lat: 10.7992
+  },
+  {
+    id: "5",
+    name: "Đại Lý Sơn Nippon Đà Nẵng",
+    nameEn: "Nippon Paint Da Nang Shop",
+    phone: "02363555777",
+    email: "danang@flof.vn",
+    address: "98 Nguyễn Văn Linh, Nam Dương, Hải Châu",
+    addressEn: "98 Nguyen Van Linh, Nam Duong, Hai Chau",
+    province: "Đà Nẵng",
+    district: "Hải Châu",
+    brand: "Nippon Paint",
+    lng: 108.2215,
+    lat: 16.0601
+  }
+];
 
 export default function AdminDealersPage() {
   const { language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
 
   // States
-  const [dealers, setDealers] = useState<DealersState>(FALLBACK_DEALERS);
+  const [dealers, setDealers] = useState<Dealer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterCity, setFilterCity] = useState("all");
+  const [filterProvince, setFilterProvince] = useState("all");
 
   // Modal Control
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [editingCityKey, setEditingCityKey] = useState<"hanoi" | "hcm" | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form States
   const [formName, setFormName] = useState("");
@@ -88,17 +115,49 @@ export default function AdminDealersPage() {
   const [formAddress, setFormAddress] = useState("");
   const [formAddressEn, setFormAddressEn] = useState("");
   const [formPhone, setFormPhone] = useState("");
-  const [formCity, setFormCity] = useState<"hanoi" | "hcm">("hanoi");
-  const [formLng, setFormLng] = useState<number>(105.8);
-  const [formLat, setFormLat] = useState<number>(21.0);
+  const [formEmail, setFormEmail] = useState("");
+  const [formProvince, setFormProvince] = useState("Hà Nội");
+  const [formDistrict, setFormDistrict] = useState("");
+  const [formBrand, setFormBrand] = useState("Jotun");
+  const [formLng, setFormLng] = useState<number>(105.8016);
+  const [formLat, setFormLat] = useState<number>(21.0267);
 
-  // Load from local storage
+  // Load from local storage and normalize if nested object
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem("sonvn-dealers");
     if (stored) {
       try {
-        setDealers(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setDealers(parsed);
+        } else if (parsed && typeof parsed === "object") {
+          // Normalise legacy Record<"hanoi" | "hcm", Dealer[]> format
+          const flat: Dealer[] = [];
+          (["hanoi", "hcm"] as const).forEach((cityKey) => {
+            const list = (parsed as any)[cityKey] || [];
+            list.forEach((dl: any, index: number) => {
+              flat.push({
+                id: dl.id || `dl-${cityKey}-${index}-${Date.now()}`,
+                name: dl.name,
+                nameEn: dl.nameEn || dl.name,
+                phone: dl.phone,
+                email: dl.email || "",
+                address: dl.address,
+                addressEn: dl.addressEn || dl.address,
+                province: cityKey === "hanoi" ? "Hà Nội" : "Hồ Chí Minh",
+                district: dl.district || (cityKey === "hanoi" ? "Cầu Giấy" : "Quận 1"),
+                brand: dl.brand || "Jotun",
+                lng: dl.lng,
+                lat: dl.lat,
+              });
+            });
+          });
+          setDealers(flat);
+          localStorage.setItem("sonvn-dealers", JSON.stringify(flat));
+        } else {
+          setDealers(FALLBACK_DEALERS);
+        }
       } catch (e) {
         setDealers(FALLBACK_DEALERS);
       }
@@ -110,62 +169,48 @@ export default function AdminDealersPage() {
 
   if (!mounted) return null;
 
-  // Flatten dealers object for table
-  const allDealers: TableDealer[] = [];
-  (["hanoi", "hcm"] as const).forEach((cityKey) => {
-    const list = dealers[cityKey] || [];
-    list.forEach((dl, index) => {
-      allDealers.push({
-        ...dl,
-        cityKey,
-        indexInCity: index,
-      });
-    });
-  });
-
   // Filter & Search
-  const filteredDealers = allDealers.filter((dl) => {
+  const filteredDealers = dealers.filter((dl) => {
     const matchesSearch =
       dl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       dl.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
       dl.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
       dl.addressEn.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesCity = filterCity === "all" || dl.cityKey === filterCity;
+    const matchesProvince = filterProvince === "all" || dl.province === filterProvince;
 
-    return matchesSearch && matchesCity;
+    return matchesSearch && matchesProvince;
   });
-
-  const saveToLocalStorage = (nextState: DealersState) => {
-    setDealers(nextState);
-    localStorage.setItem("sonvn-dealers", JSON.stringify(nextState));
-  };
 
   const openAddModal = () => {
     setModalMode("add");
-    setEditingCityKey(null);
-    setEditingIndex(null);
+    setEditingId(null);
     setFormName("");
     setFormNameEn("");
     setFormAddress("");
     setFormAddressEn("");
     setFormPhone("");
-    setFormCity("hanoi");
+    setFormEmail("");
+    setFormProvince("Hà Nội");
+    setFormDistrict("");
+    setFormBrand("Jotun");
     setFormLng(105.8016);
     setFormLat(21.0267);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (dl: TableDealer) => {
+  const openEditModal = (dl: Dealer) => {
     setModalMode("edit");
-    setEditingCityKey(dl.cityKey);
-    setEditingIndex(dl.indexInCity);
+    setEditingId(dl.id);
     setFormName(dl.name);
     setFormNameEn(dl.nameEn);
     setFormAddress(dl.address);
     setFormAddressEn(dl.addressEn);
     setFormPhone(dl.phone);
-    setFormCity(dl.cityKey);
+    setFormEmail(dl.email || "");
+    setFormProvince(dl.province);
+    setFormDistrict(dl.district || "");
+    setFormBrand(dl.brand || "Jotun");
     setFormLng(dl.lng);
     setFormLat(dl.lat);
     setIsModalOpen(true);
@@ -174,66 +219,57 @@ export default function AdminDealersPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formName || !formNameEn || !formAddress || !formAddressEn || !formPhone || !formLng || !formLat) {
+    if (!formName || !formNameEn || !formAddress || !formAddressEn || !formPhone || !formLng || !formLat || !formProvince || !formDistrict) {
       toast.error(
-        language === "vi" ? "Vui lòng nhập đầy đủ các trường thông tin." : "Please fill in all inputs."
+        language === "vi" ? "Vui lòng nhập đầy đủ các trường thông tin." : "Please fill in all required inputs."
       );
       return;
     }
 
-    const newDealer: Dealer = {
+    const updatedDealer: Dealer = {
+      id: modalMode === "add" ? `dl-${Date.now()}` : editingId || `dl-${Date.now()}`,
       name: formName,
       nameEn: formNameEn,
       address: formAddress,
       addressEn: formAddressEn,
       phone: formPhone,
+      email: formEmail,
+      province: formProvince,
+      district: formDistrict,
+      brand: formBrand,
       lng: Number(formLng),
       lat: Number(formLat),
     };
 
-    let nextState = { ...dealers };
+    let nextState: Dealer[];
 
     if (modalMode === "add") {
-      // Add to selected city
-      nextState[formCity] = [...(nextState[formCity] || []), newDealer];
+      nextState = [...dealers, updatedDealer];
       toast.success(
         language === "vi" ? "Đã thêm chi nhánh mới thành công!" : "New branch added successfully!"
       );
     } else {
-      // Edit
-      if (editingCityKey && editingIndex !== null) {
-        // If city changed
-        if (editingCityKey !== formCity) {
-          // Remove from old city list
-          nextState[editingCityKey] = nextState[editingCityKey].filter((_, i) => i !== editingIndex);
-          // Add to new city list
-          nextState[formCity] = [...(nextState[formCity] || []), newDealer];
-        } else {
-          // Update in same city list
-          nextState[formCity] = nextState[formCity].map((dl, i) =>
-            i === editingIndex ? newDealer : dl
-          );
-        }
-        toast.success(
-          language === "vi" ? "Đã cập nhật thông tin chi nhánh!" : "Branch updated successfully!"
-        );
-      }
+      nextState = dealers.map((dl) => dl.id === editingId ? updatedDealer : dl);
+      toast.success(
+        language === "vi" ? "Đã cập nhật thông tin chi nhánh!" : "Branch updated successfully!"
+      );
     }
 
-    saveToLocalStorage(nextState);
+    setDealers(nextState);
+    localStorage.setItem("sonvn-dealers", JSON.stringify(nextState));
     setIsModalOpen(false);
   };
 
-  const handleDelete = (cityKey: "hanoi" | "hcm", index: number) => {
+  const handleDelete = (id: string) => {
     const confirmMsg =
       language === "vi"
         ? "Bạn chắc chắn muốn xóa chi nhánh này? Thao tác này sẽ cập nhật trực tiếp trên bản đồ trang chủ."
         : "Are you sure you want to delete this branch? This updates the homepage map immediately.";
 
     if (confirm(confirmMsg)) {
-      let nextState = { ...dealers };
-      nextState[cityKey] = nextState[cityKey].filter((_, i) => i !== index);
-      saveToLocalStorage(nextState);
+      const nextState = dealers.filter((dl) => dl.id !== id);
+      setDealers(nextState);
+      localStorage.setItem("sonvn-dealers", JSON.stringify(nextState));
       toast.success(
         language === "vi" ? "Đã xóa chi nhánh thành công." : "Branch deleted successfully."
       );
@@ -245,10 +281,10 @@ export default function AdminDealersPage() {
       {/* Header and Add CTA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-serif">
+          <h1 className="text-3xl font-bold font-serif text-warm-900">
             {language === "vi" ? "Quản Lý Chi Nhánh & Đại Lý" : "Branches & Dealers"}
           </h1>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-warm-550 text-xs mt-1">
             {language === "vi"
               ? "Cập nhật thông tin địa chỉ, số hotline và định vị GPS chi nhánh hiển thị trên trang chủ."
               : "Update address, hotline, and GPS coordinate data for branches rendered on the storefront map."}
@@ -281,12 +317,13 @@ export default function AdminDealersPage() {
         </div>
 
         <CustomSelect
-          value={filterCity}
-          onValueChange={setFilterCity}
+          value={filterProvince}
+          onValueChange={setFilterProvince}
           options={[
             { value: "all", label: language === "vi" ? "Tất cả khu vực" : "All Regions" },
-            { value: "hanoi", label: language === "vi" ? "Hà Nội" : "Hanoi" },
-            { value: "hcm", label: language === "vi" ? "TP. Hồ Chí Minh" : "Ho Chi Minh City" },
+            { value: "Hà Nội", label: language === "vi" ? "Hà Nội" : "Hanoi" },
+            { value: "Hồ Chí Minh", label: language === "vi" ? "TP. Hồ Chí Minh" : "Ho Chi Minh City" },
+            { value: "Đà Nẵng", label: language === "vi" ? "Đà Nẵng" : "Da Nang" },
           ]}
         />
       </div>
@@ -298,7 +335,7 @@ export default function AdminDealersPage() {
             <thead>
               <tr className="border-b border-warm-150 text-warm-450 font-bold uppercase tracking-wider text-[10px] bg-warm-50/50">
                 <th className="py-3.5 px-6">{language === "vi" ? "Chi nhánh / Đại lý" : "Branch / Dealer"}</th>
-                <th className="py-3.5 px-4">{language === "vi" ? "Khu vực" : "Region"}</th>
+                <th className="py-3.5 px-4">{language === "vi" ? "Khu vực / Thương hiệu" : "Region / Brand"}</th>
                 <th className="py-3.5 px-4">{language === "vi" ? "Địa chỉ" : "Address"}</th>
                 <th className="py-3.5 px-4">{language === "vi" ? "Liên hệ" : "Contact"}</th>
                 <th className="py-3.5 px-4">{language === "vi" ? "Tọa độ GPS" : "GPS Coordinates"}</th>
@@ -313,8 +350,8 @@ export default function AdminDealersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredDealers.map((dl, idx) => (
-                  <tr key={idx} className="hover:bg-warm-50/30 transition-colors">
+                filteredDealers.map((dl) => (
+                  <tr key={dl.id} className="hover:bg-warm-50/30 transition-colors">
                     <td className="py-4 px-6">
                       <div>
                         <span className="font-bold text-warm-900 block text-xs">
@@ -322,18 +359,21 @@ export default function AdminDealersPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${dl.cityKey === "hanoi"
-                          ? "bg-warm-150 text-warm-800 border border-warm-250"
-                          : "bg-jotun-teal/10 text-jotun-teal border border-jotun-teal/20"
-                        }`}>
-                        {dl.cityKey === "hanoi" ? "Hà Nội" : "TP.HCM"}
+                    <td className="py-4 px-4 flex flex-col gap-1 items-start">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-warm-150 text-warm-800 border border-warm-250">
+                        {dl.province}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-jotun-teal/10 text-jotun-teal border border-jotun-teal/20">
+                        {dl.brand || "Jotun"}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-warm-600 max-w-xs truncate" title={language === "vi" ? dl.address : dl.addressEn}>
                       {language === "vi" ? dl.address : dl.addressEn}
                     </td>
-                    <td className="py-4 px-4 text-warm-700 font-mono text-[11px]">{dl.phone}</td>
+                    <td className="py-4 px-4 text-warm-700 font-mono text-[11px]">
+                      <div>{dl.phone}</div>
+                      {dl.email && <div className="text-[10px] text-warm-450 font-normal">{dl.email}</div>}
+                    </td>
                     <td className="py-4 px-4 text-warm-500 font-mono text-[10px]">
                       Lng: {dl.lng.toFixed(4)} <br /> Lat: {dl.lat.toFixed(4)}
                     </td>
@@ -347,7 +387,7 @@ export default function AdminDealersPage() {
                           {language === "vi" ? "Sửa" : "Edit"}
                         </button>
                         <button
-                          onClick={() => handleDelete(dl.cityKey, dl.indexInCity)}
+                          onClick={() => handleDelete(dl.id)}
                           className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600"
                           title={language === "vi" ? "Xóa" : "Delete"}
                         >
@@ -365,8 +405,15 @@ export default function AdminDealersPage() {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl border border-warm-150 overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs cursor-pointer"
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl border border-warm-150 overflow-hidden flex flex-col md:flex-row max-h-[90vh] cursor-default">
 
             {/* Left Form Panel */}
             <form onSubmit={handleSubmit} className="flex-1 p-6 md:p-8 flex flex-col gap-4 overflow-y-auto">
@@ -412,23 +459,52 @@ export default function AdminDealersPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase text-warm-450">Khu vực / Thành phố</label>
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Thành phố / Tỉnh</label>
                   <CustomSelect
-                    value={formCity}
+                    value={formProvince}
                     onValueChange={(val) => {
-                      setFormCity(val as any);
+                      setFormProvince(val);
                       // Set default coords depending on city to make visual map easier
-                      if (val === "hanoi" && formLng === 106.6994) {
+                      if (val === "Hà Nội" && formLng === 106.6994) {
                         setFormLng(105.8016);
                         setFormLat(21.0267);
-                      } else if (val === "hcm" && formLng === 105.8016) {
+                      } else if (val === "Hồ Chí Minh" && formLng === 105.8016) {
                         setFormLng(106.6994);
                         setFormLat(10.7728);
+                      } else if (val === "Đà Nẵng") {
+                        setFormLng(108.2215);
+                        setFormLat(16.0601);
                       }
                     }}
                     options={[
-                      { value: "hanoi", label: language === "vi" ? "Hà Nội" : "Hanoi" },
-                      { value: "hcm", label: language === "vi" ? "TP. Hồ Chí Minh" : "Ho Chi Minh City" },
+                      { value: "Hà Nội", label: "Hà Nội" },
+                      { value: "Hồ Chí Minh", label: "TP. Hồ Chí Minh" },
+                      { value: "Đà Nẵng", label: "Đà Nẵng" },
+                    ]}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Quận / Huyện</label>
+                  <input
+                    type="text"
+                    required
+                    value={formDistrict}
+                    onChange={(e) => setFormDistrict(e.target.value)}
+                    placeholder="VD: Cầu Giấy, Quận 1..."
+                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Thương hiệu phân phối</label>
+                  <CustomSelect
+                    value={formBrand}
+                    onValueChange={setFormBrand}
+                    options={[
+                      { value: "Jotun", label: "Jotun" },
+                      { value: "Dulux", label: "Dulux" },
+                      { value: "Nippon Paint", label: "Nippon Paint" },
                     ]}
                   />
                 </div>
@@ -441,6 +517,17 @@ export default function AdminDealersPage() {
                     value={formPhone}
                     onChange={(e) => setFormPhone(e.target.value)}
                     placeholder="VD: 1800 1511..."
+                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Email liên hệ</label>
+                  <input
+                    type="email"
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
+                    placeholder="VD: contact@dealer.vn..."
                     className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
                   />
                 </div>
@@ -560,7 +647,7 @@ export default function AdminDealersPage() {
                   {language === "vi" ? "Chi tiết tọa độ" : "GPS Details"}
                 </span>
                 <div>
-                  <span className="text-warm-500">Khu vực:</span> {formCity === "hanoi" ? "Hà Nội" : "TP. Hồ Chí Minh"}
+                  <span className="text-warm-500">Khu vực:</span> {formProvince}
                 </div>
                 <div>
                   <span className="text-warm-500">Kinh độ (Lng):</span> <span className="font-mono text-warm-900">{formLng}</span>

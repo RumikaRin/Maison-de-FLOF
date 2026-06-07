@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       date: o.createdAt.toISOString().split("T")[0],
       userEmail: email,
       customer: user.name || "Nguyễn Văn Khách",
-      items: o.items.map((i) => `${i.paint.name} x ${i.quantity}`).join(", "),
+      items: o.items.map((i) => `${i.paint?.name || 'Sản phẩm'} x ${i.quantity}`).join(", "),
       total: Number(o.total),
       status: o.status
     }));

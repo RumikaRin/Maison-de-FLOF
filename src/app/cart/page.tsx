@@ -93,72 +93,35 @@ export default function CartPage() {
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-white border border-warm-200/80 rounded-2xl max-w-2xl mx-auto p-16 text-center flex flex-col items-center gap-6 shadow-sm">
-            <div className="p-4 bg-warm-50 rounded-full text-warm-300 font-bold text-lg font-mono">
-              [EMPTY]
+          <div className="bezel-outer max-w-xl mx-auto">
+            <div className="bezel-inner p-16 text-center flex flex-col items-center gap-6">
+              <div className="p-3 bg-warm-50/50 rounded-full border border-warm-200 text-warm-400 font-mono text-[10px] uppercase tracking-widest">
+                [ {language === "vi" ? "Trống" : "Empty"} ]
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-serif mb-2 text-warm-900">{t.cartEmpty}</h2>
+                <p className="text-sm text-warm-550 leading-relaxed font-light">
+                  {language === "vi"
+                    ? "Duyệt qua danh mục sắc màu phong phú của FLOF để lựa chọn những sản phẩm tốt nhất cho không gian sống của bạn."
+                    : "Browse through FLOF's rich color catalog and select the best products for your living space."}
+                </p>
+              </div>
+              <Link
+                href="/products"
+                className="btn-island bg-warm-900 hover:bg-warm-800 text-white text-xs font-bold px-8 py-3.5 shadow-sm"
+              >
+                <span>{language === "vi" ? "Mua sắm ngay" : "Shop Now"}</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-white">→</span>
+              </Link>
             </div>
-            <div>
-              <h2 className="text-xl font-bold font-serif mb-2 text-warm-900">{t.cartEmpty}</h2>
-              <p className="text-sm text-warm-500">
-                {language === "vi"
-                  ? "Duyệt qua danh mục sơn chất lượng cao của chúng tôi và chọn các sản phẩm tốt nhất cho công trình."
-                  : "Browse through our high-quality paint catalog and select the best products for your space."}
-              </p>
-            </div>
-            <Link
-              href="/products"
-              className="bg-jotun-teal hover:bg-jotun-teal-dark text-white font-bold text-xs px-8 py-3.5 rounded-xl shadow-xs transition-colors"
-            >
-              {language === "vi" ? "Mua sắm ngay" : "Shop Now"}
-            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Cart Items List */}
             <div className="lg:col-span-8 flex flex-col gap-6">
-              {/* Free shipping banner progress */}
-              <div className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex flex-col gap-3 text-left">
-                <div className="flex items-center gap-3">
-                  <div className="text-sm">
-                    {subtotal >= freeShippingThreshold ? (
-                      <span className="font-bold text-jotun-teal">
-                        [MIỄN PHÍ VẬN CHUYỂN] {language === "vi"
-                          ? "Chúc mừng! Đơn hàng của bạn đã được MIỄN PHÍ VẬN CHUYỂN."
-                          : "Congratulations! Your order qualifies for FREE SHIPPING."}
-                      </span>
-                    ) : (
-                      <span>
-                        [VẬN CHUYỂN] {language === "vi" ? (
-                          <>
-                            Mua thêm{" "}
-                            <strong className="text-jotun-teal font-mono">
-                              {formatPrice(amountNeededForFreeShipping)}
-                            </strong>{" "}
-                            để được miễn phí vận chuyển.
-                          </>
-                        ) : (
-                          <>
-                            Add{" "}
-                            <strong className="text-jotun-teal font-mono">
-                              {formatPrice(amountNeededForFreeShipping)}
-                            </strong>{" "}
-                            more to get free shipping.
-                          </>
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="w-full bg-warm-100 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-jotun-teal h-full rounded-full transition-all duration-300"
-                    style={{ width: `${progressToFreeShipping}%` }}
-                  />
-                </div>
-              </div>
-
               {/* List */}
-              <div className="bg-white border border-warm-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+              <div className="bezel-outer">
+                <div className="bezel-inner overflow-hidden flex flex-col shadow-sm">
                 <div className="divide-y divide-warm-100">
                   {items.map((item) => {
                     const itemSupplier = MOCK_SUPPLIERS.find((s) => s.id === item.paint.supplierId);
@@ -292,86 +255,92 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
+          </div>
 
             {/* Cart Totals & Coupon Sidebar */}
             <div className="lg:col-span-4 flex flex-col gap-6">
               {/* Coupon Code Block */}
-              <div className="bg-white border border-warm-200/80 p-6 rounded-2xl flex flex-col gap-4 text-left shadow-sm">
-                <h3 className="font-bold mb-1 text-sm text-warm-900 uppercase tracking-wider">
-                  {language === "vi" ? "Mã giảm giá" : "Coupon Discount"}
-                </h3>
-                <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder={language === "vi" ? "Nhập mã..." : "Coupon code..."}
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    className="flex-grow px-3 py-2 border border-warm-200 bg-white rounded-xl text-xs font-bold uppercase focus:outline-hidden focus:border-jotun-teal text-warm-850"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-warm-900 hover:bg-warm-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
-                  >
-                    {language === "vi" ? "Áp dụng" : "Apply"}
-                  </button>
-                </form>
-                {couponError && <p className="text-red-500 text-[10px] mt-1 font-semibold">{couponError}</p>}
+              <div className="bezel-outer">
+                <div className="bezel-inner p-6 flex flex-col gap-4 text-left shadow-sm">
+                  <h3 className="font-bold mb-1 text-xs text-warm-900 uppercase tracking-wider">
+                    {language === "vi" ? "Mã giảm giá" : "Coupon Discount"}
+                  </h3>
+                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder={language === "vi" ? "Nhập mã..." : "Coupon code..."}
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className="flex-grow px-3 py-2.5 border border-warm-200 bg-white rounded-xl text-xs font-bold uppercase focus:outline-hidden focus:border-jotun-teal text-warm-850"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-warm-900 hover:bg-warm-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors"
+                    >
+                      {language === "vi" ? "Áp dụng" : "Apply"}
+                    </button>
+                  </form>
+                  {couponError && <p className="text-red-500 text-[10px] mt-1 font-semibold">{couponError}</p>}
+                </div>
               </div>
 
               {/* Price Calculations */}
-              <div className="bg-white border border-warm-200/80 p-6 rounded-2xl flex flex-col gap-4 text-left shadow-sm">
-                <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 text-warm-900">
-                  {language === "vi" ? "Cộng giỏ hàng" : "Cart Totals"}
-                </h3>
+              <div className="bezel-outer">
+                <div className="bezel-inner p-6 flex flex-col gap-4 text-left shadow-sm">
+                  <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 text-[#88734C]">
+                    {language === "vi" ? "Cộng giỏ hàng" : "Cart Totals"}
+                  </h3>
 
-                <div className="flex flex-col gap-3 font-semibold text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-warm-500">{t.cartItemTotal}</span>
-                    <span className="font-mono text-warm-900">{formatPrice(subtotal)}</span>
-                  </div>
-                  {appliedDiscount > 0 && (
-                    <div className="flex justify-between text-red-500">
-                      <span>{language === "vi" ? "Giảm giá" : "Discount"}</span>
-                      <span className="font-mono">-{formatPrice(appliedDiscount)}</span>
+                  <div className="flex flex-col gap-3 font-semibold text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-warm-500">{t.cartItemTotal}</span>
+                      <span className="font-mono text-warm-900">{formatPrice(subtotal)}</span>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-warm-500">{t.cartShipping}</span>
-                    <span className="font-mono text-warm-900">
-                      {shippingFee === 0
-                        ? language === "vi"
-                          ? "Miễn phí"
-                          : "Free"
-                        : formatPrice(shippingFee)}
-                    </span>
+                    {appliedDiscount > 0 && (
+                      <div className="flex justify-between text-red-500">
+                        <span>{language === "vi" ? "Giảm giá" : "Discount"}</span>
+                        <span className="font-mono">-{formatPrice(appliedDiscount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-warm-500">{t.cartShipping}</span>
+                      <span className="font-mono text-warm-900">
+                        {shippingFee === 0
+                          ? language === "vi"
+                            ? "Miễn phí"
+                            : "Free"
+                          : formatPrice(shippingFee)}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="border-t border-warm-100 pt-4 flex justify-between items-end">
-                  <span className="font-serif font-bold text-base text-warm-900">{language === "vi" ? "Tổng thanh toán" : "Total payment"}</span>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-jotun-teal font-mono block">
-                      {formatPrice(total)}
-                    </span>
-                    <span className="text-[10px] text-warm-450">
-                      ({language === "vi" ? "Đã bao gồm VAT" : "VAT Included"})
-                    </span>
+                  <div className="border-t border-warm-100 pt-4 flex justify-between items-end">
+                    <span className="font-serif font-bold text-base text-warm-900">{language === "vi" ? "Tổng thanh toán" : "Total payment"}</span>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-jotun-teal font-mono block">
+                        {formatPrice(total)}
+                      </span>
+                      <span className="text-[10px] text-warm-450">
+                        ({language === "vi" ? "Đã bao gồm VAT" : "VAT Included"})
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Trust block */}
-                <div className="bg-warm-50 p-3 rounded-xl border border-warm-100 flex flex-col gap-1 text-[10px] text-warm-500 leading-normal">
-                  <strong className="text-warm-900 font-bold block mb-0.5">✓ Cam kết an tâm mua sắm:</strong>
-                  Sản phẩm giao từ nhà phân phối chính thức, đền bù 200% nếu phát hiện hàng giả, hàng nhái.
-                </div>
+                  {/* Trust block */}
+                  <div className="bg-warm-50 p-3 rounded-xl border border-warm-100 flex flex-col gap-1 text-[10px] text-warm-500 leading-normal">
+                    <strong className="text-warm-900 font-bold block mb-0.5">✓ Cam kết an tâm mua sắm:</strong>
+                    Sản phẩm giao từ nhà phân phối chính thức, đền bù 200% nếu phát hiện hàng giả, hàng nhái.
+                  </div>
 
-                {/* Checkout CTA */}
-                <button
-                  onClick={() => router.push(`/checkout?discount=${appliedDiscount}&coupon=${couponCode}`)}
-                  className="w-full py-4 bg-jotun-teal hover:bg-jotun-teal-dark text-white text-xs font-bold justify-center rounded-xl shadow-xs transition-colors"
-                >
-                  {t.checkoutButton}
-                </button>
+                  {/* Checkout CTA */}
+                  <button
+                    onClick={() => router.push(`/checkout?discount=${appliedDiscount}&coupon=${couponCode}`)}
+                    className="btn-island w-full py-4 justify-center bg-[#88734C] hover:bg-[#72603f] text-white text-xs font-bold shadow-sm"
+                  >
+                    <span>{t.checkoutButton}</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-white">→</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
