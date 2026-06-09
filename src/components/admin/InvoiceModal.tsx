@@ -237,7 +237,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
             </thead>
             <tbody className="divide-y divide-warm-100 font-semibold text-warm-800">
               {parsedItems.map((item, idx) => (
-                <tr key={item.id || idx}>
+                <tr key={idx}>
                   <td className="py-3 pr-4 font-mono font-bold text-warm-400">{idx + 1}</td>
                   <td className="py-3 px-4">
                     <span className="font-bold text-warm-900 block">{item.name}</span>
