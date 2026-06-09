@@ -288,9 +288,9 @@ export default function ColorVisualizerPage() {
             {/* Left: Live Preview */}
             <div className="lg:col-span-8 flex flex-col gap-5">
               {/* Room Switcher bar */}
-              <div className="bg-white border border-warm-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold uppercase text-warm-450">{t.selectSpace}:</span>
+              <div className="bg-white border border-warm-200/80 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-3 overflow-x-auto scrollbar-none -mx-1 px-1 flex-grow">
+                  <span className="hidden sm:inline text-xs font-bold uppercase text-warm-450 whitespace-nowrap">{t.selectSpace}:</span>
                   <div className="flex gap-2">
                     {MOCK_ROOMS.map((room) => (
                       <motion.button
@@ -301,7 +301,7 @@ export default function ColorVisualizerPage() {
                           setActiveRoomId(room.id);
                         }}
                         className={cn(
-                          "px-4 py-2 text-xs font-bold rounded-xl border transition-all duration-300",
+                          "px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl border transition-all duration-300 shrink-0",
                           activeRoomId === room.id
                             ? "bg-warm-900 border-warm-900 text-white shadow-sm"
                             : "border-warm-200 hover:bg-warm-50/50 text-warm-700 hover:text-warm-900"
@@ -314,15 +314,15 @@ export default function ColorVisualizerPage() {
                 </div>
                 <button
                   onClick={handleReset}
-                  className="px-3.5 py-2 border border-warm-200 hover:border-warm-300 rounded-xl text-xs hover:bg-warm-50/50 font-bold text-warm-700 transition-all flex items-center gap-1.5"
+                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 border border-warm-200 hover:border-warm-300 rounded-xl text-[11px] sm:text-xs hover:bg-warm-50/50 font-bold text-warm-700 transition-all flex items-center gap-1.5 shrink-0"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>{language === "vi" ? "Đặt lại" : "Reset"}</span>
+                  <RefreshCw className="w-3 h-3" />
+                  <span className="hidden xs:inline">{language === "vi" ? "Đặt lại" : "Reset"}</span>
                 </button>
               </div>
 
               {/* Live Canvas Room Image Preview */}
-              <div className="relative h-[460px] md:h-[520px] w-full rounded-2xl border border-warm-200/80 overflow-hidden shadow-md bg-warm-955">
+              <div className="relative aspect-[4/3] sm:aspect-video lg:h-[520px] lg:aspect-none w-full rounded-2xl border border-warm-200/80 overflow-hidden shadow-md bg-warm-955">
                 <img
                   src={imageSrc}
                   alt={activeRoom.name}
@@ -330,15 +330,15 @@ export default function ColorVisualizerPage() {
                 />
 
                 {/* Floating badge indicating render realism level */}
-                <div className="absolute top-5 right-5 z-20 px-3.5 py-1.5 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-full flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   <span>
-                    {language === "vi" ? "Ảnh Dựng Thực Tế (Photorealistic Render)" : "Photorealistic Render"}
+                    {language === "vi" ? "Ảnh Dựng 3D" : "3D Render"}
                   </span>
                 </div>
 
-                {/* Floating active colors summary */}
-                <div className="absolute bottom-5 left-5 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-warm-100 flex flex-col gap-1.5 text-xs text-left">
+                {/* Floating active colors summary - Desktop only */}
+                <div className="hidden sm:flex absolute bottom-5 left-5 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-warm-100 flex flex-col gap-1.5 text-xs text-left">
                   <span className="font-bold text-warm-850 text-[9px] uppercase tracking-wider mb-0.5">
                     {language === "vi" ? "MÀU ĐANG DÙNG" : "CURRENT SHADES"}
                   </span>
@@ -354,11 +354,26 @@ export default function ColorVisualizerPage() {
                     <span className="text-[#88734C]">{language === "vi" ? currentCombo.nameVi : currentCombo.name}</span>
                   </div>
                 </div>
+
+                {/* Mobile Sleek bottom colors strip - Mobile only */}
+                <div className="sm:hidden absolute bottom-3 left-3 right-3 z-20 flex justify-between items-center bg-white/95 backdrop-blur-md rounded-xl p-2.5 border border-warm-100 shadow-lg">
+                  <div className="flex gap-2">
+                    {surfaces.map(s => (
+                      <div key={s.value} className="flex items-center gap-1.5">
+                        <span className="inline-block w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: s.color }} />
+                        <span className="text-[9px] text-warm-900 font-mono font-bold">{s.color}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-[9.5px] text-[#88734C] font-bold truncate max-w-[120px]">
+                    {language === "vi" ? currentCombo.nameVi : currentCombo.name}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Right: Controller Sidebar */}
-            <div className="lg:col-span-4 bg-white border border-warm-200/80 rounded-2xl p-6 flex flex-col gap-6 shadow-sm">
+            <div className="lg:col-span-4 bg-white border border-warm-200/80 rounded-2xl p-5 sm:p-6 flex flex-col gap-6 shadow-sm overflow-hidden">
               <div className="flex flex-col gap-6">
 
                 {/* Curated combinations list matching Image 2 */}
@@ -370,7 +385,7 @@ export default function ColorVisualizerPage() {
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className="flex flex-col gap-3 max-h-[480px] overflow-y-auto pr-1"
+                    className="flex flex-row lg:flex-col gap-3 max-h-[480px] overflow-x-auto lg:overflow-y-auto scrollbar-none pb-3 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0"
                   >
                     {CURATED_COMBINATIONS.map((combo) => {
                       const isActive = selectedComboId === combo.id;
@@ -382,7 +397,7 @@ export default function ColorVisualizerPage() {
                           whileTap={{ scale: 0.975 }}
                           onClick={() => setSelectedComboId(combo.id)}
                           className={cn(
-                            "w-full p-4 rounded-xl border text-left flex flex-col gap-2 transition-all duration-300",
+                            "w-[260px] lg:w-full shrink-0 p-4 rounded-xl border text-left flex flex-col gap-2 transition-all duration-300",
                             isActive
                               ? "border-warm-900 bg-warm-50/40 shadow-sm ring-1 ring-warm-900"
                               : "border-warm-150 hover:border-warm-250 hover:bg-warm-50/20"
@@ -391,7 +406,7 @@ export default function ColorVisualizerPage() {
                           <span className="text-xs font-bold text-warm-900">
                             {language === "vi" ? combo.theme : combo.themeEn}
                           </span>
-                          <p className="text-[10px] text-warm-500 leading-relaxed">
+                          <p className="text-[10px] text-warm-500 leading-relaxed line-clamp-2">
                             {language === "vi" ? combo.descriptionVi : combo.descriptionEn}
                           </p>
                           <div className="flex items-center gap-3 mt-1">

@@ -34,14 +34,14 @@ function Footerdemo() {
 
   return (
     <footer className="relative border-t bg-background text-foreground transition-colors duration-300">
-      <div className="container mx-auto px-6 py-16">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4 text-left">
+      <div className="container mx-auto px-4 md:px-6 py-10 md:py-16">
+        <div className="grid gap-8 md:gap-12 grid-cols-2 lg:grid-cols-4 text-left">
           {/* Brand & Newsletter */}
-          <div className="relative">
-            <h2 className="mb-4 text-3xl font-serif font-bold tracking-widest text-jotun-teal">
+          <div className="relative col-span-2 lg:col-span-1">
+            <h2 className="mb-3 md:mb-4 text-2xl md:text-3xl font-serif font-bold tracking-widest text-jotun-teal">
               Maison de FLOF
             </h2>
-            <p className="mb-6 text-sm text-muted-foreground leading-relaxed">
+            <p className="mb-4 md:mb-6 text-xs md:text-sm text-muted-foreground leading-relaxed">
               {language === "vi"
                 ? "Hệ thống phân phối sơn trực tuyến chính hãng hàng đầu Việt Nam. Đối tác phân phối chiến lược của Jotun, Dulux, Nippon Paint."
                 : "Vietnam's leading genuine online paint distribution system. Strategic distribution partner of Jotun, Dulux, Nippon Paint."}
@@ -68,11 +68,11 @@ function Footerdemo() {
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h3 className="mb-6 text-base font-serif font-bold text-warm-900">
+          <div className="col-span-1">
+            <h3 className="mb-3 md:mb-6 text-sm md:text-base font-serif font-bold text-warm-900">
               {language === "vi" ? "Tính Năng Chính" : "Core Features"}
             </h3>
-            <nav className="space-y-3 text-sm font-semibold text-warm-650">
+            <nav className="space-y-2 md:space-y-3 text-xs md:text-sm font-semibold text-warm-650">
               <Link href="/colors" className="block transition-colors hover:text-jotun-teal">
                 {t.navColors}
               </Link>
@@ -86,11 +86,11 @@ function Footerdemo() {
           </div>
 
           {/* Product Categories */}
-          <div>
-            <h3 className="mb-6 text-base font-serif font-bold text-warm-900">
+          <div className="col-span-1">
+            <h3 className="mb-3 md:mb-6 text-sm md:text-base font-serif font-bold text-warm-900">
               {language === "vi" ? "Danh Mục Sản Phẩm" : "Product Categories"}
             </h3>
-            <nav className="space-y-3 text-sm font-semibold text-warm-650">
+            <nav className="space-y-2 md:space-y-3 text-xs md:text-sm font-semibold text-warm-650">
               <Link href="/products?category=son-noi-that" className="block transition-colors hover:text-jotun-teal">
                 {language === "vi" ? "Sơn nội thất" : "Interior Paint"}
               </Link>
@@ -107,11 +107,11 @@ function Footerdemo() {
           </div>
 
           {/* Contact & Socials */}
-          <div className="relative">
-            <h3 className="mb-6 text-base font-serif font-bold text-warm-900">
+          <div className="relative col-span-2 lg:col-span-1">
+            <h3 className="mb-3 md:mb-6 text-sm md:text-base font-serif font-bold text-warm-900">
               {language === "vi" ? "Thông Tin Liên Hệ" : "Contact Us"}
             </h3>
-            <address className="space-y-3 text-sm not-italic font-semibold text-warm-650 mb-6">
+            <address className="space-y-2 md:space-y-3 text-xs md:text-sm not-italic font-semibold text-warm-650 mb-4 md:mb-6">
               <p className="flex flex-col gap-0.5">
                 <span className="text-[10px] font-bold text-jotun-teal uppercase tracking-wider">Address:</span>
                 <span className="leading-snug">
@@ -124,7 +124,7 @@ function Footerdemo() {
               <p>Email: contact@flof.vn</p>
             </address>
 
-            <div className="mb-6 flex space-x-3">
+            <div className="mb-4 md:mb-6 flex space-x-3">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -181,12 +181,10 @@ function Footerdemo() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-
-
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-warm-150 pt-8 text-center md:flex-row text-xs text-warm-450 font-semibold">
+        <div className="mt-10 md:mt-16 flex flex-col items-center justify-between gap-4 border-t border-warm-150 pt-6 md:pt-8 text-center md:flex-row text-xs text-warm-450 font-semibold">
           <p>© {new Date().getFullYear()} FLOF. All rights reserved.</p>
           <nav className="flex gap-6">
             <a href="#" className="transition-colors hover:text-jotun-teal">

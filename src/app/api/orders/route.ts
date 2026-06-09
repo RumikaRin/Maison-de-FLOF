@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { auth } from "@/auth";
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");
     if (!email) {
       return NextResponse.json({ error: "Email parameter is required" }, { status: 400 });
+    }
+
+    const isAdmin = (session.user as any).role === "ADMIN";
+    if (email !== session.user.email && !isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const user = await db.user.findUnique({
@@ -53,11 +64,21 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { email, items, total, paymentMethod, discount, shippingFee, note } = body;
 
     if (!email || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const isAdmin = (session.user as any).role === "ADMIN";
+    if (email !== session.user.email && !isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const user = await db.user.findUnique({

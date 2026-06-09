@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguageStore } from "@/store/language-store";
+import { Loader2 } from "@/components/ui/loader-2";
 
 // Helper component that runs the observer only when the new page layout mounts
 function ScrollRevealObserver() {
@@ -59,10 +61,30 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
   const isHomepage = pathname === "/";
+  const { language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
+
+  if (!mounted) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-jotun-ivory text-warm-900 flex flex-col items-center justify-center px-6 text-center gap-6 fullscreen-loader">
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
+        <div className="z-10 flex flex-col items-center gap-4">
+          <Loader2 />
+          <p className="text-[11px] font-mono uppercase tracking-wider text-warm-450 animate-pulse">
+            {language === "vi" ? "Đang tải dữ liệu..." : "Loading application data..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Apply transitions and scroll reveals ONLY to the homepage
   if (!isHomepage) {

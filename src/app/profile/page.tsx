@@ -384,16 +384,16 @@ export default function ProfilePage() {
 
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-12 bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh]">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 md:px-12 py-6 sm:py-12 bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh]">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left column sidebar settings */}
         <motion.aside
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="lg:col-span-4 bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm flex flex-col gap-6"
+          className="lg:col-span-4 bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm flex flex-col gap-4 sm:gap-6"
         >
-          <div className="flex items-center gap-4 border-b border-warm-100 pb-5">
+          <div className="flex items-center gap-4 border-b border-warm-100 pb-4 sm:pb-5">
             <div className="h-14 w-14 bg-jotun-teal/10 text-jotun-teal rounded-full flex items-center justify-center font-bold text-lg border border-jotun-teal/20 shadow-sm shrink-0">
               {user.name.slice(0, 2).toUpperCase()}
             </div>
@@ -403,21 +403,21 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 text-xs font-bold uppercase tracking-wider">
+          <div className="grid grid-cols-2 lg:flex lg:flex-col gap-2 lg:gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider w-full">
             {user.role === "ADMIN" && (
               <Link
                 href="/admin"
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-warm-900 hover:text-white text-warm-900 border border-warm-200 transition-all bg-warm-50/50 mb-2 shadow-sm"
+                className="flex items-center justify-between px-3.5 py-2.5 lg:p-3 rounded-xl hover:bg-warm-900 hover:text-white text-warm-900 border border-warm-200 transition-all bg-warm-50/50 lg:mb-2 shadow-sm focus:outline-none col-span-2 lg:col-span-1 text-center justify-center lg:justify-between"
               >
                 <span>{language === "vi" ? "Trang quản trị Admin" : "Admin Dashboard"}</span>
-                <span>→</span>
+                <span className="hidden lg:inline">→</span>
               </Link>
             )}
 
             <button
               onClick={() => setActiveTab("history")}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-xl text-left transition-colors duration-200",
+                "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
                 activeTab === "history"
                   ? "bg-warm-900 text-white shadow-sm"
                   : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
@@ -429,7 +429,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setActiveTab("profile")}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-xl text-left transition-colors duration-200",
+                "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
                 activeTab === "profile"
                   ? "bg-warm-900 text-white shadow-sm"
                   : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
@@ -441,7 +441,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setActiveTab("password")}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-xl text-left transition-colors duration-200",
+                "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
                 activeTab === "password"
                   ? "bg-warm-900 text-white shadow-sm"
                   : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
@@ -453,7 +453,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setActiveTab("addresses")}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-xl text-left transition-colors duration-200",
+                "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
                 activeTab === "addresses"
                   ? "bg-warm-900 text-white shadow-sm"
                   : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
@@ -465,7 +465,7 @@ export default function ProfilePage() {
             <button
               onClick={() => setActiveTab("favorites")}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-xl text-left transition-colors duration-200",
+                "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-2 lg:col-span-1",
                 activeTab === "favorites"
                   ? "bg-warm-900 text-white shadow-sm"
                   : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
@@ -476,7 +476,7 @@ export default function ProfilePage() {
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 p-3 rounded-xl text-red-500 hover:bg-red-500/10 text-left transition-colors duration-200 mt-4 border border-red-500/10 bg-red-500/[0.02]"
+              className="hidden lg:flex items-center gap-2 px-3.5 py-2.5 lg:p-3 rounded-xl text-red-500 hover:bg-red-500/10 text-left transition-colors duration-200 lg:mt-4 border border-red-500/10 bg-red-500/[0.02] shrink-0 whitespace-nowrap focus:outline-none"
             >
               <span>{language === "vi" ? "Đăng xuất" : "Log Out"}</span>
             </button>
@@ -500,7 +500,7 @@ export default function ProfilePage() {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
             <div className="bezel-outer">
-              <div className="bezel-inner p-6 text-left shadow-sm">
+              <div className="bezel-inner p-4 sm:p-6 text-left shadow-sm">
                 <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
                   {language === "vi" ? "Lịch sử mua hàng" : "Purchase History"}
                 </h3>
@@ -551,7 +551,7 @@ export default function ProfilePage() {
             )}
 
             {activeTab === "profile" && (
-            <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
+            <div className="bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm text-left">
               <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
                 {language === "vi" ? "Thông tin cá nhân" : "Personal Settings"}
               </h3>
@@ -633,7 +633,7 @@ export default function ProfilePage() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
-            <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
+            <div className="bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm text-left">
               <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
                 {language === "vi" ? "Đổi mật khẩu" : "Change Password"}
               </h3>
@@ -699,7 +699,7 @@ export default function ProfilePage() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               >
-            <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
+            <div className="bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm text-left">
               <div className="flex items-center justify-between border-b border-warm-100 pb-3 mb-6">
                 <h3 className="font-serif font-bold text-lg text-[#88734C]">
                   {language === "vi" ? "Sổ địa chỉ nhận hàng" : "Address Book"}
@@ -825,7 +825,7 @@ export default function ProfilePage() {
                     addresses.map((addr) => (
                       <div
                         key={addr.id}
-                        className={`p-5 border rounded-2xl flex flex-col sm:flex-row justify-between sm:items-start gap-4 transition-all duration-300 ${addr.isDefault
+                        className={`p-4 sm:p-5 border rounded-2xl flex flex-col sm:flex-row justify-between sm:items-start gap-4 transition-all duration-300 ${addr.isDefault
                             ? "border-warm-900 bg-warm-900/[0.02] shadow-sm"
                             : "border-warm-200/80 bg-warm-50/10 hover:bg-warm-50/50"
                           }`}
@@ -845,7 +845,7 @@ export default function ProfilePage() {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0 text-xs font-bold mt-2 sm:mt-0">
+                        <div className="flex flex-wrap items-center gap-2 shrink-0 text-xs font-bold mt-2 sm:mt-0">
                           {!addr.isDefault && (
                             <button
                               onClick={() => handleSetDefaultAddress(addr.id)}
@@ -888,7 +888,7 @@ export default function ProfilePage() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               >
-            <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
+            <div className="bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm text-left">
               <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
                 {language === "vi" ? "Màu sắc đã lưu" : "Saved Colors"}
               </h3>

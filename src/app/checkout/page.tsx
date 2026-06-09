@@ -314,7 +314,7 @@ function CheckoutContent() {
 
         <button
           onClick={() => router.push("/")}
-          className="bg-jotun-teal text-white font-bold px-8 py-3.5 rounded-md hover:bg-jotun-darkTeal transition-colors shadow-md"
+          className="bg-warm-900 text-white font-bold px-8 py-3.5 rounded-md hover:bg-warm-800 transition-colors shadow-md"
         >
           {language === "vi" ? "Về Trang Chủ" : "Go to Homepage"}
         </button>
@@ -519,7 +519,7 @@ function CheckoutContent() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-jotun-teal text-white font-bold py-4 rounded-md hover:bg-jotun-darkTeal disabled:bg-zinc-300 dark:disabled:bg-zinc-800 disabled:cursor-not-allowed transition-colors shadow-md flex items-center justify-center gap-2 text-sm mt-4"
+                className="w-full bg-warm-900 text-white font-bold py-4 rounded-md hover:bg-warm-800 disabled:bg-zinc-300 dark:disabled:bg-zinc-800 disabled:cursor-not-allowed transition-colors shadow-md flex items-center justify-center gap-2 text-sm mt-4"
               >
                 {isSubmitting
                   ? language === "vi"

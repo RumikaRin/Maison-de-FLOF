@@ -20,6 +20,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import { Loader2 } from "@/components/ui/loader-2";
 
 
 // Color Families matching Image 1
@@ -357,6 +358,23 @@ export default function HomePage() {
   // States
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"bestseller" | "new" | "promo">("bestseller");
+  const [isTabLoading, setIsTabLoading] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsOffline(!navigator.onLine);
+      const goOnline = () => setIsOffline(false);
+      const goOffline = () => setIsOffline(true);
+      window.addEventListener("online", goOnline);
+      window.addEventListener("offline", goOffline);
+      return () => {
+        window.removeEventListener("online", goOnline);
+        window.removeEventListener("offline", goOffline);
+      };
+    }
+  }, []);
 
   // Color family picker state (Image 1)
   const [selectedFamily, setSelectedFamily] = useState<string>("white");
@@ -466,7 +484,59 @@ export default function HomePage() {
     );
   };
 
-  if (!mounted) return null;
+
+  if (networkError || isOffline) {
+    return (
+      <div className="relative w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[70vh] flex flex-col items-center justify-center px-6 py-20 text-center gap-6">
+        {/* Subtle grid accent background */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
+
+        {/* Demo offline trigger - so they can turn it off from here too */}
+        <div className="absolute top-24 right-6 z-10">
+          <button
+            onClick={() => setNetworkError(false)}
+            className="text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 border border-red-500 bg-red-500 text-white rounded-full font-bold shadow-md transition-all hover:bg-red-600"
+            title="Simulate network error for testing"
+          >
+            {language === "vi" ? "Tắt Giả lập lỗi mạng" : "Disable Error Sim"}
+          </button>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+          className="relative max-w-md w-full bg-white border border-warm-300 rounded-3xl p-8 sm:p-12 shadow-xl flex flex-col items-center gap-6 z-10"
+        >
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-2xl animate-pulse">
+            ⚠️
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-serif font-bold text-xl sm:text-2xl text-warm-900 leading-tight">
+              {language === "vi" ? "Mất kết nối Internet" : "No Internet Connection"}
+            </h2>
+            <p className="text-xs sm:text-sm text-warm-550 leading-relaxed font-light">
+              {language === "vi"
+                ? "Không thể kết nối đến máy chủ Maison de FLOF. Vui lòng kiểm tra kết nối Wifi/4G của bạn và thử lại."
+                : "Unable to connect to Maison de FLOF servers. Please check your Wifi or mobile data and try again."}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setIsTabLoading(true);
+              setNetworkError(false);
+              setTimeout(() => {
+                setIsTabLoading(false);
+              }, 600);
+            }}
+            className="w-full py-3 bg-warm-900 hover:bg-warm-850 text-white text-xs font-bold rounded-2xl transition-all shadow-md active:scale-98"
+          >
+            {language === "vi" ? "Thử lại kết nối" : "Retry Connection"}
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   const activeRoom = VISUALIZER_ROOMS.find((r) => r.id === visRoomId) || VISUALIZER_ROOMS[0];
   const filteredSwatches = COLOR_SWATCHES.filter(c => c.family === selectedFamily);
@@ -518,7 +588,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
             className="lg:col-span-7 w-full flex justify-center items-center"
           >
-            <div className="relative h-[450px] sm:h-[620px] lg:h-[720px] xl:h-[800px] w-full overflow-hidden bg-white shadow-2xl rounded-3xl border border-black/5 max-w-[960px]">
+            <div className="relative aspect-[4/3] sm:h-[450px] md:h-[620px] lg:h-[720px] xl:h-[800px] lg:aspect-none w-full overflow-hidden bg-white shadow-2xl rounded-3xl border border-black/5 max-w-[960px]">
               <Image
                 src="/hero_bg.png"
                 alt={language === "vi" ? "Không gian sống cao cấp" : "Premium living space"}
@@ -543,9 +613,9 @@ export default function HomePage() {
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Product Shoot Card */}
-            <div className="lg:col-span-5 relative h-[440px] md:h-[540px] w-full flex items-center justify-center">
+            <div className="lg:col-span-5 relative aspect-square max-w-[340px] sm:max-w-[420px] sm:h-[440px] md:h-[540px] w-full flex items-center justify-center mx-auto">
               <div className="absolute inset-0 bg-gradient-to-tr from-jotun-teal/5 to-transparent rounded-2xl -z-10" />
-              <div className="relative w-full max-w-[420px] h-[420px] md:max-w-[500px] md:h-[500px] rounded-[2rem] overflow-hidden shadow-2xl">
+              <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl">
                 <Image
                   src="/product_interior.png"
                   alt="Majestic Premium Paint"
@@ -577,19 +647,19 @@ export default function HomePage() {
       </section>
 
       {/* 2. KHÁM PHÁ MÀU SẮC CỦA CHÚNG TÔI */}
-      <section id="color-explorer-section" className="py-28 bg-white from-[#F2F2EB] to-[#F8F8F2] relative overflow-hidden">
+      <section id="color-explorer-section" className="py-16 md:py-20 bg-white from-[#F2F2EB] to-[#F8F8F2] relative overflow-hidden">
         {/* Parallax/floating decorative elements inspired by AboutUsSection */}
         <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-[#88734C]/5 blur-3xl pointer-events-none" />
         <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-[#A9BBC8]/5 blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/3 right-12 w-4 h-4 rounded-full bg-[#A9BBC8]/30 animate-pulse pointer-events-none" />
 
-        <div className="w-full max-w-[1300px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 relative z-10">
+        <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-            className="flex flex-col items-center mb-16 text-center"
+            className="flex flex-col items-center mb-10 text-center"
           >
             <motion.span
               className="text-[#88734C] font-semibold text-xs tracking-widest mb-3 flex items-center gap-2 uppercase"
@@ -619,16 +689,16 @@ export default function HomePage() {
           {/* Main Redesigned Layout Wrapper: 2-Column Desktop Grid, Vertical Stack on Mobile */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mt-8 items-start">
 
+            {/* 1. Room Preview (Mobile order-1, Desktop col-span-8) */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.05 }}
               transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
-              className="lg:col-span-8 flex flex-col gap-8 w-full"
+              className="col-span-1 lg:col-span-8 order-1 lg:order-1 flex flex-col gap-8 w-full"
             >
-
               {/* 3. Main Preview Area */}
-              <div className="relative h-[350px] sm:h-[450px] lg:h-[500px] w-full overflow-hidden bg-white shadow-md rounded-3xl border border-warm-300 group">
+              <div className="relative aspect-[4/3] sm:aspect-video lg:h-[500px] lg:aspect-none w-full overflow-hidden bg-white shadow-md rounded-3xl border border-warm-300 group">
                 <img
                   src={
                     selectedFamily === "green"
@@ -674,93 +744,18 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-
-              {/* 5. Selected Color Information */}
-              {(() => {
-                const currentSwatch = COLOR_SWATCHES.find(s => s.hex === visWallMainColor) || filteredSwatches[0] || COLOR_SWATCHES[0];
-                return (
-                  <div className="bg-white border border-warm-300 rounded-3xl p-6 shadow-xs text-left transition-all duration-300">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={currentSwatch.code}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
-                      >
-                      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-warm-300 pb-4 mb-4">
-                      <div>
-                        <span className="text-[10px] font-bold text-[#88734C] uppercase tracking-widest block mb-0.5">
-                          {language === "vi" ? "THÔNG TIN CHI TIẾT" : "COLOR SPECIFICATIONS"}
-                        </span>
-                        <h3 className="font-serif font-bold text-xl text-warm-900">
-                          {language === "vi" ? currentSwatch.name : currentSwatch.nameEn}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-full border border-black/5 shadow-inner" style={{ backgroundColor: currentSwatch.hex }} />
-                        <span className="text-xs font-mono font-bold text-warm-700 bg-warm-50 px-2.5 py-1 rounded-lg">
-                          Code: {currentSwatch.code}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                      <div>
-                        <span className="text-[10px] font-mono text-warm-400 block mb-1">HEX</span>
-                        <span className="text-sm font-mono font-bold text-warm-900">{currentSwatch.hex.toUpperCase()}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-mono text-warm-400 block mb-1">RGB</span>
-                        <span className="text-sm font-mono font-bold text-warm-900">{hexToRgb(currentSwatch.hex)}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-mono text-warm-400 block mb-1">
-                          {language === "vi" ? "PHONG CÁCH GỢI Ý" : "SUGGESTED STYLE"}
-                        </span>
-                        <span className="text-xs font-bold text-warm-800">
-                          {language === "vi"
-                            ? (FAMILY_METADATA[currentSwatch.family]?.styleVi || "Hiện đại")
-                            : (FAMILY_METADATA[currentSwatch.family]?.styleEn || "Modern")
-                          }
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-mono text-warm-400 block mb-1">
-                          {language === "vi" ? "KHÔNG GIAN PHÙ HỢP" : "SUGGESTED SPACES"}
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {(language === "vi"
-                            ? FAMILY_METADATA[currentSwatch.family]?.roomsVi
-                            : FAMILY_METADATA[currentSwatch.family]?.roomsEn
-                          )?.map((room, i) => (
-                            <span key={i} className="text-[9px] bg-[#88734C]/5 text-[#88734C] px-1.5 py-0.5 rounded font-medium">
-                              {room}
-                            </span>
-                          )) || <span className="text-[9px] bg-warm-50 text-warm-600 px-1.5 py-0.5 rounded font-medium">N/A</span>}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-              );
-              })()}
-
-              {/* 4. Product Recommendation was moved below the grid wrapper to stretch to full width */}
             </motion.div>
 
-            {/* Right Column: Unified Color Family Grid & Specific Swatches List (30-40% width) */}
+            {/* 2. Color Family Selection (Mobile order-2, Desktop col-span-4) */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.05 }}
               transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1], delay: 0.15 }}
-              className="lg:col-span-4 flex flex-col gap-8 w-full"
+              className="col-span-1 lg:col-span-4 order-2 lg:order-2 flex flex-col gap-8 w-full"
             >
-
               {/* 2. Color Selection (Unified Palette Grid) */}
-              <div className="bg-white border border-warm-300 rounded-3xl p-6 shadow-xs text-left">
+              <div className="bg-white border border-warm-300 rounded-3xl p-5 sm:p-6 shadow-xs text-left">
                 <div className="mb-4">
                   <span className="text-[10px] font-bold text-[#88734C] uppercase tracking-widest block mb-0.5">
                     {language === "vi" ? "BẢNG MÀU CHỦ ĐẠO" : "COLOR FAMILIES"}
@@ -770,7 +765,7 @@ export default function HomePage() {
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-row lg:grid lg:grid-cols-2 gap-3 overflow-x-auto scrollbar-none pb-2 -mx-4 px-4 lg:mx-0 lg:px-0">
                   {COLOR_FAMILIES.map((family) => {
                     const isSelected = selectedFamily === family.id;
                     return (
@@ -793,7 +788,7 @@ export default function HomePage() {
                           }
                         }}
                         className={cn(
-                          "flex flex-col p-3 rounded-xl border text-left transition-all duration-300 relative group focus:outline-none focus:ring-2 focus:ring-[#88734C]",
+                          "w-[155px] lg:w-full shrink-0 flex flex-col p-3 rounded-xl border text-left transition-all duration-300 relative group focus:outline-none focus:ring-2 focus:ring-[#88734C]",
                           isSelected
                             ? "bg-white border-warm-900 shadow-md ring-1 ring-warm-900/10"
                             : "bg-white border-warm-300 hover:border-warm-450 hover:bg-warm-50/30"
@@ -822,12 +817,21 @@ export default function HomePage() {
                   })}
                 </div>
               </div>
+            </motion.div>
 
+            {/* 3. Specific Swatches Grid Catalog (Mobile order-3, Desktop col-span-4) */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.05 }}
+              transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1], delay: 0.2 }}
+              className="col-span-1 lg:col-span-4 order-3 lg:order-4 flex flex-col gap-8 w-full"
+            >
               {/* Specific Swatches Grid Catalog */}
-              <div className="bg-white border border-warm-300 rounded-3xl p-6 shadow-xs text-left transition-all duration-300 flex-grow flex flex-col">
+              <div className="bg-white border border-warm-300 rounded-3xl p-5 sm:p-6 shadow-xs text-left transition-all duration-300 flex-grow flex flex-col">
                 <div className="mb-4">
                   <span className="text-[10px] font-bold text-[#88734C] uppercase tracking-widest block mb-0.5">
-                    {language === "vi" ? "MÃ SƠN CHI TIẾT" : "SPECIFIC SHADES"}
+                    {language === "vi" ? "MÀU SƠN CHI TIẾT" : "SPECIFIC SHADES"}
                   </span>
                   <h3 className="font-serif font-bold text-lg text-warm-900">
                     {language === "vi"
@@ -846,71 +850,153 @@ export default function HomePage() {
                     transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
                     className="grid grid-cols-3 gap-2.5"
                   >
-                  {filteredSwatches.map((swatch) => {
-                    const isFav = wishlist.includes(swatch.code);
-                    const isActive = visWallMainColor === swatch.hex;
-                    return (
-                      <div
-                        key={swatch.code}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => {
-                          setVisWallMainColor(swatch.hex);
-                          toast.success(
-                            language === "vi"
-                              ? `Đã chọn màu ${swatch.name}!`
-                              : `Selected ${swatch.nameEn || swatch.name}!`
-                          );
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
+                    {filteredSwatches.map((swatch) => {
+                      const isFav = wishlist.includes(swatch.code);
+                      const isActive = visWallMainColor === swatch.hex;
+                      return (
+                        <div
+                          key={swatch.code}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => {
                             setVisWallMainColor(swatch.hex);
                             toast.success(
                               language === "vi"
                                 ? `Đã chọn màu ${swatch.name}!`
                                 : `Selected ${swatch.nameEn || swatch.name}!`
                             );
-                          }
-                        }}
-                        className={cn(
-                          "border rounded-xl p-2 flex flex-col gap-1.5 items-stretch relative transition-all duration-300 cursor-pointer text-left w-full hover:shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#88734C]",
-                          isActive
-                            ? "bg-white border-warm-900 ring-1 ring-warm-900/10"
-                            : "bg-white border-warm-300 hover:border-warm-450"
-                        )}
-                        aria-label={language === "vi" ? `Chọn mã màu ${swatch.name}` : `Select swatch ${swatch.nameEn || swatch.name}`}
-                      >
-                        <div
-                          className="h-10 rounded-lg border border-black/5 relative shadow-inner overflow-hidden flex-shrink-0"
-                          style={{ backgroundColor: swatch.hex }}
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setVisWallMainColor(swatch.hex);
+                              toast.success(
+                                language === "vi"
+                                  ? `Đã chọn màu ${swatch.name}!`
+                                  : `Selected ${swatch.nameEn || swatch.name}!`
+                              );
+                            }
+                          }}
+                          className={cn(
+                            "border rounded-xl p-2 flex flex-col gap-1.5 items-stretch relative transition-all duration-300 cursor-pointer text-left w-full hover:shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#88734C]",
+                            isActive
+                              ? "bg-white border-warm-900 ring-1 ring-warm-900/10"
+                              : "bg-white border-warm-300 hover:border-warm-450"
+                          )}
+                          aria-label={language === "vi" ? `Chọn mã màu ${swatch.name}` : `Select swatch ${swatch.nameEn || swatch.name}`}
                         >
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleWishlist(swatch.code);
-                            }}
-                            className="absolute top-1 right-1 p-1 bg-white/95 hover:bg-white rounded-full text-warm-400 hover:text-rose-500 transition-colors shadow-2xs z-10 focus:outline-none focus:ring-1 focus:ring-rose-500"
-                            aria-label={language === "vi" ? "Yêu thích" : "Add to favorites"}
+                          <div
+                            className="h-10 rounded-lg border border-black/5 relative shadow-inner overflow-hidden flex-shrink-0"
+                            style={{ backgroundColor: swatch.hex }}
                           >
-                            <Heart className={cn("h-2.5 w-2.5", isFav ? "fill-rose-500 text-rose-500" : "")} />
-                          </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleWishlist(swatch.code);
+                              }}
+                              className="absolute top-1 right-1 p-1 bg-white/95 hover:bg-white rounded-full text-warm-400 hover:text-rose-500 transition-colors shadow-2xs z-10 focus:outline-none focus:ring-1 focus:ring-rose-500"
+                              aria-label={language === "vi" ? "Yêu thích" : "Add to favorites"}
+                            >
+                              <Heart className={cn("h-2.5 w-2.5", isFav ? "fill-rose-500 text-rose-500" : "")} />
+                            </button>
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[8px] font-mono font-bold text-warm-400 block truncate">
+                              #{swatch.code}
+                            </span>
+                            <span className="text-[9px] font-semibold text-warm-855 block truncate">
+                              {language === "vi" ? swatch.name : swatch.nameEn}
+                            </span>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <span className="text-[8px] font-mono font-bold text-warm-400 block truncate">
-                            #{swatch.code}
-                          </span>
-                          <span className="text-[9px] font-semibold text-warm-855 block truncate">
-                            {language === "vi" ? swatch.name : swatch.nameEn}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+                      );
+                    })}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </motion.div>
+
+            {/* 4. Selected Color Details (Mobile order-4, Desktop col-span-8) */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.05 }}
+              transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1], delay: 0.25 }}
+              className="col-span-1 lg:col-span-8 order-4 lg:order-3 flex flex-col gap-8 w-full"
+            >
+              {/* Selected Color Information */}
+              {(() => {
+                const currentSwatch = COLOR_SWATCHES.find(s => s.hex === visWallMainColor) || filteredSwatches[0] || COLOR_SWATCHES[0];
+                return (
+                  <div className="bg-white border border-warm-300 rounded-3xl p-6 shadow-xs text-left transition-all duration-300">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={currentSwatch.code}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-warm-300 pb-4 mb-4">
+                          <div>
+                            <span className="text-[10px] font-bold text-[#88734C] uppercase tracking-widest block mb-0.5">
+                              {language === "vi" ? "THÔNG TIN CHI TIẾT" : "COLOR SPECIFICATIONS"}
+                            </span>
+                            <h3 className="font-serif font-bold text-xl text-warm-900">
+                              {language === "vi" ? currentSwatch.name : currentSwatch.nameEn}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="w-8 h-8 rounded-full border border-black/5 shadow-inner" style={{ backgroundColor: currentSwatch.hex }} />
+                            <span className="text-xs font-mono font-bold text-warm-700 bg-warm-50 px-2.5 py-1 rounded-lg">
+                              Code: {currentSwatch.code}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                          <div>
+                            <span className="text-[10px] font-mono text-warm-400 block mb-1">HEX</span>
+                            <span className="text-sm font-mono font-bold text-warm-900">{currentSwatch.hex.toUpperCase()}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-warm-400 block mb-1">RGB</span>
+                            <span className="text-sm font-mono font-bold text-warm-900">{hexToRgb(currentSwatch.hex)}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-warm-400 block mb-1">
+                              {language === "vi" ? "PHONG CÁCH GỢI Ý" : "SUGGESTED STYLE"}
+                            </span>
+                            <span className="text-xs font-bold text-warm-800">
+                              {language === "vi"
+                                ? (FAMILY_METADATA[currentSwatch.family]?.styleVi || "Hiện đại")
+                                : (FAMILY_METADATA[currentSwatch.family]?.styleEn || "Modern")
+                              }
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-warm-400 block mb-1">
+                              {language === "vi" ? "KHÔNG GIAN PHÙ HỢP" : "SUGGESTED SPACES"}
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {(language === "vi"
+                                ? FAMILY_METADATA[currentSwatch.family]?.roomsVi
+                                : FAMILY_METADATA[currentSwatch.family]?.roomsEn
+                              )?.map((room, i) => (
+                                <span key={i} className="text-[9px] bg-[#88734C]/5 text-[#88734C] px-1.5 py-0.5 rounded font-medium">
+                                  {room}
+                                </span>
+                              )) || <span className="text-[9px] bg-warm-50 text-warm-600 px-1.5 py-0.5 rounded font-medium">N/A</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                );
+              })()}
+            </motion.div>
+
           </div>
 
           {/* 4. Product Recommendation */}
@@ -919,14 +1005,14 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.08 }}
             transition={{ duration: 0.85, ease: [0.25, 1, 0.5, 1] }}
-            className="mt-12 bg-white border border-warm-300 rounded-3xl p-8 shadow-xs text-center transition-all duration-300 w-full"
+            className="mt-8 sm:mt-12 bg-white border border-warm-300 rounded-3xl p-3 sm:p-8 shadow-xs text-center transition-all duration-300 w-full"
           >
-            <div className="flex flex-col items-center mb-8">
+            <div className="flex flex-col items-center mb-5 sm:mb-8">
               <span className="text-[10px] font-bold text-[#88734C] uppercase tracking-widest flex items-center gap-1.5 mb-1.5 justify-center">
                 <Star className="w-3.5 h-3.5 animate-pulse text-[#88734C]" />
                 {language === "vi" ? "PHỐI HỢP HOÀN HẢO" : "PERFECT COMBINATION"}
               </span>
-              <h3 className="font-serif font-bold text-2xl text-warm-900">
+              <h3 className="font-serif font-bold text-lg sm:text-2xl text-warm-900">
                 {language === "vi" ? "Sản Phẩm Khuyên Dùng" : "Suggested Paint Products"}
               </h3>
               <p className="text-xs text-warm-550 mt-2 max-w-xl mx-auto">
@@ -939,7 +1025,7 @@ export default function HomePage() {
 
             {/* Horizontal scroll on mobile, 4 columns on desktop */}
             <div className="relative">
-              <div className="flex md:grid md:grid-cols-4 gap-6 overflow-x-auto md:overflow-x-visible snap-x scrollbar-none pb-3 md:pb-0 justify-center">
+              <div className="flex md:grid md:grid-cols-4 gap-3 md:gap-6 overflow-x-auto md:overflow-x-visible snap-x scrollbar-none pb-3 md:pb-0 justify-start md:justify-center -mx-4 px-4 md:mx-0 md:px-0">
                 {paints.filter(paint => {
                   return paint.colors.some(colorCode => {
                     const colorObj = COLOR_SWATCHES.find(c => c.code === colorCode);
@@ -957,10 +1043,10 @@ export default function HomePage() {
                   return (
                     <div
                       key={paint.id}
-                      className="bg-white p-4 border border-warm-300 rounded-2xl hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full relative group text-left min-w-[260px] md:min-w-0 snap-start"
+                      className="bg-white p-2 xs:p-3 sm:p-4 border border-warm-300 rounded-2xl hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full relative group text-left min-w-[calc(50%-6px)] xs:min-w-[calc(50%-8px)] sm:min-w-[260px] md:min-w-0 snap-start shrink-0"
                     >
                       {/* Paint Image Link */}
-                      <Link href={`/products/${paint.slug}`} className="relative w-full aspect-[4/3] bg-warm-50/50 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-2 shadow-inner shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#88734C]">
+                      <Link href={`/products/${paint.slug}`} className="relative w-full aspect-[4/3] bg-warm-50/50 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-1 xs:p-2 shadow-inner shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#88734C]">
                         <Image
                           src={paint.images?.[0] || "/product_interior.png"}
                           alt={paint.name}
@@ -975,31 +1061,31 @@ export default function HomePage() {
                       </Link>
 
                       {/* Paint Details */}
-                      <div className="flex flex-col justify-between flex-grow mt-3">
+                      <div className="flex flex-col justify-between flex-grow mt-2 xs:mt-3">
                         <Link href={`/products/${paint.slug}`} className="flex flex-col gap-1 cursor-pointer focus:outline-none">
-                          <span className="text-[9px] font-bold uppercase text-warm-400 tracking-wider font-mono">
+                          <span className="text-[8px] xs:text-[9px] font-bold uppercase text-warm-400 tracking-wider font-mono">
                             {MOCK_SUPPLIERS.find(s => s.id === paint.supplierId)?.name || "Jotun"}
                           </span>
-                          <h4 className="font-serif font-bold text-sm text-warm-900 group-hover:text-[#88734C] transition-colors line-clamp-1">
+                          <h4 className="font-serif font-bold text-xs xs:text-sm text-warm-900 group-hover:text-[#88734C] transition-colors line-clamp-1">
                             {language === "vi" ? paint.name : paint.nameEn}
                           </h4>
-                          <p className="text-xs text-warm-550 line-clamp-2 leading-relaxed h-8">
+                          <p className="hidden xs:line-clamp-2 text-[10px] xs:text-xs text-warm-550 leading-snug xs:leading-relaxed h-7 xs:h-8">
                             {language === "vi" ? paint.description : paint.descriptionEn}
                           </p>
                         </Link>
 
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-warm-300">
+                        <div className="flex items-center justify-between mt-2 pt-2 xs:mt-3 xs:pt-3 border-t border-warm-300 gap-1">
                           {paint.discountPercent && paint.discountPercent > 0 ? (
                             <div className="flex flex-col items-start">
-                              <span className="text-xs font-mono font-bold text-red-500">
+                              <span className="text-[10px] xs:text-xs font-mono font-bold text-red-500">
                                 {formatPrice(paint.price * (1 - paint.discountPercent / 100))}
                               </span>
-                              <span className="text-[9px] font-mono text-warm-400 line-through">
+                              <span className="text-[8px] xs:text-[9px] font-mono text-warm-400 line-through">
                                 {formatPrice(paint.price)}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-xs font-extrabold text-warm-900 font-mono">
+                            <span className="text-[10px] xs:text-xs font-extrabold text-warm-900 font-mono">
                               {formatPrice(paint.price)}
                             </span>
                           )}
@@ -1013,9 +1099,15 @@ export default function HomePage() {
                                   : `Added ${paint.nameEn} (${defaultColorObj?.nameEn || "Default"} color) to cart`
                               );
                             }}
-                            className="bg-warm-900 hover:bg-warm-850 text-white text-[10px] px-3 py-1.5 rounded-lg border border-warm-900 shadow-xs flex items-center gap-1 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-warm-900 focus:ring-offset-1"
+                            className="btn-island bg-warm-900 hover:bg-warm-800 text-white text-[9px] xs:text-[10px] sm:text-[11px] px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3.5 sm:py-1.5 gap-1 xs:gap-1.5 sm:gap-3 rounded-full"
                           >
-                            <span>{language === "vi" ? "Mua" : "Buy"}</span>
+                            <span className="hidden xs:inline">
+                              {language === "vi" ? "Mua" : "Buy"}
+                              <span className="hidden sm:inline">{language === "vi" ? " ngay" : " now"}</span>
+                            </span>
+                            <span className="btn-island-icon bg-white/20 w-4.5 h-4.5 xs:w-5 xs:h-5 sm:w-6 sm:h-6 shrink-0 flex items-center justify-center">
+                              <ArrowRight className="h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-3.5 sm:w-3.5" />
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -1133,7 +1225,6 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-
             {/* Feature 2: Test colors before/after */}
             <div className="bg-white/60 border border-warm-200/50 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
               <div className="relative w-48 h-48 shrink-0 rounded-xl overflow-hidden shadow-md bg-warm-100">
@@ -1164,7 +1255,7 @@ export default function HomePage() {
       </section>
 
       {/* 4. SẢN PHẨM NỔI BẬT */}
-      <section className="py-28 bg-white">
+      <section className="py-16 md:py-28 bg-white">
         <div className="w-full max-w-[1200px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
@@ -1184,120 +1275,168 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Filter tabs */}
-            <div className="flex gap-1 bg-warm-100 p-1 rounded-full border border-black/5">
-              {[
-                { value: "bestseller", label: language === "vi" ? "Bán chạy nhất" : "Bestsellers" },
-                { value: "new", label: language === "vi" ? "Mới nhất" : "New" },
-                { value: "promo", label: language === "vi" ? "Khuyến mãi" : "Promotions" }
-              ].map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => setActiveTab(tab.value as any)}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300",
-                    activeTab === tab.value ? "bg-white text-warm-900 shadow-sm" : "text-warm-500 hover:text-warm-900"
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            {/* Filter tabs and Simulate Error */}
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex gap-1 bg-warm-100 p-1 rounded-full border border-black/5">
+                {[
+                  { value: "bestseller", label: language === "vi" ? "Bán chạy nhất" : "Bestsellers" },
+                  { value: "new", label: language === "vi" ? "Mới nhất" : "New" },
+                  { value: "promo", label: language === "vi" ? "Khuyến mãi" : "Promotions" }
+                ].map((tab) => (
+                  <button
+                    key={tab.value}
+                    onClick={() => {
+                      if (tab.value === activeTab) return;
+                      setIsTabLoading(true);
+                      setTimeout(() => {
+                        setActiveTab(tab.value as any);
+                        setIsTabLoading(false);
+                      }, 400);
+                    }}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300",
+                      activeTab === tab.value ? "bg-white text-warm-900 shadow-sm" : "text-warm-500 hover:text-warm-900"
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setNetworkError(!networkError)}
+                className={cn(
+                  "text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 border rounded-full transition-all duration-300",
+                  networkError
+                    ? "bg-red-500 border-red-500 text-white font-bold"
+                    : "border-warm-250 hover:border-red-400 hover:text-red-500 text-warm-500"
+                )}
+                title="Simulate network error for testing"
+              >
+                {language === "vi" ? "Giả lập lỗi mạng" : "Simulate Error"}
+              </button>
             </div>
           </motion.div>
 
-          <motion.div
-            key={activeTab}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-            variants={{
-              visible: { transition: { staggerChildren: 0.08 } }
-            }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            {FEATURED_PRODUCTS.filter(p => p.tag === activeTab || activeTab === "bestseller").map((prod) => {
-              const paint = paints.find((p) => p.id === prod.id) || paints[0] || MOCK_PAINTS[0];
-              const slug = paint.slug;
-              return (
+          <div className="relative min-h-[350px]">
+            <AnimatePresence mode="wait">
+              {isTabLoading ? (
                 <motion.div
-                  key={prod.id}
-                  variants={{
-                    hidden: { opacity: 0, y: 32 },
-                    visible: { opacity: 1, y: 0, transition: { ease: [0.32, 0.72, 0, 1], duration: 0.7 } }
-                  }}
-                  className="bg-white p-5 flex flex-col gap-4 rounded-xl border border-black/5 hover:shadow-lg transition-all duration-500 h-full group relative"
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="min-h-[350px] flex flex-col items-center justify-center gap-4 w-full py-16"
                 >
-                  <Link href={`/products/${slug}`} className="flex flex-col gap-4 flex-grow cursor-pointer">
-                    <div className="relative h-80 w-full bg-jotun-ivory-100 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-6 shadow-inner">
-                      <Image
-                        src={paint.images?.[0] || "/product_interior.png"}
-                        alt={language === "vi" ? prod.name : (prod.nameEn || prod.name)}
-                        fill
-                        className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
-                      />
-                      {paint.discountPercent && paint.discountPercent > 0 && (
-                        <div className="absolute top-3.5 left-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white font-mono text-xs font-extrabold px-3 py-1 rounded-lg shadow-md z-10 animate-pulse select-none border border-white/20">
-                          -{paint.discountPercent}%
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-2 flex-grow text-left">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-warm-400 font-mono">
-                          {MOCK_SUPPLIERS.find(s => s.id === paint.supplierId)?.name || "Jotun"}
-                        </span>
-                        <div className="flex gap-0.5 text-jotun-teal">
-                          {Array.from({ length: prod.rating }).map((_, i) => (
-                            <Star key={i} className="h-3 w-3 fill-current" />
-                          ))}
-                        </div>
-                      </div>
-
-                      <h3 className="font-serif font-bold text-base group-hover:text-jotun-teal transition-colors text-warm-900 line-clamp-1">
-                        {language === "vi" ? prod.name : (prod.nameEn || prod.name)}
-                      </h3>
-
-                      <p className="text-xs text-warm-500 line-clamp-2 leading-relaxed">
-                        {language === "vi" ? prod.desc : (prod.descEn || prod.desc)}
-                      </p>
-                    </div>
-                  </Link>
-
-                  <div className="mt-auto pt-4 border-t border-black/5 flex items-center justify-between">
-                    {paint.discountPercent && paint.discountPercent > 0 ? (
-                      <div className="flex flex-col items-start">
-                        <span className="text-base font-mono font-bold text-red-500">
-                          {formatPrice(paint.price * (1 - paint.discountPercent / 100))}
-                        </span>
-                        <span className="text-xs font-mono text-warm-400 line-through">
-                          {formatPrice(paint.price)}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-base font-extrabold text-warm-900 font-mono">
-                        {formatPrice(paint.price)}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => handleAddToCart(prod)}
-                      className="btn-island bg-jotun-teal hover:bg-jotun-teal-dark text-white text-xs px-4 py-2"
-                    >
-                      <span>{language === "vi" ? "Mua ngay" : "Buy now"}</span>
-                      <span className="btn-island-icon bg-white/20">
-                        <ArrowRight className="h-4 w-4" />
-                      </span>
-                    </button>
+                  <div className="relative w-10 h-10">
+                    <div className="absolute inset-0 rounded-full border-4 border-warm-200" />
+                    <div className="absolute inset-0 rounded-full border-4 border-jotun-teal border-t-transparent animate-spin" />
                   </div>
+                  <p className="text-xs text-warm-550 font-medium tracking-wide">
+                    {language === "vi" ? "Đang tải sản phẩm..." : "Loading products..."}
+                  </p>
                 </motion.div>
-              );
-            })}
-          </motion.div>
+              ) : (
+                <motion.div
+                  key={activeTab}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.1 }}
+                  variants={{
+                    visible: { transition: { staggerChildren: 0.08 } }
+                  }}
+                  className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6 md:gap-8"
+                >
+                  {FEATURED_PRODUCTS.filter(p => p.tag === activeTab || activeTab === "bestseller").map((prod) => {
+                    const paint = paints.find((p) => p.id === prod.id) || paints[0] || MOCK_PAINTS[0];
+                    const slug = paint.slug;
+                    return (
+                      <motion.div
+                        key={prod.id}
+                        variants={{
+                          hidden: { opacity: 0, y: 32 },
+                          visible: { opacity: 1, y: 0, transition: { ease: [0.32, 0.72, 0, 1], duration: 0.7 } }
+                        }}
+                        className="bg-white p-3 sm:p-5 flex flex-col gap-2.5 sm:gap-4 rounded-xl border border-black/5 hover:shadow-lg transition-all duration-500 h-full group relative"
+                      >
+                        <Link href={`/products/${slug}`} className="flex flex-col gap-2.5 sm:gap-4 flex-grow cursor-pointer">
+                          <div className="relative h-36 xs:h-44 sm:h-64 md:h-80 w-full bg-jotun-ivory-100 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-2.5 sm:p-6 shadow-inner">
+                            <Image
+                              src={paint.images?.[0] || "/product_interior.png"}
+                              alt={language === "vi" ? prod.name : (prod.nameEn || prod.name)}
+                              fill
+                              className="object-contain p-2.5 sm:p-6 transition-transform duration-700 group-hover:scale-105"
+                            />
+                            {paint.discountPercent && paint.discountPercent > 0 && (
+                              <div className="absolute top-1.5 left-1.5 xs:top-3.5 xs:left-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white font-mono text-[9px] xs:text-xs font-extrabold px-1.5 py-0.5 xs:px-3 xs:py-1 rounded-md xs:rounded-lg shadow-md z-10 animate-pulse select-none border border-white/20">
+                                -{paint.discountPercent}%
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col gap-1 sm:gap-2 flex-grow text-left">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-warm-400 font-mono">
+                                {MOCK_SUPPLIERS.find(s => s.id === paint.supplierId)?.name || "Jotun"}
+                              </span>
+                              <div className="flex gap-0.5 text-jotun-teal">
+                                {Array.from({ length: prod.rating }).map((_, i) => (
+                                  <Star key={i} className="h-2 w-2 sm:h-3 sm:w-3 fill-current" />
+                                ))}
+                              </div>
+                            </div>
+
+                            <h3 className="font-serif font-bold text-xs sm:text-base group-hover:text-jotun-teal transition-colors text-warm-900 line-clamp-1">
+                              {language === "vi" ? prod.name : (prod.nameEn || prod.name)}
+                            </h3>
+
+                            <p className="text-[10px] sm:text-xs text-warm-500 line-clamp-1 sm:line-clamp-2 leading-tight sm:leading-relaxed">
+                              {language === "vi" ? prod.desc : (prod.descEn || prod.desc)}
+                            </p>
+                          </div>
+                        </Link>
+
+                        <div className="mt-auto pt-2.5 sm:pt-4 border-t border-black/5 flex items-center justify-between gap-1">
+                          {paint.discountPercent && paint.discountPercent > 0 ? (
+                            <div className="flex flex-col items-start">
+                              <span className="text-xs sm:text-base font-mono font-bold text-red-500">
+                                {formatPrice(paint.price * (1 - paint.discountPercent / 100))}
+                              </span>
+                              <span className="text-[9px] sm:text-xs font-mono text-warm-400 line-through">
+                                {formatPrice(paint.price)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs sm:text-base font-extrabold text-warm-900 font-mono">
+                              {formatPrice(paint.price)}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleAddToCart(prod)}
+                            className="btn-island bg-warm-900 hover:bg-warm-800 text-white text-[10px] sm:text-xs px-2.5 py-1.5 sm:px-4 sm:py-2 gap-1.5 sm:gap-3"
+                          >
+                            <span>
+                              {language === "vi" ? "Mua" : "Buy"}
+                              <span className="hidden xs:inline">{language === "vi" ? " ngay" : " now"}</span>
+                            </span>
+                            <span className="btn-island-icon bg-white/20 w-5 h-5 sm:w-8 sm:h-8 shrink-0">
+                              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </section>
 
       {/* 5. TƯ VẤN & XU HƯỚNG TỪ CHUYÊN GIA / EXPERT BLOGS & GUIDES */}
-      <section id="blogs-section" className="py-28 bg-jotun-ivory-100 border-b border-black/5">
+      <section id="blogs-section" className="py-16 md:py-28 bg-jotun-ivory-100 border-b border-black/5">
         <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
@@ -1391,7 +1530,7 @@ export default function HomePage() {
       </section>
 
       {/* 6. CÔNG TRÌNH THỰC TẾ (Before/After & Gallery) */}
-      <section className="py-28 bg-white">
+      <section className="py-16 md:py-28 bg-white">
         <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
@@ -1423,7 +1562,7 @@ export default function HomePage() {
                 ref={sliderRef}
                 onMouseMove={handleMouseMove}
                 onTouchMove={handleTouchMove}
-                className="relative h-[440px] md:h-[620px] w-full rounded-2xl overflow-hidden cursor-ew-resize bg-zinc-900 select-none shadow-xl border border-black/5"
+                className="relative aspect-[4/3] sm:h-[450px] md:h-[620px] lg:aspect-none lg:h-[620px] w-full rounded-2xl overflow-hidden cursor-ew-resize bg-zinc-900 select-none shadow-xl border border-black/5"
               >
                 {/* Base Image (After) */}
                 <Image
