@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -29,12 +29,27 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  
+  const avatarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    // Close dropdown on click outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+        setIsAvatarOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const cartCount = mounted ? getCartItemCount() : 0;
@@ -139,34 +154,64 @@ export default function Header() {
                   {/* Divider 2 */}
                   <div className="hidden md:block w-[1px] h-3.5 bg-warm-200/80" />
 
-                  <div className="hidden md:block relative group">
-                    <button className="flex items-center p-0.5 rounded-full hover:scale-105 transition-transform duration-300"
-                      style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}>
+                  <div ref={avatarRef} className="hidden md:block relative">
+                    <button 
+                      onClick={() => setIsAvatarOpen(!isAvatarOpen)}
+                      className="flex items-center p-0.5 rounded-full hover:scale-105 transition-transform duration-300 focus:outline-none"
+                      style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
+                      aria-expanded={isAvatarOpen}
+                      aria-haspopup="menu"
+                    >
                       <div className="h-6 w-6 bg-jotun-teal text-white rounded-full flex items-center justify-center text-[9px] font-bold shadow-sm">
                         {(user.name || user.email || "??").slice(0, 2).toUpperCase()}
                       </div>
                     </button>
 
-                    <div className="absolute top-full right-0 pt-3 w-52 z-50 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-500"
-                      style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}>
-                      <div className="bg-white border border-black/[0.06] rounded-2xl shadow-xl overflow-hidden transition-transform duration-500 translate-y-2 group-hover:translate-y-0"
-                        style={{ backdropFilter: "none" }}>
+                    <div 
+                      className={cn(
+                        "absolute top-full right-0 pt-3 w-52 z-50 transition-all duration-300",
+                        isAvatarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                      )}
+                      style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
+                    >
+                      <div 
+                        className={cn(
+                          "bg-white border border-black/[0.06] rounded-2xl shadow-xl overflow-hidden transition-transform duration-300",
+                          isAvatarOpen ? "translate-y-0" : "translate-y-2"
+                        )}
+                        style={{ backdropFilter: "none" }}
+                      >
                         <div className="p-3 border-b border-warm-100 bg-warm-50">
                           <p className="text-xs font-bold text-warm-900 truncate">{user.name || "User"}</p>
                           <p className="text-[10px] text-warm-700 font-mono truncate">{user.email}</p>
                         </div>
                         <div className="p-2 flex flex-col gap-0.5 text-left">
-                          <Link href="/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold">
+                          <Link 
+                            href="/profile" 
+                            onClick={() => {
+                              setMobileOpen(false);
+                              setIsAvatarOpen(false);
+                            }} 
+                            className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold"
+                          >
                             {language === "vi" ? "Tài khoản" : "My Account"}
                           </Link>
                           {userRole === "ADMIN" && (
-                            <Link href="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold">
+                            <Link 
+                              href="/admin" 
+                              onClick={() => {
+                                setMobileOpen(false);
+                                setIsAvatarOpen(false);
+                              }} 
+                              className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold"
+                            >
                               Admin
                             </Link>
                           )}
                           <button
                             onClick={() => {
                               setMobileOpen(false);
+                              setIsAvatarOpen(false);
                               signOut({ callbackUrl: "/" });
                             }}
                             className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl font-bold w-full text-left"

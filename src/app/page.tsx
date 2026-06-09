@@ -485,22 +485,11 @@ export default function HomePage() {
   };
 
 
-  if (networkError || isOffline) {
+  if (isOffline) {
     return (
       <div className="relative w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[70vh] flex flex-col items-center justify-center px-6 py-20 text-center gap-6">
         {/* Subtle grid accent background */}
         <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
-
-        {/* Demo offline trigger - so they can turn it off from here too */}
-        <div className="absolute top-24 right-6 z-10">
-          <button
-            onClick={() => setNetworkError(false)}
-            className="text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 border border-red-500 bg-red-500 text-white rounded-full font-bold shadow-md transition-all hover:bg-red-600"
-            title="Simulate network error for testing"
-          >
-            {language === "vi" ? "Tắt Giả lập lỗi mạng" : "Disable Error Sim"}
-          </button>
-        </div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -524,7 +513,7 @@ export default function HomePage() {
           <button
             onClick={() => {
               setIsTabLoading(true);
-              setNetworkError(false);
+              setIsOffline(!navigator.onLine);
               setTimeout(() => {
                 setIsTabLoading(false);
               }, 600);
@@ -1303,18 +1292,6 @@ export default function HomePage() {
                 ))}
               </div>
 
-              <button
-                onClick={() => setNetworkError(!networkError)}
-                className={cn(
-                  "text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 border rounded-full transition-all duration-300",
-                  networkError
-                    ? "bg-red-500 border-red-500 text-white font-bold"
-                    : "border-warm-250 hover:border-red-400 hover:text-red-500 text-warm-500"
-                )}
-                title="Simulate network error for testing"
-              >
-                {language === "vi" ? "Giả lập lỗi mạng" : "Simulate Error"}
-              </button>
             </div>
           </motion.div>
 
@@ -1562,14 +1539,15 @@ export default function HomePage() {
                 ref={sliderRef}
                 onMouseMove={handleMouseMove}
                 onTouchMove={handleTouchMove}
-                className="relative aspect-[4/3] sm:h-[450px] md:h-[620px] lg:aspect-none lg:h-[620px] w-full rounded-2xl overflow-hidden cursor-ew-resize bg-zinc-900 select-none shadow-xl border border-black/5"
+                className="relative aspect-[4/3] sm:h-[450px] md:h-[620px] lg:aspect-none lg:h-[620px] w-full rounded-2xl overflow-hidden cursor-ew-resize bg-zinc-900 select-none shadow-xl border border-black/5 group"
               >
                 {/* Base Image (After) */}
                 <Image
                   src="/living_sage.png"
                   alt={language === "vi" ? "Sau khi sơn" : "After painting"}
                   fill
-                  className="object-cover pointer-events-none"
+                  className="object-cover pointer-events-none animate-fade-in"
+                  priority
                 />
 
                 {/* Overlay Image (Before) */}
@@ -1581,19 +1559,25 @@ export default function HomePage() {
                   style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
                 />
 
+                {/* Sleek Vertical Divider and Glass Handle */}
                 <div
-                  className="absolute inset-y-0 w-1 bg-white flex items-center justify-center pointer-events-none"
+                  className="absolute inset-y-0 w-[2px] bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.4)] flex items-center justify-center pointer-events-none"
                   style={{ left: `${sliderPosition}%` }}
                 >
-                  <div className="w-8 h-8 rounded-full bg-white border border-warm-900 shadow-md flex items-center justify-center text-warm-900 text-xs font-bold font-mono">
-                    ↔
+                  <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur-md border border-white/45 shadow-2xl flex items-center justify-center transition-all duration-300 scale-100 group-hover:scale-110 group-hover:bg-white/35">
+                    <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-warm-900 shadow-md">
+                      <svg className="w-3.5 h-3.5 text-warm-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 7l-5 5 5 5M16 7l5 5-5 5" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
-                <span className="absolute bottom-3 left-3 bg-zinc-950/70 text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold">
-                  {language === "vi" ? "Trước" : "Before"}
+                {/* Premium Glassmorphic Labels */}
+                <span className="absolute top-4 left-4 backdrop-blur-md bg-black/40 border border-white/10 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-extrabold uppercase tracking-widest shadow-md select-none pointer-events-none">
+                  {language === "vi" ? "Trước khi sơn" : "Before"}
                 </span>
-                <span className="absolute bottom-3 right-3 bg-jotun-teal/80 text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold">
+                <span className="absolute top-4 right-4 backdrop-blur-md bg-jotun-teal/60 border border-white/10 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-extrabold uppercase tracking-widest shadow-md select-none pointer-events-none">
                   {language === "vi" ? "Sau khi sơn" : "After"}
                 </span>
               </div>

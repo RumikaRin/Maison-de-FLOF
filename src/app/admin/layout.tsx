@@ -349,6 +349,14 @@ export default function AdminLayout({
       href: "/admin/paints",
     },
     {
+      name: language === "vi" ? "Nhập hàng" : "Import Goods",
+      href: "/admin/import",
+    },
+    {
+      name: language === "vi" ? "Hóa đơn" : "Invoices",
+      href: "/admin/invoices",
+    },
+    {
       name: language === "vi" ? "Mã màu" : "Colors",
       href: "/admin/colors",
     },

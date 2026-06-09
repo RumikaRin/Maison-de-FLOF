@@ -8,6 +8,7 @@ import { CustomSelect } from "@/components/ui/custom-select";
 import { Trash2, CheckCircle, Clock, XCircle, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
+import { InvoiceModal } from "@/components/admin/InvoiceModal";
 
 export default function AdminOrdersPage() {
   const { language } = useLanguageStore();
@@ -16,6 +17,15 @@ export default function AdminOrdersPage() {
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSING" | "COMPLETED" | "CANCELLED">("ALL");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+  
+  // Invoice states
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<any | null>(null);
+
+  const triggerViewInvoice = (order: any) => {
+    setSelectedInvoiceOrder(order);
+    setIsInvoiceModalOpen(true);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -212,14 +222,23 @@ export default function AdminOrdersPage() {
                         ]}
                       />
                     </td>
-                    <td className="py-4 pl-4 text-center">
-                      <button
-                        onClick={() => triggerDeleteOrder(ord.id)}
-                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer"
-                        title={language === "vi" ? "Xóa đơn" : "Delete Order"}
-                      >
-                        {language === "vi" ? "Xóa" : "Delete"}
-                      </button>
+                    <td className="py-4 pl-4 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => triggerViewInvoice(ord)}
+                          className="text-[11px] font-bold text-white bg-jotun-teal hover:bg-jotun-teal-dark px-3 py-1.5 rounded-xl transition-all shadow-xs border border-jotun-teal cursor-pointer"
+                          title={language === "vi" ? "Xuất hóa đơn" : "Export Invoice"}
+                        >
+                          {language === "vi" ? "Hóa đơn" : "Invoice"}
+                        </button>
+                        <button
+                          onClick={() => triggerDeleteOrder(ord.id)}
+                          className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer"
+                          title={language === "vi" ? "Xóa đơn" : "Delete Order"}
+                        >
+                          {language === "vi" ? "Xóa" : "Delete"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -249,6 +268,15 @@ export default function AdminOrdersPage() {
             ? `Bạn có chắc muốn xóa đơn hàng ${orderToDelete} không?`
             : `Are you sure you want to delete order ${orderToDelete}?`
         }
+      />
+
+      <InvoiceModal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => {
+          setIsInvoiceModalOpen(false);
+          setSelectedInvoiceOrder(null);
+        }}
+        order={selectedInvoiceOrder}
       />
     </div>
   );

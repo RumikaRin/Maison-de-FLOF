@@ -8,10 +8,7 @@ import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { toast } from "sonner";
 
-const DEMO_ACCOUNTS = [
-  { email: "admin@sonvn.com", password: "admin123", label: "Admin" },
-  { email: "customer1@sonvn.com", password: "customer123", label: "Customer" },
-];
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -73,15 +70,7 @@ export default function LoginPage() {
     router.refresh();
   };
 
-  const handleQuickLogin = (acc: typeof DEMO_ACCOUNTS[0]) => {
-    setEmail(acc.email);
-    setPassword(acc.password);
-    toast.info(
-      language === "vi"
-        ? `Đã nạp tài khoản: ${acc.label}`
-        : `Loaded account: ${acc.label}`
-    );
-  };
+
 
   return (
     <div className="w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh] flex flex-col justify-center py-12">
@@ -138,23 +127,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Quick Login Demo Buttons */}
-        <div className="flex flex-col gap-2 pt-2 border-t border-warm-100">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-warm-450 text-center">
-            {language === "vi" ? "Đăng nhập nhanh (Demo)" : "Quick Login (Demo)"}
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {DEMO_ACCOUNTS.map((acc) => (
-              <button
-                key={acc.email}
-                onClick={() => handleQuickLogin(acc)}
-                className="px-3 py-2 rounded-xl border border-warm-200 bg-warm-50 text-[10px] font-bold text-warm-650 hover:bg-warm-100 transition-colors"
-              >
-                {acc.label}
-              </button>
-            ))}
-          </div>
-        </div>
+
 
         <div className="text-center text-xs text-warm-550">
           <span>{language === "vi" ? "Chưa có tài khoản?" : "Don't have an account?"}</span>{" "}
