@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { MOCK_BLOGS } from "@/lib/mock-data";
 
 export async function GET() {
   try {
@@ -9,10 +8,6 @@ export async function GET() {
       include: { author: true },
       orderBy: { createdAt: "desc" }
     });
-
-    if (blogs.length === 0) {
-      return NextResponse.json(MOCK_BLOGS);
-    }
 
     const adapted = blogs.map((b) => ({
       id: b.id,
@@ -34,6 +29,6 @@ export async function GET() {
     return NextResponse.json(adapted);
   } catch (error) {
     console.error("Failed to fetch blogs:", error);
-    return NextResponse.json(MOCK_BLOGS);
+    return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 });
   }
 }

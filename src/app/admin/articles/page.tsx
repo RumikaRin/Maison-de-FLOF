@@ -5,6 +5,8 @@ import { useLanguageStore } from "@/store/language-store";
 import { MOCK_BLOGS, Blog } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { motion, AnimatePresence } from "framer-motion";
+import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 
 export default function AdminArticlesPage() {
   const { language } = useLanguageStore();
@@ -13,6 +15,8 @@ export default function AdminArticlesPage() {
   // Core articles state
   const [articles, setArticles] = useState<Blog[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
 
   // Modal Control
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,13 +130,19 @@ export default function AdminArticlesPage() {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm(language === "vi" ? "Xác nhận xóa bài viết này khỏi website?" : "Delete this article?")) {
-      setArticles(articles.filter((art) => art.id !== id));
-      toast.success(
-        language === "vi" ? "Đã xóa bài viết thành công." : "Article deleted successfully."
-      );
-    }
+  const triggerDelete = (id: string) => {
+    setArticleToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!articleToDelete) return;
+    const target = articles.find((art) => art.id === articleToDelete);
+    setArticles(articles.filter((art) => art.id !== articleToDelete));
+    toast.success(
+      language === "vi" ? `Đã xóa bài viết "${target?.title || ""}" thành công.` : "Article deleted successfully."
+    );
+    setArticleToDelete(null);
   };
 
   const filteredArticles = articles.filter((art) => {
@@ -144,8 +154,13 @@ export default function AdminArticlesPage() {
 
   return (
     <div className="flex flex-col gap-8 text-left">
-      {/* Header and Add CTA */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header and Add CTA with spring reveal */}
+      <motion.div 
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
           <h1 className="text-3xl font-bold font-serif text-warm-900">
             {language === "vi" ? "Quản Lý Bài Viết" : "Blog Articles Publisher"}
@@ -158,14 +173,19 @@ export default function AdminArticlesPage() {
         </div>
         <button
           onClick={openAddModal}
-          className="bg-warm-900 text-white font-bold text-xs px-5 py-3 rounded-xl hover:bg-warm-800 transition-colors flex items-center justify-center gap-1.5 self-start shadow-sm"
+          className="bg-warm-900 text-white font-bold text-xs px-5 py-3 rounded-xl hover:bg-warm-800 transition-colors flex items-center justify-center gap-1.5 self-start shadow-sm cursor-pointer"
         >
           {language === "vi" ? "Viết Bài Mới" : "Publish New Article"}
         </button>
-      </div>
+      </motion.div>
 
       {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 gap-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.35 }}
+        className="grid grid-cols-1 gap-4"
+      >
         <input
           type="text"
           placeholder={
@@ -175,10 +195,15 @@ export default function AdminArticlesPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-900 transition-shadow"
         />
-      </div>
+      </motion.div>
 
       {/* Article Listing Grid */}
-      <div className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.4 }}
+        className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden"
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -219,14 +244,14 @@ export default function AdminArticlesPage() {
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => openEditModal(art)}
-                        className="text-[11px] font-bold text-white bg-warm-900 hover:bg-warm-800 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-warm-900"
+                        className="text-[11px] font-bold text-white bg-warm-900 hover:bg-warm-800 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-warm-900 cursor-pointer"
                         title={language === "vi" ? "Chỉnh sửa" : "Edit"}
                       >
                         {language === "vi" ? "Sửa" : "Edit"}
                       </button>
                       <button
-                        onClick={() => handleDelete(art.id)}
-                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600"
+                        onClick={() => triggerDelete(art.id)}
+                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer"
                         title={language === "vi" ? "Xóa" : "Delete"}
                       >
                         {language === "vi" ? "Xóa" : "Delete"}
@@ -238,169 +263,201 @@ export default function AdminArticlesPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Write/Edit Modal overlay */}
-      {isModalOpen && (
-        <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto animate-fade-in text-left">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white border border-warm-200 w-full max-w-xl rounded-2xl shadow-2xl flex flex-col my-8 overflow-visible">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
-              <h3 className="font-serif font-bold text-base text-warm-900">
-                {modalMode === "add"
-                  ? language === "vi"
-                    ? "Tạo và viết bài viết mới"
-                    : "Create & Write New Article"
-                  : language === "vi"
-                  ? "Chỉnh sửa nội dung bài viết"
-                  : "Edit Blog Article"}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1"
-              >
-                {language === "vi" ? "[Đóng]" : "[Close]"}
-              </button>
-            </div>
-
-            {/* Modal Form Details */}
-            <form onSubmit={handleSubmit} className="p-6 pb-36 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-warm-450">Tiêu đề (Tiếng Việt)</label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="VD: Cách phối màu sơn phòng khách..."
-                  className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-warm-450">Tiêu đề (Tiếng Anh)</label>
-                <input
-                  type="text"
-                  required
-                  value={titleEn}
-                  onChange={(e) => setTitleEn(e.target.value)}
-                  placeholder="VD: How to coordinate paint colors..."
-                  className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-warm-450">Hình ảnh đại diện (Image URL)</label>
-                <input
-                  type="url"
-                  required
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="https://example.com/banner.jpg"
-                  className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850 font-mono"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-warm-450">Chuyên mục (Vi)</label>
-                  <CustomSelect
-                    value={category}
-                    onValueChange={setCategory}
-                    options={[
-                      { value: "Xu hướng màu sắc", label: "Xu hướng màu sắc" },
-                      { value: "Hướng dẫn thi công", label: "Hướng dẫn thi công" },
-                      { value: "Đánh giá sản phẩm", label: "Đánh giá sản phẩm" },
-                    ]}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-warm-450">Chuyên mục (En)</label>
-                  <CustomSelect
-                    value={categoryEn}
-                    onValueChange={setCategoryEn}
-                    options={[
-                      { value: "Color Trends", label: "Color Trends" },
-                      { value: "Application Guide", label: "Application Guide" },
-                      { value: "Product Review", label: "Product Review" },
-                    ]}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-warm-450">Tác giả</label>
-                  <input
-                    type="text"
-                    required
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-warm-450">Thời gian đọc</label>
-                  <input
-                    type="text"
-                    required
-                    value={readTime}
-                    onChange={(e) => setReadTime(e.target.value)}
-                    placeholder="VD: 5 phút / 5 min read"
-                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-warm-450">Tóm tắt (Tiếng Việt)</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs text-warm-850 focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 resize-none"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-warm-450">Tóm tắt (Tiếng Anh)</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={summaryEn}
-                  onChange={(e) => setSummaryEn(e.target.value)}
-                  className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs text-warm-850 focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 resize-none"
-                />
-              </div>
-
-              <div className="mt-4 flex justify-end gap-3 border-t border-warm-100 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
-                >
-                  {language === "vi" ? "Hủy" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
-                >
+      {/* Write/Edit Modal overlay with premium spring scale transitions */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsModalOpen(false)} 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto text-left"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              onClick={(e) => e.stopPropagation()} 
+              className="bg-white border border-warm-200 w-full max-w-xl rounded-2xl shadow-2xl flex flex-col my-8 overflow-visible"
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
+                <h3 className="font-serif font-bold text-base text-warm-900">
                   {modalMode === "add"
                     ? language === "vi"
-                      ? "Xuất bản"
-                      : "Publish"
+                      ? "Tạo và viết bài viết mới"
+                      : "Create & Write New Article"
                     : language === "vi"
-                    ? "Lưu thay đổi"
-                    : "Save"}
+                    ? "Chỉnh sửa nội dung bài viết"
+                    : "Edit Blog Article"}
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1 transition-colors cursor-pointer"
+                >
+                  {language === "vi" ? "[Đóng]" : "[Close]"}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              {/* Modal Form Details */}
+              <form onSubmit={handleSubmit} className="p-6 pb-36 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Tiêu đề (Tiếng Việt)</label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="VD: Cách phối màu sơn phòng khách..."
+                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Tiêu đề (Tiếng Anh)</label>
+                  <input
+                    type="text"
+                    required
+                    value={titleEn}
+                    onChange={(e) => setTitleEn(e.target.value)}
+                    placeholder="VD: How to coordinate paint colors..."
+                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Hình ảnh đại diện (Image URL)</label>
+                  <input
+                    type="url"
+                    required
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="https://example.com/banner.jpg"
+                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850 font-mono"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-warm-450">Chuyên mục (Vi)</label>
+                    <CustomSelect
+                      value={category}
+                      onValueChange={setCategory}
+                      options={[
+                        { value: "Xu hướng màu sắc", label: "Xu hướng màu sắc" },
+                        { value: "Hướng dẫn thi công", label: "Hướng dẫn thi công" },
+                        { value: "Đánh giá sản phẩm", label: "Đánh giá sản phẩm" },
+                      ]}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-warm-450">Chuyên mục (En)</label>
+                    <CustomSelect
+                      value={categoryEn}
+                      onValueChange={setCategoryEn}
+                      options={[
+                        { value: "Color Trends", label: "Color Trends" },
+                        { value: "Application Guide", label: "Application Guide" },
+                        { value: "Product Review", label: "Product Review" },
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-warm-450">Tác giả</label>
+                    <input
+                      type="text"
+                      required
+                      value={author}
+                      onChange={(e) => setAuthor(e.target.value)}
+                      className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-warm-450">Thời gian đọc</label>
+                    <input
+                      type="text"
+                      required
+                      value={readTime}
+                      onChange={(e) => setReadTime(e.target.value)}
+                      placeholder="VD: 5 phút / 5 min read"
+                      className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-850"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Tóm tắt (Tiếng Việt)</label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={summary}
+                    onChange={(e) => setSummary(e.target.value)}
+                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs text-warm-850 focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 resize-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-warm-450">Tóm tắt (Tiếng Anh)</label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={summaryEn}
+                    onChange={(e) => setSummaryEn(e.target.value)}
+                    className="px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs text-warm-850 focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 resize-none"
+                  />
+                </div>
+
+
+                <div className="mt-4 flex justify-end gap-3 border-t border-warm-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors cursor-pointer"
+                  >
+                    {language === "vi" ? "Hủy" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors cursor-pointer"
+                  >
+                    {modalMode === "add"
+                      ? language === "vi"
+                        ? "Xuất bản"
+                        : "Publish"
+                      : language === "vi"
+                      ? "Lưu thay đổi"
+                      : "Save"}
+                  </button>
+                </div>
+
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setArticleToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title={language === "vi" ? "Xóa bài viết?" : "Delete Article?"}
+        message={
+          language === "vi"
+            ? `Bạn có chắc muốn xóa bài viết "${articles.find((art) => art.id === articleToDelete)?.title || ""}" không?`
+            : `Are you sure you want to delete article "${articles.find((art) => art.id === articleToDelete)?.titleEn || ""}"?`
+        }
+      />
     </div>
   );
 }

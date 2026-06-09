@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
@@ -54,11 +56,17 @@ export default function ProfilePage() {
   const [addrLine, setAddrLine] = useState("");
   const [addrIsDefault, setAddrIsDefault] = useState(false);
 
+  const { data: authSession, status: authStatus } = useSession();
+
   useEffect(() => {
     setMounted(true);
     const storedUser = localStorage.getItem("sonvn-user");
     let currentUserEmail = "";
     let currentUserName = "";
+
+    const authUser = authSession?.user;
+    const authRole = (authUser as any)?.role;
+
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
       setUser(parsed);
@@ -68,8 +76,19 @@ export default function ProfilePage() {
       setProfileEmail(parsed.email || "");
       if (parsed.phone) setProfilePhone(parsed.phone);
       if (parsed.address) setProfileAddress(parsed.address);
+    } else if (authUser) {
+      const sessionUser = {
+        email: authUser.email || "",
+        name: authUser.name || "",
+        role: authRole || "CUSTOMER",
+      };
+      setUser(sessionUser);
+      currentUserEmail = sessionUser.email;
+      currentUserName = sessionUser.name;
+      setProfileName(sessionUser.name);
+      setProfileEmail(sessionUser.email);
     } else {
-      router.push("/login");
+      if (authStatus !== "loading") router.push("/login");
       return;
     }
 
@@ -123,15 +142,17 @@ export default function ProfilePage() {
 
     // Load dynamic addresses scoped by email
     const storedAddresses = localStorage.getItem(`sonvn-addresses-${currentUserEmail}`);
+    let loadedAddresses: any[] = [];
     if (storedAddresses) {
       try {
-        setAddresses(JSON.parse(storedAddresses));
+        loadedAddresses = JSON.parse(storedAddresses);
+        setAddresses(loadedAddresses);
       } catch (e) {
         setAddresses([]);
       }
     } else {
       // Load initial mock address
-      const initialMock = [
+      loadedAddresses = [
         {
           id: "addr-1",
           name: currentUserName || "Nguyễn Văn Khách",
@@ -142,8 +163,15 @@ export default function ProfilePage() {
           isDefault: true
         }
       ];
-      localStorage.setItem(`sonvn-addresses-${currentUserEmail}`, JSON.stringify(initialMock));
-      setAddresses(initialMock);
+      localStorage.setItem(`sonvn-addresses-${currentUserEmail}`, JSON.stringify(loadedAddresses));
+      setAddresses(loadedAddresses);
+    }
+
+    // Sync profileAddress from default address
+    const defaultAddr = loadedAddresses.find((a: any) => a.isDefault);
+    if (defaultAddr) {
+      const addrStr = [defaultAddr.address, defaultAddr.district, defaultAddr.province].filter(Boolean).join(", ");
+      setProfileAddress(addrStr);
     }
 
     const savedColors = localStorage.getItem("sonvn-color-wishlist");
@@ -192,15 +220,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("sonvn-user");
-    toast.success(
-      language === "vi" ? "Đăng xuất tài khoản thành công." : "Logged out successfully."
-    );
-    // Force header sync by navigating to home
-    router.push("/");
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
+    signOut({ callbackUrl: "/" });
   };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
@@ -216,10 +236,8 @@ export default function ProfilePage() {
       phone: profilePhone,
       address: profileAddress
     };
-    localStorage.setItem("sonvn-user", JSON.stringify(updatedUser));
     setUser(updatedUser as any);
-
-    // Broadcast updates to Header dynamic session sync listener
+    localStorage.setItem("sonvn-user", JSON.stringify(updatedUser));
     window.dispatchEvent(new Event("sonvn-user-update"));
 
     toast.success(language === "vi" ? "Cập nhật thông tin thành công!" : "Profile updated successfully!");
@@ -245,6 +263,13 @@ export default function ProfilePage() {
     setConfirmPassword("");
   };
 
+  const syncProfileAddressFromDefault = (addrs: any[]) => {
+    const def = addrs.find((a: any) => a.isDefault);
+    if (def) {
+      setProfileAddress([def.address, def.district, def.province].filter(Boolean).join(", "));
+    }
+  };
+
   const handleSaveAddress = (e: React.FormEvent) => {
     e.preventDefault();
     if (!addrName || !addrPhone || !addrProvince || !addrDistrict || !addrLine) {
@@ -254,7 +279,6 @@ export default function ProfilePage() {
 
     let updatedAddresses = [...addresses];
 
-    // If setting default, unset others first
     if (addrIsDefault) {
       updatedAddresses = updatedAddresses.map(addr => ({ ...addr, isDefault: false }));
     }
@@ -266,20 +290,17 @@ export default function ProfilePage() {
       province: addrProvince,
       district: addrDistrict,
       address: addrLine,
-      isDefault: addrIsDefault || (addresses.length === 0) // force default if only one
+      isDefault: addrIsDefault || (addresses.length === 0)
     };
 
     if (addrId) {
-      // Edit
       updatedAddresses = updatedAddresses.map(addr => addr.id === addrId ? newAddressObj : addr);
       toast.success(language === "vi" ? "Đã cập nhật địa chỉ thành công!" : "Address updated successfully!");
     } else {
-      // Add new
       updatedAddresses.push(newAddressObj);
       toast.success(language === "vi" ? "Đã thêm địa chỉ mới thành công!" : "New address added successfully!");
     }
 
-    // If there is only one address, it must be default
     if (updatedAddresses.length === 1) {
       updatedAddresses[0].isDefault = true;
     }
@@ -287,8 +308,8 @@ export default function ProfilePage() {
     setAddresses(updatedAddresses);
     const userEmail = user?.email || "guest";
     localStorage.setItem(`sonvn-addresses-${userEmail}`, JSON.stringify(updatedAddresses));
+    syncProfileAddressFromDefault(updatedAddresses);
 
-    // Reset form
     setIsAddingAddr(false);
     setAddrId("");
     setAddrName("");
@@ -314,7 +335,6 @@ export default function ProfilePage() {
     const target = addresses.find(a => a.id === id);
     let updatedAddresses = addresses.filter(addr => addr.id !== id);
 
-    // If we deleted the default address, set the first remaining one as default
     if (target?.isDefault && updatedAddresses.length > 0) {
       updatedAddresses[0].isDefault = true;
     }
@@ -322,6 +342,7 @@ export default function ProfilePage() {
     setAddresses(updatedAddresses);
     const userEmail = user?.email || "guest";
     localStorage.setItem(`sonvn-addresses-${userEmail}`, JSON.stringify(updatedAddresses));
+    syncProfileAddressFromDefault(updatedAddresses);
     toast.success(language === "vi" ? "Đã xóa địa chỉ thành công!" : "Address deleted successfully!");
   };
 
@@ -333,6 +354,7 @@ export default function ProfilePage() {
     setAddresses(updatedAddresses);
     const userEmail = user?.email || "guest";
     localStorage.setItem(`sonvn-addresses-${userEmail}`, JSON.stringify(updatedAddresses));
+    syncProfileAddressFromDefault(updatedAddresses);
     toast.success(language === "vi" ? "Đã đặt địa chỉ mặc định!" : "Default address updated!");
   };
 
@@ -365,7 +387,12 @@ export default function ProfilePage() {
     <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-12 bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh]">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left column sidebar settings */}
-        <aside className="lg:col-span-4 bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm flex flex-col gap-6">
+        <motion.aside
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="lg:col-span-4 bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm flex flex-col gap-6"
+        >
           <div className="flex items-center gap-4 border-b border-warm-100 pb-5">
             <div className="h-14 w-14 bg-jotun-teal/10 text-jotun-teal rounded-full flex items-center justify-center font-bold text-lg border border-jotun-teal/20 shadow-sm shrink-0">
               {user.name.slice(0, 2).toUpperCase()}
@@ -454,11 +481,24 @@ export default function ProfilePage() {
               <span>{language === "vi" ? "Đăng xuất" : "Log Out"}</span>
             </button>
           </div>
-        </aside>
+        </motion.aside>
 
         {/* Right column settings panels */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          {activeTab === "history" && (
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+          className="lg:col-span-8 flex flex-col gap-6"
+        >
+          
+            {activeTab === "history" && (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
             <div className="bezel-outer">
               <div className="bezel-inner p-6 text-left shadow-sm">
                 <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
@@ -507,9 +547,10 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-          )}
+            </motion.div>
+            )}
 
-          {activeTab === "profile" && (
+            {activeTab === "profile" && (
             <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
               <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
                 {language === "vi" ? "Thông tin cá nhân" : "Personal Settings"}
@@ -585,6 +626,13 @@ export default function ProfilePage() {
           )}
 
           {activeTab === "password" && (
+            <motion.div
+              key="password"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
             <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
               <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
                 {language === "vi" ? "Đổi mật khẩu" : "Change Password"}
@@ -639,10 +687,18 @@ export default function ProfilePage() {
                   Cập nhật mật khẩu
                 </button>
               </form>
-            </div>
-          )}
+              </div>
+              </motion.div>
+            )}
 
-          {activeTab === "addresses" && (
+            {activeTab === "addresses" && (
+              <motion.div
+                key="addresses"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              >
             <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
               <div className="flex items-center justify-between border-b border-warm-100 pb-3 mb-6">
                 <h3 className="font-serif font-bold text-lg text-[#88734C]">
@@ -818,12 +874,20 @@ export default function ProfilePage() {
                       {language === "vi" ? "Bạn chưa lưu địa chỉ nào." : "You have no saved addresses."}
                     </div>
                   )}
-                </div>
-              )}
+              </div>
+            )}
             </div>
-          )}
+            </motion.div>
+            )}
 
-          {activeTab === "favorites" && (
+            {activeTab === "favorites" && (
+              <motion.div
+                key="favorites"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              >
             <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm text-left">
               <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
                 {language === "vi" ? "Màu sắc đã lưu" : "Saved Colors"}
@@ -874,21 +938,23 @@ export default function ProfilePage() {
                       {language === "vi" ? "Khám phá bảng màu ngay" : "Explore Color Palette"}
                     </Link>
                   </div>
-                </div>
+</div>
               )}
-            </div>
+              </div>
+            </motion.div>
           )}
-        </div>
-      </div>
 
-      {/* Color Detail Side Panel */}
-      <ColorDetailDrawer
-        selectedColor={selectedColor}
-        onClose={() => setSelectedColor(null)}
-        favorites={wishlistColors}
-        onToggleFavorite={handleToggleFavoriteColor}
-        language={language}
-      />
+          {/* Color Detail Side Panel */}
+          <ColorDetailDrawer
+            selectedColor={selectedColor}
+            onClose={() => setSelectedColor(null)}
+            favorites={wishlistColors}
+            onToggleFavorite={handleToggleFavoriteColor}
+            language={language}
+          />
+
+      </motion.div>
     </div>
+  </div>
   );
 }

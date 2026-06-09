@@ -9,18 +9,6 @@ import Footer from "@/components/layout/Footer";
 import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
 import { Toaster } from "sonner";
 import "./globals.css";
-import fs from "fs";
-import path from "path";
-
-try {
-  const src = "C:\\Users\\sansm\\.gemini\\antigravity-ide\\brain\\62bd89ab-10fa-49ca-a65e-fd3b8fda81eb\\payment_qr_1780708929950.png";
-  const dest = "c:\\Users\\sansm\\ProjectZ\\FLOF\\public\\payment_qr.png";
-  if (fs.existsSync(src)) {
-    fs.copyFileSync(src, dest);
-  }
-} catch (e) {
-  // Silent fallback
-}
 
 const noto = Noto_Sans({
   subsets: ["vietnamese"],

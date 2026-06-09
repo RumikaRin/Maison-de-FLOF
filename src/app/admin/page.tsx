@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -210,20 +211,20 @@ export default function AdminDashboardPage() {
     });
 
     const bestSellersData = Object.entries(salesMap)
-      .map(([paintId, salesCount]) => {
-        const paint = paintsList.find((p) => p.id === paintId);
-        return {
-          id: paintId,
-          name: paint ? (language === "vi" ? paint.name : paint.nameEn) : "Unknown Paint",
-          sku: paint ? paint.sku : "N/A",
-          price: paint ? paint.price : 0,
-          sales: salesCount,
-          revenue: salesCount * (paint ? paint.price : 0),
-          stock: paint ? paint.stock : 0,
-        };
-      })
-      .sort((a, b) => b.sales - a.sales)
-      .slice(0, 4);
+        .map(([paintId, salesCount]) => {
+          const paint = paintsList.find((p) => p.id === paintId);
+          return {
+            id: paintId,
+            name: paint ? (language === "vi" ? paint.name : paint.nameEn) : "Unknown Paint",
+            sku: paint ? paint.sku : "N/A",
+            price: paint ? paint.price : 0,
+            sales: salesCount,
+            revenue: salesCount * (paint ? paint.price : 0),
+            stock: paint ? paint.stock : 0,
+          };
+        })
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 4);
 
     setBestSellers(bestSellersData);
   }, [language]);
@@ -344,12 +345,38 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Variants for staggered entrance animation
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      }
+    }
+  };
 
+  const itemVariants = {
+    hidden: { opacity: 0, y: 12 },
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { 
+        type: "spring", 
+        stiffness: 260, 
+        damping: 25 
+      } 
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8 text-left">
-      {/* Title */}
-      <div>
+      {/* Title with subtle spring reveal */}
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      >
         <h1 className="text-3xl font-bold font-serif text-warm-900">
           {language === "vi" ? "Tổng Quan Quản Trị" : "Dashboard Overview"}
         </h1>
@@ -358,15 +385,26 @@ export default function AdminDashboardPage() {
             ? "Theo dõi nhanh doanh số bán hàng, số liệu đơn hàng và các hoạt động báo giá dự án."
             : "Quick analytics monitoring of sales, order statistics, and project quotes."}
         </p>
-      </div>
+      </motion.div>
 
-      {/* Grid of stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* Grid of stats with staggered spring-up and interactive scale on hover */}
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+      >
         {stats.map((stat, index) => {
           return (
-            <div
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ 
+                y: -5,
+                boxShadow: "0 12px 30px -10px rgba(107, 95, 82, 0.12)",
+                borderColor: "rgba(107, 95, 82, 0.3)"
+              }}
               key={index}
-              className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between"
+              className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between transition-colors duration-200"
             >
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-warm-450 font-semibold">{stat.label}</span>
@@ -382,25 +420,36 @@ export default function AdminDashboardPage() {
                   <span className="text-warm-400">so với tháng trước</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
-      {/* Main Stats Chart Row */}
-      <div className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm flex flex-col gap-2">
+      {/* Main Stats Chart Row with slide-up reveal */}
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, type: "spring", stiffness: 200, damping: 25 }}
+        whileHover={{ boxShadow: "0 12px 30px -10px rgba(107, 95, 82, 0.05)" }}
+        className="bg-white border border-warm-200/80 p-6 rounded-2xl shadow-sm flex flex-col gap-2 transition-shadow"
+      >
         <h3 className="text-lg font-bold text-warm-900 font-serif">
           {language === "vi" ? "Doanh thu theo ngày" : "Daily Revenue"}
         </h3>
         <div className="h-[320px] w-full">
           <Line data={revenueChartData} options={chartOptions} />
         </div>
-      </div>
+      </motion.div>
 
       {/* Recent Orders and Best Selling Products Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, type: "spring", stiffness: 200, damping: 25 }}
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+      >
         {/* Recent Orders (Left) */}
-        <div className="lg:col-span-7 bg-white border border-warm-200/80 rounded-2xl shadow-sm p-6 overflow-hidden">
+        <div className="lg:col-span-7 bg-white border border-warm-200/80 rounded-2xl shadow-sm p-6 overflow-hidden hover:shadow-md transition-shadow">
           <h3 className="font-serif font-bold text-lg mb-4 text-warm-900">
             {language === "vi" ? "Đơn hàng gần đây" : "Recent Orders"}
           </h3>
@@ -431,7 +480,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Best Selling Products (Right) */}
-        <div className="lg:col-span-5 bg-white border border-warm-200/80 rounded-2xl shadow-sm p-6 flex flex-col gap-4">
+        <div className="lg:col-span-5 bg-white border border-warm-200/80 rounded-2xl shadow-sm p-6 flex flex-col gap-4 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between border-b border-warm-100 pb-3">
             <h3 className="font-serif font-bold text-base text-warm-900">
               {language === "vi" ? "Sản phẩm bán chạy" : "Best Selling Products"}
@@ -448,7 +497,7 @@ export default function AdminDashboardPage() {
                   <h4 className="font-bold text-warm-850 truncate" title={prod.name}>
                     {prod.name}
                   </h4>
-                  <p className="text-[10px] text-warm-500 mt-0.5 font-semibold">
+                  <p className="text-[10px] text-warm-550 mt-0.5 font-semibold">
                     SKU: <span className="font-mono text-[9px] font-bold">{prod.sku}</span> | {language === "vi" ? "Tồn: " : "Stock: "}{prod.stock}
                   </p>
                 </div>
@@ -464,7 +513,7 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { MOCK_PAINTS } from "@/lib/mock-data";
 
 export async function GET() {
   try {
@@ -9,19 +8,13 @@ export async function GET() {
         category: true,
         supplier: true,
         colors: {
-          include: {
-            color: true
-          }
+          include: { color: true }
         }
       },
+      where: { isActive: true },
       orderBy: { createdAt: "desc" }
     });
 
-    if (products.length === 0) {
-      return NextResponse.json(MOCK_PAINTS);
-    }
-
-    // Adapt database schema relations to matches frontend paint schema model
     const adapted = products.map((p) => ({
       ...p,
       price: Number(p.price),
@@ -33,7 +26,7 @@ export async function GET() {
 
     return NextResponse.json(adapted);
   } catch (error) {
-    console.error("Failed to fetch products from DB, falling back to mock:", error);
-    return NextResponse.json(MOCK_PAINTS);
+    console.error("Failed to fetch products:", error);
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }

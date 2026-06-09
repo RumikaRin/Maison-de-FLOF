@@ -1,31 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn, getSession } from "next-auth/react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { toast } from "sonner";
 
+const DEMO_ACCOUNTS = [
+  { email: "admin@sonvn.com", password: "admin123", label: "Admin" },
+  { email: "customer1@sonvn.com", password: "customer123", label: "Customer" },
+];
 
 export default function LoginPage() {
   const router = useRouter();
   const { language } = useLanguageStore();
   const t = useTrans(language);
 
-  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -37,75 +35,57 @@ export default function LoginPage() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      // Load accounts from localStorage
-      let accountsArray = [];
-      const storedAccounts = localStorage.getItem("sonvn-accounts");
-      if (storedAccounts) {
-        try { accountsArray = JSON.parse(storedAccounts); } catch (err) {}
-      }
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
-      // Initialize with default demo accounts if completely empty
-      if (accountsArray.length === 0) {
-        accountsArray = [
-          { name: "FLOF Admin", email: "admin@flof.vn", password: "123456", role: "ADMIN" },
-          { name: "Nguyễn Văn Khách", email: "customer1@flof.vn", password: "123456", role: "CUSTOMER" }
-        ];
-        localStorage.setItem("sonvn-accounts", JSON.stringify(accountsArray));
-      }
-
-      // Find the account matching credentials
-      const foundUser = accountsArray.find((acc: any) => acc.email === email && acc.password === password);
-
-      if (foundUser) {
-        toast.success(
-          language === "vi" 
-            ? (foundUser.role === "ADMIN" ? "Chào mừng Quản trị viên quay trở lại!" : "Đăng nhập thành công!")
-            : (foundUser.role === "ADMIN" ? "Welcome back Admin!" : "Login successful!")
-        );
-        localStorage.setItem("sonvn-user", JSON.stringify({
-          email: foundUser.email,
-          name: foundUser.name,
-          role: foundUser.role
-        }));
-        
-        if (foundUser.role === "ADMIN") {
-          router.push("/admin");
-        } else {
-          router.push("/profile");
-        }
-      } else {
-        // Fallback checks for hardcoded fallback demo access just in case
-        if (email === "admin@flof.vn" && password === "123456") {
-          toast.success(language === "vi" ? "Chào mừng Quản trị viên quay trở lại!" : "Welcome back Admin!");
-          localStorage.setItem("sonvn-user", JSON.stringify({ email, name: "FLOF Admin", role: "ADMIN" }));
-          router.push("/admin");
-        } else if (email === "customer1@flof.vn" && password === "123456") {
-          toast.success(language === "vi" ? "Đăng nhập thành công!" : "Login successful!");
-          localStorage.setItem("sonvn-user", JSON.stringify({ email, name: "Nguyễn Văn Khách", role: "CUSTOMER" }));
-          router.push("/profile");
-        } else {
-          toast.error(
-            language === "vi" ? "Email hoặc mật khẩu không chính xác." : "Incorrect email or password."
-          );
-        }
-      }
+    if (!result?.ok) {
+      toast.error(
+        language === "vi" ? "Email hoặc mật khẩu không chính xác." : "Incorrect email or password."
+      );
       setIsLoading(false);
-    }, 1200);
+      return;
+    }
+
+    // Wait briefly for session cookie to propagate, then fetch session
+    await new Promise((r) => setTimeout(r, 300));
+    const session = await getSession();
+
+    if (!session?.user) {
+      toast.error(
+        language === "vi" ? "Phiên đăng nhập không hợp lệ, vui lòng thử lại." : "Invalid session, please try again."
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    const role = (session.user as any)?.role;
+
+    toast.success(
+      language === "vi"
+        ? (role === "ADMIN" ? "Chào mừng Quản trị viên quay trở lại!" : "Đăng nhập thành công!")
+        : (role === "ADMIN" ? "Welcome back Admin!" : "Login successful!")
+    );
+
+    router.push(role === "ADMIN" ? "/admin" : "/profile");
+    router.refresh();
   };
 
-  const handleQuickLogin = (roleEmail: string) => {
-    setEmail(roleEmail);
-    setPassword("123456");
+  const handleQuickLogin = (acc: typeof DEMO_ACCOUNTS[0]) => {
+    setEmail(acc.email);
+    setPassword(acc.password);
     toast.info(
-      language === "vi" ? `Đã nạp email: ${roleEmail}` : `Loaded email: ${roleEmail}`
+      language === "vi"
+        ? `Đã nạp tài khoản: ${acc.label}`
+        : `Loaded account: ${acc.label}`
     );
   };
 
   return (
     <div className="w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh] flex flex-col justify-center py-12">
       <div className="bg-white border border-warm-200/80 p-8 rounded-2xl shadow-md flex flex-col gap-6 w-full max-w-md mx-auto text-left">
-        {/* Logo brand */}
         <div className="text-center flex flex-col items-center gap-2 mb-2">
           <h2 className="text-2xl font-bold font-serif text-warm-900">{language === "vi" ? "Đăng Nhập FLOF" : "Login to FLOF"}</h2>
           <p className="text-xs text-warm-500">
@@ -113,12 +93,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Input Form */}
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
-              Email
-            </label>
+            <label className="text-[10px] font-bold uppercase text-warm-450">Email</label>
             <input
               type="email"
               required
@@ -161,14 +138,30 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Redirect sign up */}
+        {/* Quick Login Demo Buttons */}
+        <div className="flex flex-col gap-2 pt-2 border-t border-warm-100">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-warm-450 text-center">
+            {language === "vi" ? "Đăng nhập nhanh (Demo)" : "Quick Login (Demo)"}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {DEMO_ACCOUNTS.map((acc) => (
+              <button
+                key={acc.email}
+                onClick={() => handleQuickLogin(acc)}
+                className="px-3 py-2 rounded-xl border border-warm-200 bg-warm-50 text-[10px] font-bold text-warm-650 hover:bg-warm-100 transition-colors"
+              >
+                {acc.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center text-xs text-warm-550">
           <span>{language === "vi" ? "Chưa có tài khoản?" : "Don't have an account?"}</span>{" "}
           <Link href="/register" className="text-jotun-teal font-bold hover:underline">
             {language === "vi" ? "Đăng ký ngay" : "Register here"}
           </Link>
         </div>
-
       </div>
     </div>
   );

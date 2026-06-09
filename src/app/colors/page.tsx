@@ -251,8 +251,9 @@ export default function ColorsPage() {
                   hidden: { opacity: 0, scale: 0.95, y: 12 },
                   visible: { opacity: 1, scale: 1, y: 0, transition: { ease: [0.32, 0.72, 0, 1], duration: 0.5 } }
                 }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 onClick={() => setSelectedColor(color)}
-                className="bg-white rounded-2xl border border-warm-200/80 p-3 flex flex-col gap-3 group cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                className="bg-white rounded-2xl border border-warm-200/80 hover:border-[#88734C]/40 p-3 flex flex-col gap-3 group cursor-pointer hover:shadow-md transition-all duration-300"
               >
                 <div
                   className="h-28 rounded-xl border border-black/5 flex items-center justify-center relative shadow-inner"
@@ -268,11 +269,12 @@ export default function ColorsPage() {
                     <Heart className={cn("h-3.5 w-3.5 transition-colors", isFav ? "fill-rose-500 text-rose-500" : "text-warm-500")} />
                   </button>
                 </div>
-                <div>
+                <div className="text-left">
                   <span className="text-[9px] font-bold text-warm-400 font-mono tracking-wider block">MÃ: {color.code}</span>
-                  <h4 className="font-bold text-xs text-warm-900 group-hover:text-jotun-teal transition-colors truncate mt-0.5">
+                  <h4 className="font-bold text-xs text-warm-900 group-hover:text-[#88734C] transition-colors truncate mt-0.5">
                     {language === "vi" ? color.name : (color.nameEn || color.name)}
                   </h4>
+                  <div className="w-6 h-0.5 bg-transparent mt-2 group-hover:bg-[#88734C] group-hover:w-12 transition-all duration-300" />
                 </div>
               </motion.div>
             );

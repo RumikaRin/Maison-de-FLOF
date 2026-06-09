@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
@@ -15,7 +16,6 @@ const NAV_LINKS = [
   { href: "/colors", keyVi: "Bảng màu", keyEn: "Colors" },
   { href: "/color-visualizer", keyVi: "Phối màu", keyEn: "Visualizer" },
   { href: "/find-dealer", keyVi: "Đại lý", keyEn: "Dealers" },
-
   { href: "/blog", keyVi: "Tư vấn", keyEn: "Blog" },
 ];
 
@@ -24,42 +24,27 @@ export default function Header() {
   const { language, toggleLanguage } = useLanguageStore();
   const t = useTrans(language);
   const getCartItemCount = useCartStore((state) => state.getCartItemCount);
+  const { data: session, status } = useSession();
 
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [userSession, setUserSession] = useState<{ name: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll, { passive: true });
-
-    const syncUser = () => {
-      const stored = localStorage.getItem("sonvn-user");
-      if (stored) {
-        try { setUserSession(JSON.parse(stored)); } catch { setUserSession(null); }
-      } else {
-        setUserSession(null);
-      }
-    };
-
-    syncUser();
-    window.addEventListener("sonvn-user-update", syncUser);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("sonvn-user-update", syncUser);
-    };
-  }, [pathname]);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const cartCount = mounted ? getCartItemCount() : 0;
+  const user = session?.user;
+  const userRole = (user as any)?.role;
 
   if (pathname?.startsWith("/admin")) return null;
 
   return (
     <>
-      {/* Floating Pill Nav */}
       <header
         className="fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-700 pointer-events-none"
         style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
@@ -72,16 +57,14 @@ export default function Header() {
             "pointer-events-auto mt-4 mx-auto flex items-center justify-between gap-6 md:gap-12",
             "rounded-full transition-all duration-700 border shadow-xl",
             isScrolled
-              ? "bg-white/85 backdrop-blur-xl border-black/5 shadow-black/[0.04] py-2 w-[90vw] max-w-[1400px] h-16 md:h-[68px] px-6 md:px-8"
-              : "bg-white/70 backdrop-blur-lg border-black/5 shadow-black/[0.02] py-3 w-[94vw] max-w-[1550px] h-16 md:h-[76px] px-8 md:px-10"
+              ? "bg-white/85 backdrop-blur-xl border-warm-300 shadow-black/[0.04] py-2 w-[90vw] max-w-[1400px] h-16 md:h-[68px] px-6 md:px-8"
+              : "bg-white/70 backdrop-blur-lg border-warm-300 shadow-black/[0.02] py-3 w-[94vw] max-w-[1550px] h-16 md:h-[76px] px-8 md:px-10"
           )}
           style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
         >
-
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <span className="font-bromise font-bold text-xl tracking-widest uppercase text-warm-900 leading-none
-                           group-hover:text-jotun-teal transition-colors duration-550">
+            <span className="font-bromise font-bold text-xl tracking-widest uppercase text-warm-900 leading-none group-hover:text-jotun-teal transition-colors duration-550">
               FLOF
             </span>
             <span className="hidden xl:block text-[9px] text-warm-500 font-medium border-l border-warm-200 pl-2.5 leading-tight">
@@ -120,15 +103,14 @@ export default function Header() {
             {/* Language Toggle */}
             <button
               onClick={toggleLanguage}
-              className="hidden sm:inline-block px-2.5 py-1.5 text-[11px] font-bold
-                       rounded-full hover:bg-warm-100 text-warm-600 transition-all duration-500"
+              className="hidden sm:inline-block px-2.5 py-1.5 text-[11px] font-bold rounded-full hover:bg-warm-100 text-warm-600 transition-all duration-500"
               style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
               title="Switch language"
             >
               {language === "vi" ? "ENGLISH" : "TIẾNG VIỆT"}
             </button>
 
-            {/* Cart — Text Counter */}
+            {/* Cart */}
             <Link
               href="/cart"
               className="flex items-center gap-2 px-3.5 py-1.5 rounded-full hover:bg-warm-100 text-warm-900 transition-all duration-500 text-xs font-bold"
@@ -140,42 +122,34 @@ export default function Header() {
             </Link>
 
             {/* Account */}
-            {mounted && userSession ? (
+            {mounted && status === "authenticated" && user ? (
               <div className="relative group">
                 <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-warm-100 text-warm-700 transition-all duration-500"
                   style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}>
                   <div className="h-6 w-6 bg-jotun-teal text-white rounded-full flex items-center justify-center text-[9px] font-bold">
-                    {userSession.name.slice(0, 2).toUpperCase()}
+                    {(user.name || user.email || "??").slice(0, 2).toUpperCase()}
                   </div>
                 </button>
 
-                <div className="absolute top-full right-0 pt-3 w-52 z-50
-                            opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto
-                            transition-opacity duration-500"
+                <div className="absolute top-full right-0 pt-3 w-52 z-50 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-500"
                   style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}>
-                  <div className="bg-white border border-black/[0.06] rounded-2xl shadow-xl overflow-hidden
-                              transition-transform duration-500 translate-y-2 group-hover:translate-y-0
-                              !opacity-100 backdrop-blur-none"
+                  <div className="bg-white border border-black/[0.06] rounded-2xl shadow-xl overflow-hidden transition-transform duration-500 translate-y-2 group-hover:translate-y-0"
                     style={{ backdropFilter: "none" }}>
                     <div className="p-3 border-b border-warm-100 bg-warm-50">
-                      <p className="text-xs font-bold text-warm-900 truncate">{userSession.name}</p>
-                      <p className="text-[10px] text-warm-700 font-mono truncate">{userSession.email}</p>
+                      <p className="text-xs font-bold text-warm-900 truncate">{user.name || "User"}</p>
+                      <p className="text-[10px] text-warm-700 font-mono truncate">{user.email}</p>
                     </div>
                     <div className="p-2 flex flex-col gap-0.5 text-left">
                       <Link href="/profile" className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold">
                         {language === "vi" ? "Tài khoản" : "My Account"}
                       </Link>
-                      {userSession.role === "ADMIN" && (
+                      {userRole === "ADMIN" && (
                         <Link href="/admin" className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold">
                           Admin
                         </Link>
                       )}
                       <button
-                        onClick={() => {
-                          localStorage.removeItem("sonvn-user");
-                          setUserSession(null);
-                          window.location.href = "/";
-                        }}
+                        onClick={() => signOut({ callbackUrl: "/" })}
                         className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl font-bold w-full text-left"
                       >
                         {language === "vi" ? "Đăng xuất" : "Logout"}
@@ -185,7 +159,6 @@ export default function Header() {
                 </div>
               </div>
             ) : (
-              /* Login */
               <Link
                 href="/login"
                 className="bg-warm-900 hover:bg-warm-800 text-white text-[12px] px-4 py-2.5 rounded-full font-bold transition-all duration-300 shadow-sm"
@@ -197,8 +170,7 @@ export default function Header() {
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden text-[10px] font-extrabold uppercase tracking-wider px-3.5 py-2 rounded-full
-                       hover:bg-warm-100 text-warm-800 transition-all duration-300 border border-warm-200"
+              className="lg:hidden text-[10px] font-extrabold uppercase tracking-wider px-3.5 py-2 rounded-full hover:bg-warm-100 text-warm-800 transition-all duration-300 border border-warm-200"
             >
               {mobileOpen ? (language === "vi" ? "Đóng" : "Close") : "Menu"}
             </button>
@@ -232,7 +204,7 @@ export default function Header() {
               </Link>
             );
           })}
-          {mounted && userSession && userSession.role === "ADMIN" && (
+          {mounted && status === "authenticated" && userRole === "ADMIN" && (
             <Link
               href="/admin"
               onClick={() => setMobileOpen(false)}

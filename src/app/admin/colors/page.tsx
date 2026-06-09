@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -24,6 +26,8 @@ export default function AdminColorsPage() {
   const [colors, setColors] = useState<PaintColor[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColorFamily, setSelectedColorFamily] = useState("all");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [colorToDelete, setColorToDelete] = useState<string | null>(null);
 
   // Modal control
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -142,24 +146,37 @@ export default function AdminColorsPage() {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm(language === "vi" ? "Bạn chắc chắn muốn xóa mã màu này?" : "Delete this color code?")) {
-      setColors(colors.filter((c) => c.id !== id));
-      toast.success(
-        language === "vi" ? "Đã xóa mã màu thành công." : "Color deleted successfully."
-      );
-    }
+  const triggerDelete = (id: string) => {
+    setColorToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!colorToDelete) return;
+    const target = colors.find((c) => c.id === colorToDelete);
+    setColors(colors.filter((c) => c.id !== colorToDelete));
+    toast.success(
+      language === "vi"
+        ? `Đã xóa mã màu ${target?.code || ""} thành công.`
+        : `Color ${target?.code || ""} deleted successfully.`
+    );
+    setColorToDelete(null);
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header and Add CTA */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="flex flex-col gap-8 text-left">
+      {/* Header and Add CTA with spring reveal */}
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
           <h1 className="text-3xl font-bold font-serif">
             {language === "vi" ? "Quản Lý Mã Màu Sơn" : "Colors Management"}
           </h1>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-xs mt-1">
             {language === "vi"
               ? "Cập nhật, thêm mới hoặc chỉnh sửa mã màu sơn phối trong hệ thống."
               : "Update, add new, or edit coordinated paint colors in the database."}
@@ -167,14 +184,19 @@ export default function AdminColorsPage() {
         </div>
         <button
           onClick={openAddModal}
-          className="bg-warm-900 text-white font-bold text-xs px-5 py-3 rounded-xl hover:bg-warm-800 transition-colors flex items-center justify-center gap-1.5 self-start shadow-sm"
+          className="bg-warm-900 text-white font-bold text-xs px-5 py-3 rounded-xl hover:bg-warm-800 transition-colors flex items-center justify-center gap-1.5 self-start shadow-sm cursor-pointer"
         >
           {language === "vi" ? "Thêm Mã Màu Mới" : "Add New Color"}
         </button>
-      </div>
+      </motion.div>
 
       {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.35 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
         <div className="md:col-span-2 relative">
           <input
             type="text"
@@ -213,7 +235,7 @@ export default function AdminColorsPage() {
               <ChevronDown className="h-4 w-4 text-warm-450 opacity-60 shrink-0 ml-2" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50">
+          <DropdownMenuContent className="w-56 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
             <DropdownMenuRadioGroup value={selectedColorFamily} onValueChange={setSelectedColorFamily}>
               {[
                 { value: "all", label: language === "vi" ? "Tất cả nhóm màu" : "All Color Families" },
@@ -238,10 +260,15 @@ export default function AdminColorsPage() {
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </motion.div>
 
-      {/* Table grid of colors */}
-      <div className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden">
+      {/* Table grid of colors with exit/entry animations */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, duration: 0.4 }}
+        className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden"
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -256,10 +283,15 @@ export default function AdminColorsPage() {
             </thead>
             <tbody className="divide-y divide-warm-100 font-semibold text-warm-800">
               {filteredColors.map((color) => (
-                <tr key={color.id} className="hover:bg-warm-50/30 transition-colors">
+                <tr
+                  key={color.id}
+                  className="hover:bg-warm-50/30 transition-colors"
+                >
                   <td className="py-3.5 px-6">
-                    <div
-                      className="h-7 w-12 rounded-lg border border-black/10 shadow-sm"
+                    <motion.div
+                      whileHover={{ scale: 1.15 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                      className="h-7 w-12 rounded-lg border border-black/10 shadow-sm cursor-pointer"
                       style={{ backgroundColor: color.hex }}
                     />
                   </td>
@@ -278,18 +310,18 @@ export default function AdminColorsPage() {
                       </span>
                     )}
                   </td>
-                  <td className="py-3.5 pr-6 text-right">
+                  <td className="py-3.5 pr-6 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => openEditModal(color)}
-                        className="text-[11px] font-bold text-white bg-warm-900 hover:bg-warm-800 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-warm-900"
+                        className="text-[11px] font-bold text-white bg-warm-900 hover:bg-warm-800 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-warm-900 cursor-pointer"
                         title={language === "vi" ? "Chỉnh sửa" : "Edit"}
                       >
                         {language === "vi" ? "Sửa" : "Edit"}
                       </button>
                       <button
-                        onClick={() => handleDelete(color.id)}
-                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600"
+                        onClick={() => triggerDelete(color.id)}
+                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer"
                         title={language === "vi" ? "Xóa" : "Delete"}
                       >
                         {language === "vi" ? "Xóa" : "Delete"}
@@ -301,161 +333,192 @@ export default function AdminColorsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
-      {/* CRUD Add/Edit Modal overlay */}
-      {isModalOpen && (
-        <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-fade-in text-left">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white border border-warm-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-visible">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
-              <h3 className="font-serif font-bold text-base text-warm-900">
-                {modalMode === "add"
-                  ? language === "vi"
-                    ? "Thêm mã màu sơn mới"
-                    : "Add New Paint Color"
-                  : language === "vi"
-                  ? "Chỉnh sửa thông tin mã màu"
-                  : "Edit Paint Color"}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1"
-              >
-                {language === "vi" ? "[Đóng]" : "[Close]"}
-              </button>
-            </div>
+      {/* CRUD Add/Edit Modal overlay with premium spring reveal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsModalOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 text-left"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white border border-warm-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-visible"
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
+                <h3 className="font-serif font-bold text-base text-warm-900">
+                  {modalMode === "add"
+                    ? language === "vi"
+                      ? "Thêm mã màu sơn mới"
+                      : "Add New Paint Color"
+                    : language === "vi"
+                      ? "Chỉnh sửa thông tin mã màu"
+                      : "Edit Paint Color"}
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1 transition-colors"
+                >
+                  {language === "vi" ? "[Đóng]" : "[Close]"}
+                </button>
+              </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSubmit} className="p-6 pb-12 flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
+              {/* Modal Form */}
+              <form onSubmit={handleSubmit} className="p-6 pb-12 flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Mã số màu" : "Color Code"} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={code}
+                      disabled={modalMode === "edit"}
+                      onChange={(e) => setCode(e.target.value)}
+                      placeholder="E.g. 1001"
+                      className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Mã Hex màu" : "Hex Value"} <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        value={hex}
+                        onChange={(e) => setHex(e.target.value)}
+                        className="h-9 w-9 border border-border rounded p-0 cursor-pointer shrink-0"
+                      />
+                      <input
+                        type="text"
+                        required
+                        value={hex}
+                        onChange={(e) => setHex(e.target.value)}
+                        placeholder="#FFFFFF"
+                        className="w-full px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Mã số màu" : "Color Code"} <span className="text-red-500">*</span>
+                    {language === "vi" ? "Tên Tiếng Việt" : "Vietnamese Name"} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    value={code}
-                    disabled={modalMode === "edit"}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="E.g. 1001"
-                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={language === "vi" ? "Trắng Ngà..." : "Ivory White..."}
+                    className="px-3 py-2 rounded border border-border bg-background text-sm"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Mã Hex màu" : "Hex Value"} <span className="text-red-500">*</span>
+                    {language === "vi" ? "Tên Tiếng Anh" : "English Name"} <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      value={hex}
-                      onChange={(e) => setHex(e.target.value)}
-                      className="h-9 w-9 border border-border rounded p-0 cursor-pointer shrink-0"
+                  <input
+                    type="text"
+                    required
+                    value={nameEn}
+                    onChange={(e) => setNameEn(e.target.value)}
+                    placeholder="Ivory White..."
+                    className="px-3 py-2 rounded border border-border bg-background text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Nhóm màu" : "Color Family"}
+                    </label>
+                    <CustomSelect
+                      value={colorFamily}
+                      onValueChange={setColorFamily}
+                      options={[
+                        { value: "white", label: "White" },
+                        { value: "beige", label: "Beige" },
+                        { value: "grey", label: "Grey" },
+                        { value: "yellow", label: "Yellow" },
+                        { value: "orange", label: "Orange" },
+                        { value: "red", label: "Red" },
+                        { value: "blue", label: "Blue" },
+                        { value: "green", label: "Green" },
+                        { value: "brown", label: "Brown" },
+                      ]}
                     />
-                    <input
-                      type="text"
-                      required
-                      value={hex}
-                      onChange={(e) => setHex(e.target.value)}
-                      placeholder="#FFFFFF"
-                      className="w-full px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Tông màu" : "Tone Family"}
+                    </label>
+                    <CustomSelect
+                      value={toneFamily}
+                      onValueChange={setToneFamily}
+                      options={[
+                        { value: "neutral", label: "Neutral" },
+                        { value: "warm", label: "Warm" },
+                        { value: "cool", label: "Cool" },
+                        { value: "bold", label: "Bold / Accent" },
+                        { value: "earth", label: "Earth Tone" },
+                        { value: "pastel", label: "Pastel" },
+                      ]}
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {language === "vi" ? "Tên Tiếng Việt" : "Vietnamese Name"} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={language === "vi" ? "Trắng Ngà..." : "Ivory White..."}
-                  className="px-3 py-2 rounded border border-border bg-background text-sm"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {language === "vi" ? "Tên Tiếng Anh" : "English Name"} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={nameEn}
-                  onChange={(e) => setNameEn(e.target.value)}
-                  placeholder="Ivory White..."
-                  className="px-3 py-2 rounded border border-border bg-background text-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Nhóm màu" : "Color Family"}
-                  </label>
-                  <CustomSelect
-                    value={colorFamily}
-                    onValueChange={setColorFamily}
-                    options={[
-                      { value: "white", label: "White" },
-                      { value: "beige", label: "Beige" },
-                      { value: "grey", label: "Grey" },
-                      { value: "yellow", label: "Yellow" },
-                      { value: "orange", label: "Orange" },
-                      { value: "red", label: "Red" },
-                      { value: "blue", label: "Blue" },
-                      { value: "green", label: "Green" },
-                      { value: "brown", label: "Brown" },
-                    ]}
-                  />
+                {/* Submit panel */}
+                <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
+                  >
+                    {language === "vi" ? "Hủy" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
+                  >
+                    {language === "vi" ? "Xác nhận" : "Confirm"}
+                  </button>
                 </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Tông màu" : "Tone Family"}
-                  </label>
-                  <CustomSelect
-                    value={toneFamily}
-                    onValueChange={setToneFamily}
-                    options={[
-                      { value: "neutral", label: "Neutral" },
-                      { value: "warm", label: "Warm" },
-                      { value: "cool", label: "Cool" },
-                      { value: "bold", label: "Bold / Accent" },
-                      { value: "earth", label: "Earth Tone" },
-                      { value: "pastel", label: "Pastel" },
-                    ]}
-                  />
-                </div>
-              </div>
-
-              {/* Submit panel */}
-              <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
-                >
-                  {language === "vi" ? "Hủy" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
-                >
-                  {language === "vi" ? "Xác nhận" : "Confirm"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setColorToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title={language === "vi" ? "Xóa mã màu?" : "Delete Color?"}
+        message={
+          language === "vi"
+            ? `Bạn có chắc muốn xóa mã màu ${colors.find((c) => c.id === colorToDelete)?.code || ""} không?`
+            : `Are you sure you want to delete color code ${colors.find((c) => c.id === colorToDelete)?.code || ""}?`
+        }
+      />
     </div>
   );
 }
+

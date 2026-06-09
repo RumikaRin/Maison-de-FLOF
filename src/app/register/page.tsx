@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
@@ -13,7 +13,6 @@ export default function RegisterPage() {
   const { language } = useLanguageStore();
   const t = useTrans(language);
 
-  const [mounted, setMounted] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,13 +20,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
@@ -44,41 +37,45 @@ export default function RegisterPage() {
       return;
     }
 
+    if (password.length < 6) {
+      toast.error(
+        language === "vi" ? "Mật khẩu phải có ít nhất 6 ký tự." : "Password must be at least 6 characters."
+      );
+      return;
+    }
+
     setIsLoading(true);
 
-    setTimeout(() => {
-      // Load accounts from localStorage
-      const existingAccounts = localStorage.getItem("sonvn-accounts");
-      let accountsArray = [];
-      if (existingAccounts) {
-        try { accountsArray = JSON.parse(existingAccounts); } catch (err) {}
-      }
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-      // Check if user already exists
-      if (accountsArray.some((acc: any) => acc.email === email)) {
-        toast.error(
-          language === "vi" ? "Email này đã được đăng ký." : "Email is already registered."
-        );
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || (language === "vi" ? "Đăng ký thất bại." : "Registration failed."));
         setIsLoading(false);
         return;
       }
 
-      // Add new account
-      accountsArray.push({ name, email, password, role: "CUSTOMER" });
-      localStorage.setItem("sonvn-accounts", JSON.stringify(accountsArray));
-
-      setIsLoading(false);
       toast.success(
         language === "vi" ? "Đăng ký tài khoản thành công!" : "Account created successfully!"
       );
       router.push("/login");
-    }, 1200);
+    } catch (err) {
+      toast.error(
+        language === "vi" ? "Lỗi kết nối đến máy chủ." : "Connection error."
+      );
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh] flex flex-col justify-center py-12">
       <div className="bg-white border border-warm-200/80 p-8 rounded-2xl shadow-md flex flex-col gap-6 w-full max-w-md mx-auto text-left">
-        {/* Header */}
         <div className="text-center flex flex-col items-center gap-2 mb-2">
           <h2 className="text-2xl font-bold font-serif text-warm-900">{language === "vi" ? "Đăng Ký Tài Khoản" : "Create Account"}</h2>
           <p className="text-xs text-warm-500">
@@ -86,7 +83,6 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-bold uppercase text-warm-450">
@@ -103,9 +99,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
-              Email
-            </label>
+            <label className="text-[10px] font-bold uppercase text-warm-450">Email</label>
             <input
               type="email"
               required
@@ -162,7 +156,6 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {/* Redirect login */}
         <div className="text-center text-xs text-warm-550">
           <span>{language === "vi" ? "Đã có tài khoản?" : "Already have an account?"}</span>{" "}
           <Link href="/login" className="text-jotun-teal font-bold hover:underline font-serif">

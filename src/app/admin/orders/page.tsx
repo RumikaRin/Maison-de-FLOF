@@ -6,12 +6,16 @@ import { formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { Trash2, CheckCircle, Clock, XCircle, ShieldAlert } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 
 export default function AdminOrdersPage() {
   const { language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSING" | "COMPLETED" | "CANCELLED">("ALL");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -51,13 +55,20 @@ export default function AdminOrdersPage() {
     );
   };
 
-  const handleDeleteOrder = (id: string) => {
-    const updated = orders.filter((ord) => ord.id !== id);
+  const triggerDeleteOrder = (id: string) => {
+    setOrderToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteOrder = () => {
+    if (!orderToDelete) return;
+    const updated = orders.filter((ord) => ord.id !== orderToDelete);
     setOrders(updated);
     localStorage.setItem("sonvn-orders", JSON.stringify(updated));
     toast.success(
       language === "vi" ? "Đã xóa đơn hàng thành công!" : "Order deleted successfully!"
     );
+    setOrderToDelete(null);
   };
 
   const filteredOrders = orders.filter((ord) => {
@@ -106,8 +117,12 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="flex flex-col gap-6 text-left">
-      {/* Title */}
-      <div>
+      {/* Title with spring entry */}
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      >
         <h1 className="text-3xl font-bold font-serif text-warm-900">
           {language === "vi" ? "Quản Lý Đơn Hàng" : "Orders Management"}
         </h1>
@@ -116,9 +131,9 @@ export default function AdminOrdersPage() {
             ? "Xem danh sách các đơn hàng, lọc theo trạng thái và cập nhật thông tin tiến độ giao nhận."
             : "Review client order list, filter by states, and update shipping progress info."}
         </p>
-      </div>
+      </motion.div>
 
-      {/* Tabs filter */}
+      {/* Tabs filter with smooth slider bg indicator */}
       <div className="flex flex-wrap gap-2 border-b border-warm-200 pb-4">
         {[
           { key: "ALL", label: language === "vi" ? "Tất cả" : "All" },
@@ -126,25 +141,39 @@ export default function AdminOrdersPage() {
           { key: "PROCESSING", label: language === "vi" ? "Đang giao" : "Delivering" },
           { key: "COMPLETED", label: language === "vi" ? "Hoàn thành" : "Completed" },
           { key: "CANCELLED", label: language === "vi" ? "Đã hủy" : "Cancelled" }
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key as any)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all ${
-              filter === tab.key
-                ? "bg-warm-900 text-white shadow-xs"
+        ].map((tab) => {
+          const isActive = filter === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key as any)}
+              className={`relative px-4 py-2 rounded-xl text-xs font-bold uppercase transition-colors duration-300 ${isActive
+                ? "text-white"
                 : "text-warm-650 hover:bg-warm-100 hover:text-warm-900"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+                }`}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeFilterTab"
+                  className="absolute inset-0 bg-warm-900 rounded-xl z-0"
+                  transition={{ type: "spring", stiffness: 600, damping: 42 }}
+                />
+              )}
+              <span className="relative z-10">{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Table block */}
-      <div className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden p-6">
+      {/* Table block with list item animations */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden p-6"
+      >
         {filteredOrders.length > 0 ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[320px]">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-warm-150 text-warm-450 font-bold uppercase tracking-wider text-[10px]">
@@ -185,8 +214,8 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="py-4 pl-4 text-center">
                       <button
-                        onClick={() => handleDeleteOrder(ord.id)}
-                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600"
+                        onClick={() => triggerDeleteOrder(ord.id)}
+                        className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer"
                         title={language === "vi" ? "Xóa đơn" : "Delete Order"}
                       >
                         {language === "vi" ? "Xóa" : "Delete"}
@@ -205,7 +234,23 @@ export default function AdminOrdersPage() {
             </span>
           </div>
         )}
-      </div>
+      </motion.div>
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setOrderToDelete(null);
+        }}
+        onConfirm={confirmDeleteOrder}
+        title={language === "vi" ? "Xóa đơn hàng?" : "Delete Order?"}
+        message={
+          language === "vi"
+            ? `Bạn có chắc muốn xóa đơn hàng ${orderToDelete} không?`
+            : `Are you sure you want to delete order ${orderToDelete}?`
+        }
+      />
     </div>
   );
 }
+

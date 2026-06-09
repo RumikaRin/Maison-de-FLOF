@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
@@ -49,6 +50,8 @@ function CheckoutContent() {
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddrId, setSelectedAddrId] = useState("");
 
+  const { data: authSession } = useSession();
+
   useEffect(() => {
     setMounted(true);
     const disc = searchParams.get("discount");
@@ -63,6 +66,8 @@ function CheckoutContent() {
       try {
         currentUserEmail = JSON.parse(storedUser).email || "guest";
       } catch (e) {}
+    } else if (authSession?.user?.email) {
+      currentUserEmail = authSession.user.email;
     }
 
     const storedAddrs = localStorage.getItem(`sonvn-addresses-${currentUserEmail}`);
@@ -70,7 +75,6 @@ function CheckoutContent() {
       try {
         const parsed = JSON.parse(storedAddrs);
         setSavedAddresses(parsed);
-        // Pre-fill the default address if found
         const defaultAddr = parsed.find((a: any) => a.isDefault);
         if (defaultAddr) {
           setSelectedAddrId(defaultAddr.id);
@@ -82,7 +86,7 @@ function CheckoutContent() {
         }
       } catch (e) {}
     }
-  }, [searchParams]);
+  }, [searchParams, authSession]);
 
   if (!mounted) return null;
 

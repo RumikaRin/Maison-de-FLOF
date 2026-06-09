@@ -5,6 +5,8 @@ import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,6 +35,8 @@ export default function AdminPaintsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [paintToDelete, setPaintToDelete] = useState<string | null>(null);
 
   // Modal control
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -214,23 +218,23 @@ export default function AdminPaintsPage() {
       const updatedPaints = paints.map((p) =>
         p.id === editingPaintId
           ? {
-              ...p,
-              sku,
-              name,
-              nameEn,
-              price,
-              volume,
-              volumeUnit,
-              stock,
-              categoryId,
-              supplierId,
-              finish,
-              paintType,
-              description,
-              descriptionEn,
-              colors: linkedColors,
-              discountPercent
-            }
+            ...p,
+            sku,
+            name,
+            nameEn,
+            price,
+            volume,
+            volumeUnit,
+            stock,
+            categoryId,
+            supplierId,
+            finish,
+            paintType,
+            description,
+            descriptionEn,
+            colors: linkedColors,
+            discountPercent
+          }
           : p
       );
       setPaints(updatedPaints);
@@ -243,15 +247,23 @@ export default function AdminPaintsPage() {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm(language === "vi" ? "Bạn chắc chắn muốn xóa sản phẩm sơn này?" : "Delete this paint product?")) {
-      const updated = paints.filter((p) => p.id !== id);
-      setPaints(updated);
-      localStorage.setItem("sonvn-paints", JSON.stringify(updated));
-      toast.success(
-        language === "vi" ? "Đã xóa sản phẩm thành công." : "Product deleted successfully."
-      );
-    }
+  const triggerDelete = (id: string) => {
+    setPaintToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!paintToDelete) return;
+    const target = paints.find((p) => p.id === paintToDelete);
+    const updated = paints.filter((p) => p.id !== paintToDelete);
+    setPaints(updated);
+    localStorage.setItem("sonvn-paints", JSON.stringify(updated));
+    toast.success(
+      language === "vi"
+        ? `Đã xóa sản phẩm "${target?.name || ""}" thành công.`
+        : "Product deleted successfully."
+    );
+    setPaintToDelete(null);
   };
 
   const handleApplyPromotion = (e: React.FormEvent) => {
@@ -299,15 +311,40 @@ export default function AdminPaintsPage() {
     setIsPromoModalOpen(false);
   };
 
+  // Variants for staggered statistics grid
+  const statsContainerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+      }
+    }
+  };
+
+  const statsItemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 260, damping: 24 }
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 text-left">
       {/* Header and Add CTA */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
           <h1 className="text-3xl font-bold font-serif">
             {language === "vi" ? "Quản Lý Sản Phẩm Sơn" : "Paints & Products"}
           </h1>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-xs mt-1">
             {language === "vi"
               ? "Chỉnh sửa giá bán lẻ, khối lượng tồn kho và cấu hình bảng màu tương ứng cho sản phẩm."
               : "Edit retail prices, stock quantities, and link available color swatches to paint items."}
@@ -322,22 +359,31 @@ export default function AdminPaintsPage() {
               setPromoSelectedPaintId(paints[0]?.id || "");
               setIsPromoModalOpen(true);
             }}
-            className="bg-warm-900 hover:bg-warm-800 text-white font-bold text-xs px-5 py-3 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+            className="bg-warm-900 hover:bg-warm-800 text-white font-bold text-xs px-5 py-3 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
             {language === "vi" ? "Thiết Lập Khuyến Mãi" : "Set Promotions"}
           </button>
           <button
             onClick={openAddModal}
-            className="bg-warm-900 text-white font-bold text-xs px-5 py-3 rounded-xl hover:bg-warm-800 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+            className="bg-warm-900 text-white font-bold text-xs px-5 py-3 rounded-xl hover:bg-warm-800 transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
             {language === "vi" ? "Thêm Sản Phẩm Mới" : "Add New Product"}
           </button>
         </div>
-      </div>
- 
-      {/* Quick Statistics Banner */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+      </motion.div>
+
+      {/* Quick Statistics Banner with stagger animation */}
+      <motion.div
+        variants={statsContainerVariants}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <motion.div
+          variants={statsItemVariants}
+          whileHover={{ y: -4, borderColor: "rgba(107, 95, 82, 0.3)", boxShadow: "0 10px 25px -5px rgba(107, 95, 82, 0.08)" }}
+          className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between transition-colors duration-200"
+        >
           <div className="flex flex-col gap-1.5">
             <span className="text-[9px] uppercase font-bold text-warm-450 tracking-wider">
               {language === "vi" ? "Tổng số sản phẩm" : "Total Products"}
@@ -345,13 +391,17 @@ export default function AdminPaintsPage() {
             <span className="text-2xl font-bold font-mono text-warm-900">
               {paints.length}
             </span>
-            <span className="text-[10px] text-warm-400 font-medium">
+            <span className="text-[10px] text-warm-450 font-medium">
               {language === "vi" ? "Đang được hiển thị" : "Currently active"}
             </span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+        <motion.div
+          variants={statsItemVariants}
+          whileHover={{ y: -4, borderColor: "rgba(107, 95, 82, 0.3)", boxShadow: "0 10px 25px -5px rgba(107, 95, 82, 0.08)" }}
+          className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between transition-colors duration-200"
+        >
           <div className="flex flex-col gap-1.5">
             <span className="text-[9px] uppercase font-bold text-warm-450 tracking-wider">
               {language === "vi" ? "Tổng lượng tồn kho" : "Total Stock Level"}
@@ -363,9 +413,13 @@ export default function AdminPaintsPage() {
               {language === "vi" ? "Tổng số lượng trong kho" : "Total cans in inventory"}
             </span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+        <motion.div
+          variants={statsItemVariants}
+          whileHover={{ y: -4, borderColor: "rgba(107, 95, 82, 0.3)", boxShadow: "0 10px 25px -5px rgba(107, 95, 82, 0.08)" }}
+          className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between transition-colors duration-200"
+        >
           <div className="flex flex-col gap-1.5">
             <span className="text-[9px] uppercase font-bold text-warm-450 tracking-wider">
               {language === "vi" ? "Sản phẩm sắp hết hàng" : "Low Stock Items"}
@@ -378,9 +432,13 @@ export default function AdminPaintsPage() {
               {language === "vi" ? "Số lượng tồn dưới 5 hộp" : "Stock level under 5"}
             </span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+        <motion.div
+          variants={statsItemVariants}
+          whileHover={{ y: -4, borderColor: "rgba(107, 95, 82, 0.3)", boxShadow: "0 10px 25px -5px rgba(107, 95, 82, 0.08)" }}
+          className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between transition-colors duration-200"
+        >
           <div className="flex flex-col gap-1.5">
             <span className="text-[9px] uppercase font-bold text-warm-450 tracking-wider">
               {language === "vi" ? "Giá trị tồn kho dự kiến" : "Total Stock Value"}
@@ -388,15 +446,20 @@ export default function AdminPaintsPage() {
             <span className="text-lg font-bold font-mono text-warm-900">
               {formatPrice(paints.reduce((sum, p) => sum + p.stock * p.price, 0))}
             </span>
-            <span className="text-[10px] text-warm-400 font-medium">
+            <span className="text-[10px] text-warm-450 font-medium">
               {language === "vi" ? "Theo giá bán lẻ hiện tại" : "Based on retail price"}
             </span>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
         <div className="relative">
           <input
             type="text"
@@ -425,7 +488,7 @@ export default function AdminPaintsPage() {
               <ChevronDown className="h-4 w-4 text-warm-450 opacity-60 shrink-0 ml-2" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50">
+          <DropdownMenuContent className="w-56 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
             <DropdownMenuRadioGroup value={selectedCategory} onValueChange={setSelectedCategory}>
               <DropdownMenuRadioItem value="all" className="text-xs font-semibold text-warm-900 cursor-pointer">
                 {language === "vi" ? "Tất cả danh mục" : "All Categories"}
@@ -457,7 +520,7 @@ export default function AdminPaintsPage() {
               <ChevronDown className="h-4 w-4 text-warm-450 opacity-60 shrink-0 ml-2" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50">
+          <DropdownMenuContent className="w-56 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
             <DropdownMenuRadioGroup value={selectedBrand} onValueChange={setSelectedBrand}>
               <DropdownMenuRadioItem value="all" className="text-xs font-semibold text-warm-900 cursor-pointer">
                 {language === "vi" ? "Tất cả hãng sản xuất" : "All Brands"}
@@ -474,10 +537,15 @@ export default function AdminPaintsPage() {
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </motion.div>
 
-      {/* Paints list table */}
-      <div className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden">
+      {/* Paints list table with entry animation */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
+        className="bg-white border border-warm-200/80 rounded-2xl shadow-sm overflow-hidden"
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -499,7 +567,10 @@ export default function AdminPaintsPage() {
                 const discountedPrice = hasDiscount ? p.price * (1 - p.discountPercent! / 100) : p.price;
 
                 return (
-                  <tr key={p.id} className="hover:bg-warm-50/30 transition-colors">
+                  <tr
+                    key={p.id}
+                    className="hover:bg-warm-50/30 transition-colors"
+                  >
                     <td className="py-3.5 px-6">
                       <div>
                         <span className="font-bold text-warm-900 block">{language === "vi" ? p.name : p.nameEn}</span>
@@ -534,13 +605,13 @@ export default function AdminPaintsPage() {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => openEditModal(p)}
-                          className="text-[11px] font-bold text-white bg-warm-900 hover:bg-warm-800 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-warm-900"
+                          className="text-[11px] font-bold text-white bg-warm-900 hover:bg-warm-800 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-warm-900 cursor-pointer"
                         >
                           {language === "vi" ? "Sửa" : "Edit"}
                         </button>
                         <button
-                          onClick={() => handleDelete(p.id)}
-                          className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600"
+                          onClick={() => triggerDelete(p.id)}
+                          className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer"
                         >
                           {language === "vi" ? "Xóa" : "Delete"}
                         </button>
@@ -552,364 +623,425 @@ export default function AdminPaintsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Edit/Add Paint Modal */}
-      {isModalOpen && (
-        <div onClick={() => setIsModalOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto animate-fade-in text-left">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white border border-warm-200 w-full max-w-xl rounded-2xl shadow-2xl flex flex-col my-8 overflow-visible">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
-              <h3 className="font-serif font-bold text-base text-warm-900">
-                {modalMode === "add"
-                  ? (language === "vi" ? "Thêm sản phẩm sơn mới" : "Add New Paint")
-                  : (language === "vi" ? "Chỉnh sửa sản phẩm" : "Edit Paint")}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1"
-              >
-                {language === "vi" ? "[Đóng]" : "[Close]"}
-              </button>
-            </div>
-
-            {/* Modal Form */}
-            <form onSubmit={handleSubmit} className="p-6 pb-36 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    SKU <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    disabled={modalMode === "edit"}
-                    value={sku}
-                    onChange={(e) => setSku(e.target.value)}
-                    placeholder="E.g. JOT-MAJ-01"
-                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Giá bán lẻ (VND)" : "Price (VND)"} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={price}
-                    onChange={(e) => setPrice(Number(e.target.value))}
-                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
-                  />
-                </div>
+      {/* Edit/Add Paint Modal - Premium Framer Motion Transition */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsModalOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto text-left"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white border border-warm-200 w-full max-w-xl rounded-2xl shadow-2xl flex flex-col my-8 overflow-visible"
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
+                <h3 className="font-serif font-bold text-base text-warm-900">
+                  {modalMode === "add"
+                    ? (language === "vi" ? "Thêm sản phẩm sơn mới" : "Add New Paint")
+                    : (language === "vi" ? "Chỉnh sửa sản phẩm" : "Edit Paint")}
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1 transition-colors"
+                >
+                  {language === "vi" ? "[Đóng]" : "[Close]"}
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Tên tiếng Việt" : "Name (Vietnamese)"} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="px-3 py-2 rounded border border-border bg-background text-sm"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Tên tiếng Anh" : "Name (English)"} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={nameEn}
-                    onChange={(e) => setNameEn(e.target.value)}
-                    className="px-3 py-2 rounded border border-border bg-background text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Dung tích" : "Volume"} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={volume}
-                    onChange={(e) => setVolume(Number(e.target.value))}
-                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Đơn vị" : "Unit"}
-                  </label>
-                  <CustomSelect
-                    value={volumeUnit}
-                    onValueChange={setVolumeUnit}
-                    options={[
-                      { value: "L", label: "Lít (L)" },
-                      { value: "ml", label: "Mililit (ml)" },
-                      { value: "kg", label: "Kilogam (kg)" },
-                    ]}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Khuyến mãi (%)" : "Discount (%)"}
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={discountPercent}
-                    onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Loại sơn" : "Paint Type"}
-                  </label>
-                  <CustomSelect
-                    value={paintType}
-                    onValueChange={setPaintType}
-                    options={[
-                      { value: "INTERIOR", label: language === "vi" ? "Trong nhà (Interior)" : "Interior" },
-                      { value: "EXTERIOR", label: language === "vi" ? "Ngoài trời (Exterior)" : "Exterior" },
-                      { value: "PRIMER", label: language === "vi" ? "Sơn lót (Primer)" : "Primer" },
-                      { value: "WATERPROOF", label: language === "vi" ? "Chống thấm (Waterproof)" : "Waterproof" },
-                    ]}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Tồn kho" : "Stock"}
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={stock}
-                    onChange={(e) => setStock(Number(e.target.value))}
-                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Bề mặt" : "Finish"}
-                  </label>
-                  <CustomSelect
-                    value={finish}
-                    onValueChange={setFinish}
-                    options={[
-                      { value: "MATTE", label: "Mờ / Matte" },
-                      { value: "GLOSS", label: "Bóng / Gloss" },
-                      { value: "SEMI_GLOSS", label: "Bán bóng / Semi-Gloss" },
-                    ]}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Hãng sản xuất" : "Supplier"}
-                  </label>
-                  <CustomSelect
-                    value={supplierId}
-                    onValueChange={setSupplierId}
-                    options={MOCK_SUPPLIERS.map((s) => ({
-                      value: s.id,
-                      label: s.name,
-                    }))}
-                  />
+              {/* Modal Form */}
+              <form onSubmit={handleSubmit} className="p-6 pb-36 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      SKU <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      disabled={modalMode === "edit"}
+                      value={sku}
+                      onChange={(e) => setSku(e.target.value)}
+                      placeholder="E.g. JOT-MAJ-01"
+                      className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Giá bán lẻ (VND)" : "Price (VND)"} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={price}
+                      onChange={(e) => setPrice(Number(e.target.value))}
+                      className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    />
+                  </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Tên tiếng Việt" : "Name (Vietnamese)"} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="px-3 py-2 rounded border border-border bg-background text-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Tên tiếng Anh" : "Name (English)"} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={nameEn}
+                      onChange={(e) => setNameEn(e.target.value)}
+                      className="px-3 py-2 rounded border border-border bg-background text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Dung tích" : "Volume"} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={volume}
+                      onChange={(e) => setVolume(Number(e.target.value))}
+                      className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Đơn vị" : "Unit"}
+                    </label>
+                    <CustomSelect
+                      value={volumeUnit}
+                      onValueChange={setVolumeUnit}
+                      options={[
+                        { value: "L", label: "Lít (L)" },
+                        { value: "ml", label: "Mililit (ml)" },
+                        { value: "kg", label: "Kilogam (kg)" },
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Khuyến mãi (%)" : "Discount (%)"}
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={discountPercent}
+                      onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                      className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Loại sơn" : "Paint Type"}
+                    </label>
+                    <CustomSelect
+                      value={paintType}
+                      onValueChange={setPaintType}
+                      options={[
+                        { value: "INTERIOR", label: language === "vi" ? "Trong nhà (Interior)" : "Interior" },
+                        { value: "EXTERIOR", label: language === "vi" ? "Ngoài trời (Exterior)" : "Exterior" },
+                        { value: "PRIMER", label: language === "vi" ? "Sơn lót (Primer)" : "Primer" },
+                        { value: "WATERPROOF", label: language === "vi" ? "Chống thấm (Waterproof)" : "Waterproof" },
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Tồn kho" : "Stock"}
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={stock}
+                      onChange={(e) => setStock(Number(e.target.value))}
+                      className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Bề mặt" : "Finish"}
+                    </label>
+                    <CustomSelect
+                      value={finish}
+                      onValueChange={setFinish}
+                      options={[
+                        { value: "MATTE", label: "Mờ / Matte" },
+                        { value: "GLOSS", label: "Bóng / Gloss" },
+                        { value: "SEMI_GLOSS", label: "Bán bóng / Semi-Gloss" },
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Hãng sản xuất" : "Supplier"}
+                    </label>
+                    <CustomSelect
+                      value={supplierId}
+                      onValueChange={setSupplierId}
+                      options={MOCK_SUPPLIERS.map((s) => ({
+                        value: s.id,
+                        label: s.name,
+                      }))}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {language === "vi" ? "Danh mục sản phẩm" : "Category"}
+                    </label>
+                    <CustomSelect
+                      value={categoryId}
+                      onValueChange={setCategoryId}
+                      options={MOCK_CATEGORIES.map((c) => ({
+                        value: c.id,
+                        label: language === "vi" ? c.name : c.nameEn,
+                      }))}
+                    />
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Danh mục sản phẩm" : "Category"}
+                    {language === "vi" ? "Mô tả sản phẩm" : "Product Description"}
                   </label>
-                  <CustomSelect
-                    value={categoryId}
-                    onValueChange={setCategoryId}
-                    options={MOCK_CATEGORIES.map((c) => ({
-                      value: c.id,
-                      label: language === "vi" ? c.name : c.nameEn,
-                    }))}
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="px-3 py-2 rounded border border-border bg-background text-sm resize-none text-warm-900"
                   />
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {language === "vi" ? "Mô tả sản phẩm" : "Product Description"}
-                </label>
-                <textarea
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="px-3 py-2 rounded border border-border bg-background text-sm resize-none"
-                />
-              </div>
-
-              {/* Linking Color swatches directly */}
-              <div className="flex flex-col gap-2.5 border-t border-warm-100 pt-4 mt-2">
-                <h4 className="text-xs font-bold text-warm-900">
-                  {language === "vi" ? "Liên kết mã màu sắc áp dụng cho sản phẩm này:" : "Link Paint Color swatches for this product:"}
-                </h4>
-                <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto border border-border p-3.5 rounded bg-zinc-50 dark:bg-zinc-900/40">
-                  {MOCK_COLORS.map((col) => {
-                    const isLinked = linkedColors.includes(col.code);
-                    return (
-                      <button
-                        type="button"
-                        key={col.code}
-                        onClick={() => toggleLinkedColor(col.code)}
-                        className={`h-9 px-3.5 rounded text-xs font-bold border flex items-center gap-2 transition-all duration-150 ${
-                          isLinked
+                {/* Linking Color swatches directly */}
+                <div className="flex flex-col gap-2.5 border-t border-warm-100 pt-4 mt-2">
+                  <h4 className="text-xs font-bold text-warm-900">
+                    {language === "vi" ? "Liên kết mã màu sắc áp dụng cho sản phẩm này:" : "Link Paint Color swatches for this product:"}
+                  </h4>
+                  <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto border border-border p-3.5 rounded bg-zinc-50 dark:bg-zinc-900/40">
+                    {MOCK_COLORS.map((col) => {
+                      const isLinked = linkedColors.includes(col.code);
+                      return (
+                        <button
+                          type="button"
+                          key={col.code}
+                          onClick={() => toggleLinkedColor(col.code)}
+                          className={`h-9 px-3.5 rounded text-xs font-bold border flex items-center gap-2 transition-all duration-150 ${isLinked
                             ? "bg-jotun-teal text-white border-jotun-teal ring-1 ring-jotun-teal"
                             : "bg-white dark:bg-zinc-950 border-border text-foreground hover:border-jotun-teal"
-                        }`}
-                      >
-                        <div
-                          className="h-4 w-4 rounded border border-black/10 shrink-0"
-                          style={{ backgroundColor: col.hex }}
-                        />
-                        <span>{language === "vi" ? col.name : col.nameEn} ({col.code})</span>
-                      </button>
-                    );
-                  })}
+                            }`}
+                        >
+                          <div
+                            className="h-4 w-4 rounded border border-black/10 shrink-0"
+                            style={{ backgroundColor: col.hex }}
+                          />
+                          <span>{language === "vi" ? col.name : col.nameEn} ({col.code})</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Submit panel */}
-              <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
-                >
-                  {language === "vi" ? "Hủy" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
-                >
-                  {language === "vi" ? "Xác nhận" : "Confirm"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Promotion Batch Setup Modal */}
-      {isPromoModalOpen && (
-        <div onClick={() => setIsPromoModalOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto animate-fade-in text-left">
-          <div onClick={(e) => e.stopPropagation()} className="bg-white border border-warm-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col my-8 overflow-visible">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
-              <h3 className="font-serif font-bold text-base text-warm-900">
-                {language === "vi" ? "Thiết lập chương trình Khuyến mãi" : "Set up Promotion"}
-              </h3>
-              <button
-                onClick={() => setIsPromoModalOpen(false)}
-                className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1"
-              >
-                {language === "vi" ? "[Đóng]" : "[Close]"}
-              </button>
-            </div>
-
-            {/* Modal Form */}
-            <form onSubmit={handleApplyPromotion} className="p-6 pb-16 flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {language === "vi" ? "Mức giảm giá (%)" : "Discount Percentage (%)"} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  max={100}
-                  value={promoDiscount}
-                  onChange={(e) => setPromoDiscount(Number(e.target.value))}
-                  placeholder="E.g. 15"
-                  className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {language === "vi" ? "Áp dụng theo" : "Apply by"}
-                </label>
-                <CustomSelect
-                  value={promoMethod}
-                  onValueChange={(val) => setPromoMethod(val as any)}
-                  options={[
-                    { value: "category", label: language === "vi" ? "Danh mục sản phẩm" : "Product Category" },
-                    { value: "single", label: language === "vi" ? "Đơn lẻ từng sản phẩm" : "Single Product" },
-                  ]}
-                />
-              </div>
-
-              {promoMethod === "category" ? (
-                <div className="flex flex-col gap-1 animate-fade-in">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Chọn danh mục sơn" : "Select Category"}
-                  </label>
-                  <CustomSelect
-                    value={promoSelectedCategoryId}
-                    onValueChange={setPromoSelectedCategoryId}
-                    options={MOCK_CATEGORIES.map((c) => ({
-                      value: c.id,
-                      label: language === "vi" ? c.name : c.nameEn,
-                    }))}
-                  />
+                {/* Submit panel */}
+                <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
+                  >
+                    {language === "vi" ? "Hủy" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
+                  >
+                    {language === "vi" ? "Xác nhận" : "Confirm"}
+                  </button>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-1 animate-fade-in">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {language === "vi" ? "Chọn sản phẩm sơn" : "Select Paint Product"}
-                  </label>
-                  <CustomSelect
-                    value={promoSelectedPaintId}
-                    onValueChange={setPromoSelectedPaintId}
-                    placeholder={language === "vi" ? "-- Chọn sản phẩm --" : "-- Select Paint --"}
-                    options={paints.map((p) => ({
-                      value: p.id,
-                      label: `${p.sku} - ${language === "vi" ? p.name : p.nameEn}`,
-                    }))}
-                  />
-                </div>
-              )}
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              {/* Submit panel */}
-              <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
+      {/* Promotion Batch Setup Modal - Premium Framer Motion Transition */}
+      <AnimatePresence>
+        {isPromoModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsPromoModalOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto text-left"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white border border-warm-200 w-full max-w-md rounded-2xl shadow-2xl flex flex-col my-8 overflow-visible"
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-warm-100 flex items-center justify-between bg-warm-50/50 rounded-t-2xl">
+                <h3 className="font-serif font-bold text-base text-warm-900">
+                  {language === "vi" ? "Thiết lập chương trình Khuyến mãi" : "Set up Promotion"}
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setIsPromoModalOpen(false)}
-                  className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
+                  className="text-warm-450 hover:text-warm-900 text-xs font-bold px-2 py-1 transition-colors"
                 >
-                  {language === "vi" ? "Hủy" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
-                >
-                  {language === "vi" ? "Áp dụng" : "Apply"}
+                  {language === "vi" ? "[Đóng]" : "[Close]"}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              {/* Modal Form */}
+              <form onSubmit={handleApplyPromotion} className="p-6 pb-16 flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {language === "vi" ? "Mức giảm giá (%)" : "Discount Percentage (%)"} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    max={100}
+                    value={promoDiscount}
+                    onChange={(e) => setPromoDiscount(Number(e.target.value))}
+                    placeholder="E.g. 15"
+                    className="px-3 py-2 rounded border border-border bg-background text-sm font-mono"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {language === "vi" ? "Áp dụng theo" : "Apply by"}
+                  </label>
+                  <CustomSelect
+                    value={promoMethod}
+                    onValueChange={(val) => setPromoMethod(val as any)}
+                    options={[
+                      { value: "category", label: language === "vi" ? "Danh mục sản phẩm" : "Product Category" },
+                      { value: "single", label: language === "vi" ? "Đơn lẻ từng sản phẩm" : "Single Product" },
+                    ]}
+                  />
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {promoMethod === "category" ? (
+                    <motion.div
+                      key="promo-cat"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex flex-col gap-1"
+                    >
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                        {language === "vi" ? "Chọn danh mục sơn" : "Select Category"}
+                      </label>
+                      <CustomSelect
+                        value={promoSelectedCategoryId}
+                        onValueChange={setPromoSelectedCategoryId}
+                        options={MOCK_CATEGORIES.map((c) => ({
+                          value: c.id,
+                          label: language === "vi" ? c.name : c.nameEn,
+                        }))}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="promo-single"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex flex-col gap-1"
+                    >
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                        {language === "vi" ? "Chọn sản phẩm sơn" : "Select Paint Product"}
+                      </label>
+                      <CustomSelect
+                        value={promoSelectedPaintId}
+                        onValueChange={setPromoSelectedPaintId}
+                        placeholder={language === "vi" ? "-- Chọn sản phẩm --" : "-- Select Paint --"}
+                        options={paints.map((p) => ({
+                          value: p.id,
+                          label: `${p.sku} - ${language === "vi" ? p.name : p.nameEn}`,
+                        }))}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Submit panel */}
+                <div className="mt-4 flex justify-end gap-3 border-t border-border pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsPromoModalOpen(false)}
+                    className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-200 rounded-xl text-warm-900 transition-colors"
+                  >
+                    {language === "vi" ? "Hủy" : "Cancel"}
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-warm-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-warm-800 transition-colors"
+                  >
+                    {language === "vi" ? "Áp dụng" : "Apply"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setPaintToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title={language === "vi" ? "Xóa sản phẩm?" : "Delete Product?"}
+        message={
+          language === "vi"
+            ? `Bạn có chắc chắn muốn xóa sản phẩm "${paints.find((p) => p.id === paintToDelete)?.name || ""}" không?`
+            : `Are you sure you want to delete product "${paints.find((p) => p.id === paintToDelete)?.nameEn || ""}"?`
+        }
+      />
     </div>
   );
 }
+
