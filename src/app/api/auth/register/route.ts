@@ -1,46 +1,36 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { ApiError, apiErrorResponse } from "@/lib/api-auth";
+import { db } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/email";
 
-export async function POST(request: NextRequest) {
+const registerSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
+  password: z.string().min(8).max(100),
+});
+
+export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
-
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
-    }
-
-    const existing = await db.user.findUnique({ where: { email } });
-    if (existing) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 409 });
-    }
-
+    const parsed = registerSchema.safeParse(await request.json());
+    if (!parsed.success) throw new ApiError(400, "Thông tin đăng ký không hợp lệ");
+    const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
+    if (existing) throw new ApiError(409, "Email đã được đăng ký");
     const customerRole = await db.role.findUnique({ where: { type: "CUSTOMER" } });
-    if (!customerRole) {
-      return NextResponse.json({ error: "Role not found" }, { status: 500 });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
+    if (!customerRole) throw new ApiError(500, "Role CUSTOMER chưa được khởi tạo");
 
     const user = await db.user.create({
       data: {
-        name,
-        email,
-        password: hashedPassword,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        password: await bcrypt.hash(parsed.data.password, 12),
         roleId: customerRole.id,
-        customer: {
-          create: { customerType: "RETAIL" },
-        },
+        customer: { create: { customerType: "RETAIL" } },
       },
     });
-
-    return NextResponse.json({ success: true, email: user.email }, { status: 201 });
+    await sendWelcomeEmail(user.email, user.name || "Khách hàng");
+    return Response.json({ success: true, email: user.email }, { status: 201 });
   } catch (error) {
-    console.error("Register failed:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }

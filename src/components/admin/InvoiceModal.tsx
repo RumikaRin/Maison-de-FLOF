@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { formatPrice } from "@/lib/utils";
 import { Printer, X, Check, FileText } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
@@ -17,10 +16,16 @@ interface InvoiceModalProps {
     total: number;
     status: string;
     paymentMethod?: string;
+    address?: string;
+    subtotal?: number;
+    discount?: number;
+    shippingFee?: number;
+    structuredItems?: ParsedItem[];
   } | null;
 }
 
 interface ParsedItem {
+  id?: string;
   name: string;
   quantity: number;
   color: string;
@@ -30,14 +35,7 @@ interface ParsedItem {
 
 export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
   const { language } = useLanguageStore();
-  const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
-
-  useEffect(() => {
-    if (!order) return;
-
-    // Parse items description string e.g. "Jotun Majestic 5L x 2, Trắng Ngà (1001); Dulux..."
-    const itemsList = order.items.split(";");
-    const parsed = itemsList.map((itemStr) => {
+  const parsedItems: ParsedItem[] = order?.structuredItems ?? order?.items.split(";").map((itemStr) => {
       const trimmed = itemStr.trim();
       const xParts = trimmed.split(" x ");
       if (xParts.length < 2) {
@@ -45,7 +43,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
           name: trimmed,
           quantity: 1,
           color: "—",
-          price: order.total, // fallback
+          price: order.total,
           total: order.total,
         };
       }
@@ -54,23 +52,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
       const commaParts = xParts[1].split(",");
       const quantity = parseInt(commaParts[0].trim()) || 1;
       const color = commaParts.slice(1).join(",").trim() || "—";
-
-      // Look up price in localStorage sonvn-paints
-      let price = 850000; // fallback
-      try {
-        const storedPaints = localStorage.getItem("sonvn-paints");
-        if (storedPaints) {
-          const paints = JSON.parse(storedPaints);
-          const found = paints.find(
-            (p: any) =>
-              name.toLowerCase().includes(p.name.toLowerCase()) ||
-              p.name.toLowerCase().includes(name.toLowerCase())
-          );
-          if (found) {
-            price = found.price * (1 - (found.discountPercent || 0) / 100);
-          }
-        }
-      } catch (e) {}
+      const price = order.total / quantity;
 
       return {
         name,
@@ -79,19 +61,18 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
         price,
         total: price * quantity,
       };
-    });
-
-    setParsedItems(parsed);
-  }, [order]);
+    }) ?? [];
 
   if (!isOpen || !order) return null;
 
   // Invoice calculations
-  const computedSubtotal = parsedItems.reduce((sum, item) => sum + item.total, 0);
-  const shippingFee = computedSubtotal >= 500000 ? 0 : 50000;
+  const computedSubtotal =
+    order.subtotal ?? parsedItems.reduce((sum, item) => sum + item.total, 0);
+  const shippingFee =
+    order.shippingFee ?? (computedSubtotal >= 500000 ? 0 : 50000);
   const orderTotal = order.total;
-  // Calculate discount dynamically to match total
-  const discount = Math.max(0, computedSubtotal + shippingFee - orderTotal);
+  const discount =
+    order.discount ?? Math.max(0, computedSubtotal + shippingFee - orderTotal);
 
   const handlePrint = () => {
     window.print();
@@ -109,7 +90,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 md:p-8 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto">
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 md:p-6 overflow-hidden print:p-0 print:bg-white print:static print:inset-auto">
       {/* Print Style Injector */}
       <style jsx global>{`
         @media print {
@@ -140,7 +121,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
       {/* Modal Wrapper */}
       <div 
         id="print-invoice-area"
-        className="bg-white text-warm-900 border border-warm-250 w-full max-w-3xl rounded-2xl shadow-2xl p-6 md:p-10 flex flex-col gap-6 relative print:border-none print:shadow-none print:max-w-full"
+        className="bg-white text-warm-950 border border-warm-250 w-full max-w-4xl max-h-[calc(100dvh-1rem)] md:max-h-[calc(100dvh-3rem)] rounded-2xl shadow-2xl p-5 md:p-8 flex flex-col gap-6 relative overflow-y-auto overscroll-contain print:border-none print:shadow-none print:max-w-full print:max-h-none print:overflow-visible"
       >
         {/* Close Button - hidden during print */}
         <button
@@ -200,7 +181,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
               <p className="font-mono text-warm-550">{order.userEmail}</p>
             )}
             <p className="text-warm-600 leading-relaxed">
-              {language === "vi" ? "Địa chỉ nhận hàng" : "Address"}: {language === "vi" ? "Giao tận nơi theo đơn hàng" : "Delivery address on file"}
+              {language === "vi" ? "Địa chỉ nhận hàng" : "Address"}: {order.address || (language === "vi" ? "Giao tận nơi theo đơn hàng" : "Delivery address on file")}
             </p>
           </div>
 
@@ -223,10 +204,10 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
         </div>
 
         {/* Items Table */}
-        <div className="flex-grow overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="shrink-0 overflow-x-auto pb-2">
+          <table className="w-full min-w-[760px] text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-warm-200 text-warm-450 font-bold uppercase tracking-wider text-[10px]">
+              <tr className="border-b border-warm-200 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-2.5 pr-4">#</th>
                 <th className="py-2.5 px-4">{language === "vi" ? "Tên Sản Phẩm" : "Paint Item"}</th>
                 <th className="py-2.5 px-4">{language === "vi" ? "Mã Màu" : "Color Code"}</th>
@@ -237,7 +218,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
             </thead>
             <tbody className="divide-y divide-warm-100 font-semibold text-warm-800">
               {parsedItems.map((item, idx) => (
-                <tr key={idx}>
+                <tr key={item.id || `${item.name}-${item.color}-${idx}`}>
                   <td className="py-3 pr-4 font-mono font-bold text-warm-400">{idx + 1}</td>
                   <td className="py-3 px-4">
                     <span className="font-bold text-warm-900 block">{item.name}</span>
@@ -307,7 +288,7 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
         </div>
 
         {/* Modal Action Controls - hidden during print */}
-        <div className="no-print flex items-center justify-end gap-3 border-t border-warm-150 pt-5 mt-4">
+        <div className="no-print sticky -bottom-5 md:-bottom-8 z-10 flex items-center justify-end gap-3 border-t border-warm-200 bg-white/95 py-4 mt-4 backdrop-blur">
           <button
             onClick={onClose}
             className="px-5 py-2.5 border border-warm-250 hover:bg-warm-50 text-warm-700 font-bold text-xs rounded-xl transition-all cursor-pointer"

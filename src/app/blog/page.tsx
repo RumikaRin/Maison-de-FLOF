@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
-import { MOCK_BLOGS } from "@/lib/mock-data";
 import { motion } from "framer-motion";
 
 const containerVariants = {
@@ -43,16 +42,14 @@ export default function BlogListingPage() {
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [blogs, setBlogs] = useState<any[]>(MOCK_BLOGS);
+  const [blogs, setBlogs] = useState<any[]>([]);
 
   useEffect(() => { 
     setMounted(true); 
     fetch("/api/blog")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setBlogs(data);
-        }
+        if (Array.isArray(data)) setBlogs(data);
       })
       .catch((err) => console.error("Error loading blogs from DB API:", err));
   }, []);
@@ -93,7 +90,7 @@ export default function BlogListingPage() {
           className="w-full max-w-[1440px] mx-auto px-6 md:px-12 text-center relative z-10"
         >
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-warm-900 mb-4 tracking-tight">
-            {language === "vi" ? "Tư Vấn & Xu Hướng Sơn" : "Paint Consultation & Trends"}
+            {language === "vi" ? "Xu Hướng Sơn" : "Paint Trends"}
           </h1>
           <p className="text-warm-500 text-sm max-w-2xl mx-auto leading-relaxed font-medium">
             {language === "vi"

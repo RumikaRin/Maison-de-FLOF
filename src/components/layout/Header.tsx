@@ -16,7 +16,7 @@ const NAV_LINKS = [
   { href: "/colors", keyVi: "Bảng màu", keyEn: "Colors" },
   { href: "/color-visualizer", keyVi: "Phối màu", keyEn: "Visualizer" },
   { href: "/find-dealer", keyVi: "Đại lý", keyEn: "Dealers" },
-  { href: "/blog", keyVi: "Tư vấn", keyEn: "Blog" },
+  { href: "/blog", keyVi: "Xu hướng", keyEn: "Trends" },
 ];
 
 export default function Header() {

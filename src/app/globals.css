@@ -210,6 +210,92 @@
   scrollbar-width: none;  /* Firefox */
 }
 
+/* ============================================================
+   ADMIN WORKSPACE — Dense, consistent operational UI
+   ============================================================ */
+.admin-shell {
+  --admin-border: #ece8df;
+  --admin-muted: #8a7d6e;
+  color: #2f2822;
+  background-color: #f7f5f0;
+}
+
+.admin-content {
+  background:
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.78), transparent 28rem),
+    linear-gradient(180deg, #faf9f6 0%, #f7f5f0 22rem);
+}
+
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3 {
+  font-family: var(--font-noto), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.admin-shell main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.admin-shell main textarea,
+.admin-shell main select {
+  min-height: 2.5rem;
+  border-color: var(--admin-border);
+  background-color: #fff;
+}
+
+.admin-shell main input:focus-visible,
+.admin-shell main textarea:focus-visible,
+.admin-shell main select:focus-visible,
+.admin-shell main button:focus-visible,
+.admin-shell main a:focus-visible {
+  outline: 2px solid rgba(0, 123, 138, 0.35);
+  outline-offset: 2px;
+}
+
+.admin-shell main button,
+.admin-shell main a {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
+}
+
+.admin-shell main button:active,
+.admin-shell main a:active {
+  transform: translateY(1px);
+}
+
+.admin-shell main table {
+  min-width: 720px;
+}
+
+.admin-shell main thead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #faf8f4;
+}
+
+.admin-shell main thead th {
+  color: #8a7d6e;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-shell main tbody tr {
+  transition: background-color 140ms ease;
+}
+
+.admin-shell main tbody tr:hover {
+  background-color: rgba(250, 248, 244, 0.9);
+}
+
+.admin-sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 /* Prevent fixed header shift when scrollbar is hidden by Radix UI / scroll lock */
 body[data-scroll-locked] header {
   padding-right: var(--removed-body-scroll-bar-size, 0px) !important;
@@ -366,6 +452,19 @@ select:focus {
   }
 }
 
+.site-loader-progress {
+  animation: siteLoaderProgress 1.15s ease-in-out infinite;
+}
+
+@keyframes siteLoaderProgress {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(210%);
+  }
+}
+
 /* Fullscreen Loader Layout overrides to hide Header/Footer and prevent layout shifts */
 body:has(.fullscreen-loader) {
   overflow: hidden !important;
@@ -383,5 +482,13 @@ body:has(.fullscreen-loader) main {
   min-height: 100vh !important;
 }
 
-
-
+@media (prefers-reduced-motion: reduce) {
+  .loader::before,
+  .loader svg rect,
+  .loader svg polygon,
+  .loader svg circle,
+  .site-loader-progress {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

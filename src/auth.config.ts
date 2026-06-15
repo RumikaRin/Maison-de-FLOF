@@ -8,14 +8,17 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
+        session.user.id = typeof token.id === "string" ? token.id : "";
+        session.user.role =
+          token.role === "ADMIN" || token.role === "STAFF" || token.role === "CUSTOMER"
+            ? token.role
+            : "CUSTOMER";
       }
       return session;
     },
@@ -26,8 +29,10 @@ export const authConfig = {
 
       if (isOnAdmin) {
         if (!isLoggedIn) return false;
-        const role = (auth.user as any)?.role;
-        if (role !== "ADMIN") return Response.redirect(new URL("/", nextUrl));
+        const role = auth.user.role;
+        if (role !== "ADMIN" && role !== "STAFF") {
+          return Response.redirect(new URL("/", nextUrl));
+        }
       }
 
       if (isOnProfile && !isLoggedIn) return false;

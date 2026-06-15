@@ -6,7 +6,8 @@ import {
   getAnalogousColors,
   getTriadicColors,
   hexToRgb,
-  hexToHsl
+  hexToHsl,
+  isLightColor,
 } from "@/lib/color-utils";
 
 interface ColorDetailDrawerProps {
@@ -42,6 +43,7 @@ export function ColorDetailDrawer({
   const hslVal = `${hsl.h}°, ${hsl.s}%, ${hsl.l}%`;
 
   const isFav = favorites.includes(selectedColor.code);
+  const useDarkText = isLightColor(selectedColor.hex);
 
   return (
     <div 
@@ -65,11 +67,18 @@ export function ColorDetailDrawer({
           className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-2 overflow-hidden"
           style={{ backgroundColor: selectedColor.hex }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl" />
+          <div
+            className={cn(
+              "absolute inset-0 rounded-2xl",
+              useDarkText
+                ? "bg-gradient-to-t from-white/80 via-white/10 to-transparent"
+                : "bg-gradient-to-t from-black/60 via-black/5 to-transparent",
+            )}
+          />
           <div className="relative z-10 flex justify-between items-end">
             <div>
-              <span className="text-[11px] font-mono tracking-wider text-white/80">#{selectedColor.code}</span>
-              <h2 className="text-2xl font-bold font-serif mt-1 text-white">
+              <span className={cn("text-[11px] font-mono font-bold tracking-wider", useDarkText ? "text-warm-700" : "text-white/85")}>#{selectedColor.code}</span>
+              <h2 className={cn("text-2xl font-bold font-serif mt-1", useDarkText ? "text-warm-950" : "text-white")}>
                 {language === "vi" ? selectedColor.name : (selectedColor.nameEn || selectedColor.name)}
               </h2>
             </div>

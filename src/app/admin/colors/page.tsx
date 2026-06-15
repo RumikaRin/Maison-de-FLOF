@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
-import { MOCK_COLORS, PaintColor } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { ChevronDown } from "lucide-react";
@@ -18,12 +17,32 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 
+type ColorCollection = {
+  id: string;
+  name: string;
+  nameEn: string | null;
+  isActive: boolean;
+};
+
+type AdminColor = {
+  id: string;
+  code: string;
+  name: string;
+  nameEn: string;
+  hex: string;
+  toneFamily: string;
+  colorFamily: string;
+  collectionId: string | null;
+  collection?: Pick<ColorCollection, "id" | "name" | "nameEn"> | null;
+};
+
 export default function AdminColorsPage() {
   const { language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
 
   // Core state
-  const [colors, setColors] = useState<PaintColor[]>([]);
+  const [colors, setColors] = useState<AdminColor[]>([]);
+  const [collections, setCollections] = useState<ColorCollection[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColorFamily, setSelectedColorFamily] = useState("all");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -41,10 +60,24 @@ export default function AdminColorsPage() {
   const [hex, setHex] = useState("#FFFFFF");
   const [toneFamily, setToneFamily] = useState("neutral");
   const [colorFamily, setColorFamily] = useState("white");
+  const [collectionId, setCollectionId] = useState("none");
 
   useEffect(() => {
-    setMounted(true);
-    setColors(MOCK_COLORS);
+    Promise.all([fetch("/api/admin/colors"), fetch("/api/admin/collections")])
+      .then(async ([colorResponse, collectionResponse]) => {
+        const [colorData, collectionData] = await Promise.all([
+          colorResponse.json(),
+          collectionResponse.json(),
+        ]);
+        if (!colorResponse.ok) throw new Error(colorData.error || "Không thể tải mã màu");
+        if (!collectionResponse.ok) {
+          throw new Error(collectionData.error || "Không thể tải bộ sưu tập màu");
+        }
+        setColors(colorData);
+        setCollections(collectionData);
+      })
+      .catch((error) => toast.error(error.message))
+      .finally(() => setMounted(true));
   }, []);
 
   useEffect(() => {
@@ -81,10 +114,11 @@ export default function AdminColorsPage() {
     setHex("#007B8A");
     setToneFamily("neutral");
     setColorFamily("white");
+    setCollectionId("none");
     setIsModalOpen(true);
   };
 
-  const openEditModal = (color: PaintColor) => {
+  const openEditModal = (color: AdminColor) => {
     setModalMode("edit");
     setEditingColorId(color.id);
     setCode(color.code);
@@ -93,10 +127,11 @@ export default function AdminColorsPage() {
     setHex(color.hex);
     setToneFamily(color.toneFamily || "neutral");
     setColorFamily(color.colorFamily || "white");
+    setCollectionId(color.collectionId || "none");
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!code || !name || !nameEn || !hex) {
@@ -106,43 +141,36 @@ export default function AdminColorsPage() {
       return;
     }
 
-    if (modalMode === "add") {
-      // Check duplicate code
-      if (colors.some((c) => c.code === code)) {
-        toast.error(
-          language === "vi" ? "Mã màu này đã tồn tại." : "This color code already exists."
-        );
-        return;
-      }
-
-      const newColor: PaintColor = {
-        id: `col-${Date.now()}`,
+    const response = await fetch("/api/admin/colors", {
+      method: modalMode === "add" ? "POST" : "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingColorId || undefined,
         code,
         name,
         nameEn,
         hex,
         toneFamily,
-        colorFamily
-      };
-
-      setColors([newColor, ...colors]);
-      toast.success(
-        language === "vi" ? "Đã thêm mã màu thành công!" : "Color added successfully!"
-      );
-    } else {
-      // Edit
-      setColors(
-        colors.map((c) =>
-          c.id === editingColorId
-            ? { ...c, code, name, nameEn, hex, toneFamily, colorFamily }
-            : c
-        )
-      );
-      toast.success(
-        language === "vi" ? "Đã cập nhật thông tin mã màu!" : "Color updated successfully!"
-      );
+        colorFamily,
+        collectionId: collectionId === "none" ? null : collectionId,
+      }),
+    });
+    const saved = await response.json();
+    if (!response.ok) {
+      toast.error(saved.error || "Không thể lưu mã màu");
+      return;
     }
 
+    setColors((current) =>
+      modalMode === "add"
+        ? [saved, ...current]
+        : current.map((color) => (color.id === saved.id ? saved : color)),
+    );
+    toast.success(
+      modalMode === "add"
+        ? language === "vi" ? "Đã thêm mã màu thành công!" : "Color added successfully!"
+        : language === "vi" ? "Đã cập nhật thông tin mã màu!" : "Color updated successfully!",
+    );
     setIsModalOpen(false);
   };
 
@@ -151,10 +179,18 @@ export default function AdminColorsPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!colorToDelete) return;
     const target = colors.find((c) => c.id === colorToDelete);
-    setColors(colors.filter((c) => c.id !== colorToDelete));
+    const response = await fetch(`/api/admin/colors?id=${encodeURIComponent(colorToDelete)}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      toast.error(data.error || "Không thể xóa mã màu");
+      return;
+    }
+    setColors((current) => current.filter((c) => c.id !== colorToDelete));
     toast.success(
       language === "vi"
         ? `Đã xóa mã màu ${target?.code || ""} thành công.`
@@ -309,6 +345,11 @@ export default function AdminColorsPage() {
                         {color.toneFamily}
                       </span>
                     )}
+                    {color.collection && (
+                      <span className="mt-1 block text-[10px] normal-case text-warm-450">
+                        {color.collection.name}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3.5 pr-6 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-2">
@@ -441,6 +482,31 @@ export default function AdminColorsPage() {
                   />
                 </div>
 
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {language === "vi" ? "Bộ sưu tập màu" : "Color Collection"}
+                  </label>
+                  <CustomSelect
+                    value={collectionId}
+                    onValueChange={setCollectionId}
+                    options={[
+                      {
+                        value: "none",
+                        label: language === "vi" ? "Không thuộc bộ sưu tập" : "No collection",
+                      },
+                      ...collections
+                        .filter((collection) => collection.isActive || collection.id === collectionId)
+                        .map((collection) => ({
+                          value: collection.id,
+                          label:
+                            language === "vi"
+                              ? collection.name
+                              : collection.nameEn || collection.name,
+                        })),
+                    ]}
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold uppercase text-muted-foreground">
@@ -521,4 +587,3 @@ export default function AdminColorsPage() {
     </div>
   );
 }
-

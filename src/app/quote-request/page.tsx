@@ -1,12 +1,107 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { useLanguageStore } from "@/store/language-store";
 
-export default function QuoteRequestRedirect() {
-  const router = useRouter();
-  useEffect(() => {
-    router.replace("/");
-  }, [router]);
-  return null;
+const initialForm = {
+  fullName: "",
+  phone: "",
+  email: "",
+  companyName: "",
+  projectName: "",
+  projectType: "Residential",
+  area: "",
+  paintType: "",
+  message: "",
+};
+
+export default function QuoteRequestPage() {
+  const { language } = useLanguageStore();
+  const { data: session } = useSession();
+  const [form, setForm] = useState({
+    ...initialForm,
+    fullName: session?.user?.name || "",
+    email: session?.user?.email || "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const update = (field: keyof typeof form, value: string) =>
+    setForm((current) => ({ ...current, [field]: value }));
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/quote-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, area: form.area ? Number(form.area) : undefined }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Không thể gửi yêu cầu");
+      setSubmitted(true);
+      toast.success(language === "vi" ? "Đã gửi yêu cầu báo giá." : "Quote request submitted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể gửi yêu cầu");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <main className="container mx-auto max-w-2xl px-6 py-24 text-center">
+        <h1 className="font-serif text-3xl font-bold text-warm-900">
+          {language === "vi" ? "Yêu cầu đã được tiếp nhận" : "Request received"}
+        </h1>
+        <p className="mt-3 text-sm text-warm-600">
+          {language === "vi"
+            ? "Đội ngũ FLOF sẽ liên hệ với bạn trong thời gian sớm nhất."
+            : "The FLOF team will contact you shortly."}
+        </p>
+      </main>
+    );
+  }
+
+  const inputClass =
+    "w-full rounded-xl border border-warm-200 bg-white px-4 py-3 text-sm outline-none focus:border-jotun-teal";
+
+  return (
+    <main className="container mx-auto max-w-4xl px-6 py-16">
+      <div className="mb-8">
+        <h1 className="font-serif text-3xl font-bold text-warm-900">
+          {language === "vi" ? "Yêu cầu báo giá công trình" : "Project Quote Request"}
+        </h1>
+        <p className="mt-2 text-sm text-warm-600">
+          {language === "vi"
+            ? "Cung cấp thông tin dự án để nhận định mức và báo giá phù hợp."
+            : "Share project details to receive a tailored estimate and quotation."}
+        </p>
+      </div>
+
+      <form onSubmit={submit} className="grid gap-5 rounded-2xl border border-warm-200 bg-white p-6 shadow-sm md:grid-cols-2">
+        <input required className={inputClass} placeholder="Họ và tên *" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} />
+        <input required className={inputClass} placeholder="Số điện thoại *" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
+        <input required type="email" className={inputClass} placeholder="Email *" value={form.email} onChange={(e) => update("email", e.target.value)} />
+        <input className={inputClass} placeholder="Công ty / tổ chức" value={form.companyName} onChange={(e) => update("companyName", e.target.value)} />
+        <input className={inputClass} placeholder="Tên dự án" value={form.projectName} onChange={(e) => update("projectName", e.target.value)} />
+        <select className={inputClass} value={form.projectType} onChange={(e) => update("projectType", e.target.value)}>
+          <option value="Residential">Nhà ở / Residential</option>
+          <option value="Commercial">Thương mại / Commercial</option>
+          <option value="Industrial">Công nghiệp / Industrial</option>
+        </select>
+        <input type="number" min="0" className={inputClass} placeholder="Diện tích dự kiến (m²)" value={form.area} onChange={(e) => update("area", e.target.value)} />
+        <input className={inputClass} placeholder="Loại sơn quan tâm" value={form.paintType} onChange={(e) => update("paintType", e.target.value)} />
+        <textarea required rows={5} className={`${inputClass} md:col-span-2`} placeholder="Mô tả nhu cầu *" value={form.message} onChange={(e) => update("message", e.target.value)} />
+        <button disabled={submitting} className="rounded-xl bg-warm-900 px-6 py-3 font-bold text-white disabled:opacity-50 md:col-span-2">
+          {submitting
+            ? language === "vi" ? "Đang gửi..." : "Submitting..."
+            : language === "vi" ? "Gửi yêu cầu báo giá" : "Submit quote request"}
+        </button>
+      </form>
+    </main>
+  );
 }

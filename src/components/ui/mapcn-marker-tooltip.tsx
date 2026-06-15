@@ -147,16 +147,18 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
       styleTimeoutRef.current = null;
     }
   }, []);
+  const initialOptionsRef = useRef({ mapStyles, props, resolvedTheme, viewport });
 
   useEffect(() => {
     if (!containerRef.current) return;
+    const initialOptions = initialOptionsRef.current;
     const map = new MapLibreGL.Map({
       container: containerRef.current,
-      style: resolvedTheme === "dark" ? mapStyles.dark : mapStyles.light,
+      style: initialOptions.resolvedTheme === "dark" ? initialOptions.mapStyles.dark : initialOptions.mapStyles.light,
       renderWorldCopies: false,
       attributionControl: { compact: true },
-      ...props,
-      ...viewport,
+      ...initialOptions.props,
+      ...initialOptions.viewport,
     });
 
     const styleDataHandler = () => {
@@ -183,7 +185,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
       setIsLoaded(false);
       setIsStyleLoaded(false);
     };
-  }, []);
+  }, [clearStyleTimeout]);
 
   useEffect(() => {
     if (!mapInstance) return;
@@ -265,9 +267,15 @@ function MapMarker({ longitude, latitude, children, onClick, onMouseEnter, onMou
   const { map } = useMap();
   const callbacksRef = useRef({ onClick, onMouseEnter, onMouseLeave, onDragStart, onDrag, onDragEnd });
   callbacksRef.current = { onClick, onMouseEnter, onMouseLeave, onDragStart, onDrag, onDragEnd };
+  const initialMarkerOptionsRef = useRef({ draggable, latitude, longitude, markerOptions });
 
   const marker = useMemo(() => {
-    const markerInstance = new MapLibreGL.Marker({ ...markerOptions, element: document.createElement("div"), draggable }).setLngLat([longitude, latitude]);
+    const initialOptions = initialMarkerOptionsRef.current;
+    const markerInstance = new MapLibreGL.Marker({
+      ...initialOptions.markerOptions,
+      element: document.createElement("div"),
+      draggable: initialOptions.draggable,
+    }).setLngLat([initialOptions.longitude, initialOptions.latitude]);
     const handleClick = (event: MouseEvent) => callbacksRef.current.onClick?.(event);
     const handleMouseEnter = (event: MouseEvent) => callbacksRef.current.onMouseEnter?.(event);
     const handleMouseLeave = (event: MouseEvent) => callbacksRef.current.onMouseLeave?.(event);
@@ -330,8 +338,9 @@ function MarkerTooltip({ children, className, ...popupOptions }: MarkerTooltipPr
   const { marker, map } = useMarkerContext();
   const container = useMemo(() => document.createElement("div"), []);
   const prevTooltipOptions = useRef(popupOptions);
+  const initialPopupOptionsRef = useRef(popupOptions);
   const tooltip = useMemo(() => {
-    return new MapLibreGL.Popup({ offset: 16, ...popupOptions, closeOnClick: true, closeButton: false }).setMaxWidth("none");
+    return new MapLibreGL.Popup({ offset: 16, ...initialPopupOptionsRef.current, closeOnClick: true, closeButton: false }).setMaxWidth("none");
   }, []);
 
   useEffect(() => {

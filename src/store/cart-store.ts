@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Paint, PaintColor } from "@/lib/mock-data";
+import { Paint, PaintColor } from "@/types";
 
 export interface CartItem {
   id: string; // Unique identifier for the item (paintId + selectedColor.code if any)

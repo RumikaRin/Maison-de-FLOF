@@ -18,10 +18,12 @@ import { motion } from "framer-motion";
 import { PALETTE_COLORS } from "@/lib/color-utils";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 export default function ColorsPage() {
   const { language } = useLanguageStore();
   const t = useTrans(language);
+  const { status: authStatus } = useSession();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFamily, setSelectedFamily] = useState("all");
@@ -33,12 +35,7 @@ export default function ColorsPage() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("sonvn-color-wishlist");
-    if (saved) {
-      try { setFavorites(JSON.parse(saved)); } catch (e) { }
-    }
-    
-    // Fetch dynamic colors from database API
+
     fetch("/api/colors")
       .then((res) => res.json())
       .then((data) => {
@@ -47,50 +44,50 @@ export default function ColorsPage() {
         }
       })
       .catch((err) => console.error("Failed to load dynamic colors:", err));
-
-    // Sync wishlist from backend database if user session exists
-    const storedUser = localStorage.getItem("sonvn-user");
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed.email) {
-          fetch(`/api/profile/favorites?email=${encodeURIComponent(parsed.email)}`)
-            .then((res) => res.json())
-            .then((data) => {
-              if (Array.isArray(data)) {
-                setFavorites(data);
-                localStorage.setItem("sonvn-color-wishlist", JSON.stringify(data));
-              }
-            })
-            .catch((err) => console.error("Failed to load DB wishlist:", err));
-        }
-      } catch (e) {}
-    }
   }, []);
 
-  const handleToggleFavorite = (code: string) => {
-    let newFavs: string[];
-    if (favorites.includes(code)) {
-      newFavs = favorites.filter((c) => c !== code);
-    } else {
-      newFavs = [...favorites, code];
+  useEffect(() => {
+    if (authStatus === "authenticated") {
+      fetch("/api/profile/favorites")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setFavorites(data);
+        })
+        .catch((err) => console.error("Failed to load DB wishlist:", err));
+      return;
     }
-    setFavorites(newFavs);
-    localStorage.setItem("sonvn-color-wishlist", JSON.stringify(newFavs));
 
-    // Sync toggle with database backend
-    const storedUser = localStorage.getItem("sonvn-user");
-    if (storedUser) {
+    if (authStatus === "unauthenticated") {
+      const saved = localStorage.getItem("sonvn-color-wishlist");
+      if (!saved) return;
       try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed.email) {
-          fetch("/api/profile/favorites", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: parsed.email, code })
-          }).catch((err) => console.error("Failed to sync toggle with DB:", err));
-        }
-      } catch (e) {}
+        setFavorites(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem("sonvn-color-wishlist");
+      }
+    }
+  }, [authStatus]);
+
+  const handleToggleFavorite = async (code: string) => {
+    const previous = favorites;
+    const newFavs = previous.includes(code) ? previous.filter((c) => c !== code) : [...previous, code];
+    setFavorites(newFavs);
+
+    if (authStatus !== "authenticated") {
+      localStorage.setItem("sonvn-color-wishlist", JSON.stringify(newFavs));
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/profile/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (!response.ok) throw new Error("Failed to sync favorite");
+    } catch (error) {
+      setFavorites(previous);
+      console.error(error);
     }
   };
 

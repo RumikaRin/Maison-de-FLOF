@@ -19,23 +19,14 @@ export default function AdminInvoicesPage() {
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<any | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-    const storedOrders = localStorage.getItem("sonvn-orders");
-    if (storedOrders) {
-      try {
-        setOrders(JSON.parse(storedOrders));
-      } catch (e) {
-        setOrders([]);
-      }
-    } else {
-      const initialMock = [
-        { id: "SVN-839201", date: "2026-06-04", userEmail: "customer1@sonvn.com", customer: "Trần Thế Hưng", items: "Jotun Majestic 5L x 2, Trắng Ngà (1001)", total: 2850000, status: "COMPLETED", paymentMethod: "COD" },
-        { id: "SVN-193021", date: "2026-05-18", userEmail: "customer1@sonvn.com", customer: "Lê Hoàng Yến", items: "Dulux Weathershield 5L x 1, Xám Bạc (3002)", total: 1280000, status: "COMPLETED", paymentMethod: "CHUYỂN KHOẢN" },
-        { id: "SVN-482019", date: "2026-06-03", userEmail: "customer2@sonvn.com", customer: "Nguyễn Minh Đức", total: 950000, items: "Sơn lót chống kiềm Majestic 5L x 1", status: "PENDING", paymentMethod: "COD" }
-      ];
-      localStorage.setItem("sonvn-orders", JSON.stringify(initialMock));
-      setOrders(initialMock);
-    }
+    fetch("/api/orders")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Không thể tải hóa đơn");
+        setOrders(data);
+      })
+      .catch((error) => console.error(error))
+      .finally(() => setMounted(true));
   }, []);
 
   if (!mounted) return null;

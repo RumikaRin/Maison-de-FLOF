@@ -323,10 +323,12 @@ export default function ColorVisualizerPage() {
 
               {/* Live Canvas Room Image Preview */}
               <div className="relative aspect-[4/3] sm:aspect-video lg:h-[520px] lg:aspect-none w-full rounded-2xl border border-warm-200/80 overflow-hidden shadow-md bg-warm-955">
-                <img
+                <Image
                   src={imageSrc}
                   alt={activeRoom.name}
-                  className="absolute inset-0 h-full w-full object-cover transition-all duration-500"
+                  fill
+                  sizes="(min-width: 1024px) 67vw, 100vw"
+                  className="object-cover transition-all duration-500"
                 />
 
                 {/* Floating badge indicating render realism level */}

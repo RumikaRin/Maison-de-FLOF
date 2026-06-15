@@ -21,6 +21,21 @@ export function hexToRgb(hex: string): RGB {
   };
 }
 
+export function isLightColor(hex: string): boolean {
+  const { r, g, b } = hexToRgb(hex);
+  const linearize = (channel: number) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : Math.pow((normalized + 0.055) / 1.055, 2.4);
+  };
+  const luminance =
+    0.2126 * linearize(r) +
+    0.7152 * linearize(g) +
+    0.0722 * linearize(b);
+  return luminance > 0.55;
+}
+
 // Convert RGB to Hex string
 export function rgbToHex(r: number, g: number, b: number): string {
   const toHex = (c: number) => {

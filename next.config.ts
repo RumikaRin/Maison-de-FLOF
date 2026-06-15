@@ -1,37 +1,21 @@
 import type { NextConfig } from "next";
-import fs from "fs";
-import path from "path";
-
-// Copy generated assets on startup
-try {
-  const srcDir = "C:\\Users\\sansm\\.gemini\\antigravity-ide\\brain\\20eed820-cef9-4f57-9fa8-7ed125849303";
-  const destDir = path.join(process.cwd(), "public");
-
-  if (!fs.existsSync(destDir)) {
-    fs.mkdirSync(destDir, { recursive: true });
-  }
-
-  const filesToCopy = [
-    { src: "hero_bg_1780672474745.png", dest: "hero_bg.png" },
-    { src: "product_interior_1780672489408.png", dest: "product_interior.png" },
-    { src: "room_inspiration_1780672504341.png", dest: "room_inspiration.png" }
-  ];
-
-  filesToCopy.forEach(file => {
-    const srcPath = path.join(srcDir, file.src);
-    const destPath = path.join(destDir, file.dest);
-    if (fs.existsSync(srcPath)) {
-      fs.copyFileSync(srcPath, destPath);
-      console.log(`[Asset Copier] Copied ${file.src} to ${file.dest}`);
-    } else {
-      console.warn(`[Asset Copier] Source file not found: ${srcPath}`);
-    }
-  });
-} catch (err) {
-  console.error("[Asset Copier] Error copying files:", err);
-}
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;" },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

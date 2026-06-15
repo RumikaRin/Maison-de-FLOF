@@ -16,70 +16,80 @@ export default function AdminAccountsPage() {
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
-  const [newUserRole, setNewUserRole] = useState<"ADMIN" | "CUSTOMER">("CUSTOMER");
+  const [newUserRole, setNewUserRole] = useState<"ADMIN" | "STAFF" | "CUSTOMER">("CUSTOMER");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("sonvn-accounts");
-    if (stored) {
-      try { setAccounts(JSON.parse(stored)); } catch (e) { setAccounts([]); }
-    } else {
-      const initialMock = [
-        { name: "FLOF Admin", email: "admin@flof.vn", password: "123456", role: "ADMIN" },
-        { name: "Nguyen Van Khach", email: "customer1@flof.vn", password: "123456", role: "CUSTOMER" },
-      ];
-      localStorage.setItem("sonvn-accounts", JSON.stringify(initialMock));
-      setAccounts(initialMock);
-    }
+    fetch("/api/admin/users")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Không thể tải tài khoản");
+        setAccounts(data);
+      })
+      .catch((error) => toast.error(error.message))
+      .finally(() => setMounted(true));
   }, []);
 
   if (!mounted) return null;
 
-  const handleCreateAccount = (e: React.FormEvent) => {
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUserName || !newUserEmail || !newUserPassword) {
       toast.error("Please fill in all fields."); return;
     }
-    if (accounts.some((acc) => acc.email === newUserEmail)) {
-      toast.error("Email already exists."); return;
+    const response = await fetch("/api/admin/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: newUserName,
+        email: newUserEmail,
+        password: newUserPassword,
+        role: newUserRole,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      toast.error(data.error || "Không thể tạo tài khoản");
+      return;
     }
-    const newAcc = { name: newUserName, email: newUserEmail, password: newUserPassword, role: newUserRole };
-    const updated = [...accounts, newAcc];
-    setAccounts(updated);
-    localStorage.setItem("sonvn-accounts", JSON.stringify(updated));
+    setAccounts((current) => [data, ...current]);
     setIsAddingUser(false);
     setNewUserName(""); setNewUserEmail(""); setNewUserPassword(""); setNewUserRole("CUSTOMER");
     toast.success("New account created successfully!");
   };
 
-  const handleToggleRole = (email: string) => {
-    const updated = accounts.map((acc) =>
-      acc.email === email ? { ...acc, role: acc.role === "ADMIN" ? "CUSTOMER" : "ADMIN" } : acc
-    );
-    setAccounts(updated);
-    localStorage.setItem("sonvn-accounts", JSON.stringify(updated));
+  const handleUpdateRole = async (id: string, role: string) => {
+    const response = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, role }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      toast.error(data.error || "Không thể cập nhật role");
+      return;
+    }
+    setAccounts((current) => current.map((account) => account.id === data.id ? data : account));
     toast.success("Account role updated!");
   };
 
-  const triggerDeleteAccount = (email: string) => {
-    const storedUser = localStorage.getItem("sonvn-user");
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed.email === email) { toast.error("Cannot delete currently logged-in admin!"); return; }
-      } catch (e) { }
-    }
-    setAccountToDelete(email);
+  const triggerDeleteAccount = (id: string) => {
+    setAccountToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDeleteAccount = () => {
+  const confirmDeleteAccount = async () => {
     if (!accountToDelete) return;
-    const updated = accounts.filter((acc) => acc.email !== accountToDelete);
-    setAccounts(updated);
-    localStorage.setItem("sonvn-accounts", JSON.stringify(updated));
+    const response = await fetch(`/api/admin/users?id=${encodeURIComponent(accountToDelete)}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      toast.error(data.error || "Không thể xóa tài khoản");
+      return;
+    }
+    setAccounts((current) => current.filter((account) => account.id !== accountToDelete));
     toast.success("Account deleted successfully!");
     setAccountToDelete(null);
   };
@@ -153,6 +163,7 @@ export default function AdminAccountsPage() {
                   <CustomSelect value={newUserRole} onValueChange={(val) => setNewUserRole(val as any)}
                     options={[
                       { value: "CUSTOMER", label: "Customer" },
+                      { value: "STAFF", label: "Staff" },
                       { value: "ADMIN", label: "Admin" },
                     ]} />
                 </div>
@@ -212,13 +223,18 @@ export default function AdminAccountsPage() {
                     )}
                   </td>
                   <td className="py-4 px-4 text-center">
-                    <button onClick={() => handleToggleRole(acc.email)}
-                      className="text-xs font-bold text-jotun-teal hover:underline px-3 py-1.5 border border-jotun-teal/20 rounded-lg bg-jotun-teal/5 cursor-pointer">
-                      Set to {acc.role === "ADMIN" ? "CUSTOMER" : "ADMIN"}
-                    </button>
+                    <CustomSelect
+                      value={acc.role}
+                      onValueChange={(value) => handleUpdateRole(acc.id, value)}
+                      options={[
+                        { value: "CUSTOMER", label: "Customer" },
+                        { value: "STAFF", label: "Staff" },
+                        { value: "ADMIN", label: "Admin" },
+                      ]}
+                    />
                   </td>
                   <td className="py-4 pl-4 text-center">
-                    <button onClick={() => triggerDeleteAccount(acc.email)}
+                    <button onClick={() => triggerDeleteAccount(acc.id)}
                       className="text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 px-3.5 py-1.5 rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer">
                       {language === "vi" ? "Xóa" : "Delete"}
                     </button>

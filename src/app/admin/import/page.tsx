@@ -7,7 +7,20 @@ import { toast } from "sonner";
 import { Plus, History, Package, AlertTriangle, Building, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CustomSelect } from "@/components/ui/custom-select";
-import { Paint, MOCK_PAINTS, MOCK_SUPPLIERS } from "@/lib/mock-data";
+
+interface InventoryPaint {
+  id: string;
+  sku: string;
+  name: string;
+  nameEn: string;
+  price: number;
+  costPrice: number;
+  stock: number;
+  minStock: number;
+  volume: number;
+  volumeUnit: string;
+  supplier: string;
+}
 
 interface ImportTransaction {
   id: string;
@@ -24,7 +37,7 @@ interface ImportTransaction {
 export default function AdminImportPage() {
   const { language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
-  const [paints, setPaints] = useState<Paint[]>([]);
+  const [paints, setPaints] = useState<InventoryPaint[]>([]);
   const [transactions, setTransactions] = useState<ImportTransaction[]>([]);
 
   // Form states
@@ -35,71 +48,15 @@ export default function AdminImportPage() {
   const [reason, setReason] = useState("");
 
   useEffect(() => {
-    setMounted(true);
-    
-    // Load paints
-    const storedPaints = localStorage.getItem("sonvn-paints");
-    let loadedPaints: Paint[] = [];
-    if (storedPaints) {
-      try {
-        loadedPaints = JSON.parse(storedPaints);
-      } catch (e) {
-        loadedPaints = MOCK_PAINTS;
-      }
-    } else {
-      loadedPaints = MOCK_PAINTS;
-      localStorage.setItem("sonvn-paints", JSON.stringify(MOCK_PAINTS));
-    }
-    setPaints(loadedPaints);
-
-    // Load import transactions
-    const storedTx = localStorage.getItem("sonvn-inventory-transactions");
-    if (storedTx) {
-      try {
-        setTransactions(JSON.parse(storedTx));
-      } catch (e) {
-        setTransactions([]);
-      }
-    } else {
-      // Seed initial mock transactions
-      const initialMock: ImportTransaction[] = [
-        {
-          id: "TX-990218",
-          date: "2026-06-05 14:30",
-          paintId: "paint-1",
-          paintName: "Sơn Nội Thất Jotun Majestic Đẹp Hoàn Hảo (Bóng) 5L",
-          sku: "JOT-MAJ-05L",
-          quantity: 20,
-          importPrice: 600000,
-          supplier: "Jotun",
-          reason: "Nhập hàng định kỳ đầu tháng"
-        },
-        {
-          id: "TX-839102",
-          date: "2026-06-03 09:15",
-          paintId: "paint-7",
-          paintName: "Sơn Ngoại Thất Jotun Jotashield Bền Màu Tối Ưu 5L",
-          sku: "JOT-SHI-05L",
-          quantity: 15,
-          importPrice: 900000,
-          supplier: "Jotun",
-          reason: "Nhập bổ sung lượng hàng tồn tối thiểu"
-        },
-        {
-          id: "TX-192083",
-          date: "2026-05-28 16:45",
-          paintId: "paint-3",
-          paintName: "Sơn Nội Thất Dulux Ambiance 5 in 1 Siêu Bóng 5L",
-          sku: "DUL-5IN1-05L",
-          quantity: 30,
-          importPrice: 750000,
-          supplier: "Dulux",
-          reason: "Nhập phục vụ dự án biệt thự Vinhomes"
-        }
-      ];
-      localStorage.setItem("sonvn-inventory-transactions", JSON.stringify(initialMock));
-      setTransactions(initialMock);
-    }
+    fetch("/api/admin/inventory")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Không thể tải dữ liệu kho");
+        setPaints(data.paints);
+        setTransactions(data.transactions);
+      })
+      .catch((error) => toast.error(error.message))
+      .finally(() => setMounted(true));
   }, []);
 
   // Update form fields when paint is selected
@@ -108,14 +65,13 @@ export default function AdminImportPage() {
     const paint = paints.find(p => p.id === selectedPaintId);
     if (paint) {
       setImportPrice(paint.costPrice || Math.round(paint.price * 0.6));
-      const sup = MOCK_SUPPLIERS.find(s => s.id === paint.supplierId)?.name || "Jotun";
-      setSupplier(sup);
+      setSupplier(paint.supplier);
     }
   }, [selectedPaintId, paints]);
 
   if (!mounted) return null;
 
-  const handleImportSubmit = (e: React.FormEvent) => {
+  const handleImportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedPaintId) {
@@ -131,53 +87,39 @@ export default function AdminImportPage() {
     const selectedPaint = paints.find(p => p.id === selectedPaintId);
     if (!selectedPaint) return;
 
-    // 1. Update paints array & persist
-    const updatedPaints = paints.map((p) => {
-      if (p.id === selectedPaintId) {
-        return {
-          ...p,
-          stock: p.stock + quantity,
-          costPrice: importPrice // Update the cost price
-        };
-      }
-      return p;
-    });
+    try {
+      const response = await fetch("/api/admin/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paintId: selectedPaintId,
+          quantity,
+          costPrice: importPrice,
+          reason: reason.trim() || undefined,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Không thể nhập kho");
 
-    setPaints(updatedPaints);
-    localStorage.setItem("sonvn-paints", JSON.stringify(updatedPaints));
-
-    // 2. Create new transaction log & persist
-    const newTx: ImportTransaction = {
-      id: `TX-${Math.floor(100000 + Math.random() * 900000)}`,
-      date: new Date().toISOString().replace('T', ' ').slice(0, 16),
-      paintId: selectedPaintId,
-      paintName: language === "vi" ? selectedPaint.name : selectedPaint.nameEn,
-      sku: selectedPaint.sku,
-      quantity,
-      importPrice,
-      supplier,
-      reason: reason.trim() || (language === "vi" ? "Nhập hàng bổ sung kho" : "Restocking inventory")
-    };
-
-    const updatedTx = [newTx, ...transactions];
-    setTransactions(updatedTx);
-    localStorage.setItem("sonvn-inventory-transactions", JSON.stringify(updatedTx));
-
-    // 3. Success Feedback
-    toast.success(
-      language === "vi"
-        ? `Đã nhập thành công ${quantity} hộp sơn "${selectedPaint.name}"!`
-        : `Successfully imported ${quantity} cans of "${selectedPaint.nameEn}"!`
-    );
-
-    // Reset Form
-    setSelectedPaintId("");
-    setQuantity(10);
-    setImportPrice(0);
-    setReason("");
+      setPaints((current) =>
+        current.map((paint) => (paint.id === data.paint.id ? data.paint : paint)),
+      );
+      setTransactions((current) => [data.transaction, ...current]);
+      toast.success(
+        language === "vi"
+          ? `Đã nhập thành công ${quantity} hộp sơn "${selectedPaint.name}"!`
+          : `Successfully imported ${quantity} cans of "${selectedPaint.nameEn}"!`,
+      );
+      setSelectedPaintId("");
+      setQuantity(10);
+      setImportPrice(0);
+      setReason("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể nhập kho");
+    }
   };
 
-  const lowStockPaints = paints.filter(p => p.stock <= 5);
+  const lowStockPaints = paints.filter(p => p.stock <= p.minStock);
   const totalValueImported = transactions.reduce((sum, tx) => sum + (tx.quantity * tx.importPrice), 0);
 
   return (

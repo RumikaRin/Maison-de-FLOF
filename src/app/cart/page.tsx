@@ -9,7 +9,6 @@ import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { formatPrice } from "@/lib/utils";
-import { MOCK_SUPPLIERS } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { ChevronLeft, Minus, Plus, Trash2, Tag, ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
 
@@ -45,26 +44,39 @@ export default function CartPage() {
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const amountNeededForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     setCouponError("");
     if (!couponCode.trim()) return;
 
-    if (couponCode.toUpperCase() === "FLOF10") {
-      const discount = Math.round(subtotal * 0.1);
-      setAppliedDiscount(discount);
-      toast.success(language === "vi" ? "Áp dụng mã giảm giá 10% thành công!" : "Successfully applied 10% coupon!");
-      setCouponOpen(false);
-    } else if (couponCode.toUpperCase() === "JOTUN100") {
-      if (subtotal < 1000000) {
-        setCouponError(language === "vi" ? "Mã JOTUN100 chỉ áp dụng cho đơn hàng từ 1.000.000đ trở lên." : "JOTUN100 only applies to orders of 1,000,000đ or more.");
-        return;
+    try {
+      const response = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, subtotal }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Invalid coupon");
       }
-      setAppliedDiscount(100000);
-      toast.success(language === "vi" ? "Áp dụng mã giảm giá 100.000đ thành công!" : "Successfully applied 100,000đ coupon!");
+
+      setCouponCode(data.code);
+      setAppliedDiscount(data.discount);
+      toast.success(
+        language === "vi"
+          ? `Đã áp dụng mã giảm giá ${formatPrice(data.discount)}.`
+          : `Coupon applied: ${formatPrice(data.discount)} off.`,
+      );
       setCouponOpen(false);
-    } else {
-      setCouponError(language === "vi" ? "Mã giảm giá không hợp lệ." : "Invalid coupon code.");
+    } catch (error) {
+      setAppliedDiscount(0);
+      setCouponError(
+        error instanceof Error
+          ? error.message
+          : language === "vi"
+            ? "Mã giảm giá không hợp lệ."
+            : "Invalid coupon code.",
+      );
     }
   };
 
@@ -153,7 +165,7 @@ export default function CartPage() {
               <div className="bg-white border border-warm-200 rounded-2xl overflow-hidden">
                 <AnimatePresence>
                   {items.map((item, idx) => {
-                    const itemSupplier = MOCK_SUPPLIERS.find((s) => s.id === item.paint.supplierId);
+                    const itemSupplier = (item.paint as typeof item.paint & { supplier?: { name: string } }).supplier;
                     const discountedPrice = item.paint.discountPercent && item.paint.discountPercent > 0
                       ? item.paint.price * (1 - item.paint.discountPercent / 100)
                       : item.paint.price;

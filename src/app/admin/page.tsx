@@ -18,9 +18,7 @@ import {
   Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { Paint, MOCK_PAINTS } from "@/lib/mock-data";
-
-
+import { ArrowRight, Boxes, MessageSquareQuote, PackagePlus, ShoppingBag } from "lucide-react";
 // Register Chart.js components
 ChartJS.register(
   CategoryScale,
@@ -46,187 +44,52 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     setMounted(true);
 
-    // 1. Get dynamic Orders from localStorage
-    const storedOrders = localStorage.getItem("sonvn-orders");
-    let ordersArray = [];
-    if (storedOrders) {
-      try {
-        ordersArray = JSON.parse(storedOrders);
-      } catch (e) {}
-    } else {
-        ordersArray = [
-          { id: "SVN-992018", date: "2026-06-04", userEmail: "b2b-builder@gmail.com", customer: "Nhà thầu VietCons", items: "Sơn ngoại thất Jotashield cực bền 100L", total: 108000000, status: "COMPLETED" },
-          { id: "SVN-839201", date: "2026-06-04", userEmail: "customer1@sonvn.com", customer: "Trần Thế Hưng", items: "Jotun Majestic 5L x 2, Trắng Ngà (1001)", total: 2850000, status: "COMPLETED" },
-          { id: "SVN-193021", date: "2026-05-18", userEmail: "customer1@sonvn.com", customer: "Lê Hoàng Yến", items: "Dulux Weathershield 5L x 1, Xám Bạc (3002)", total: 1280000, status: "COMPLETED" },
-          { id: "SVN-482019", date: "2026-06-03", userEmail: "customer2@sonvn.com", customer: "Nguyễn Minh Đức", items: "Sơn lót chống kiềm Majestic 5L x 1", total: 950000, status: "PENDING" }
-        ];
-        localStorage.setItem("sonvn-orders", JSON.stringify(ordersArray));
-      }
+    fetch("/api/admin/dashboard")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Không thể tải dashboard");
 
-    // 2. Get dynamic B2B Quotes from localStorage
-    const storedQuotes = localStorage.getItem("sonvn-quotes");
-    let quotesArray = [];
-    if (storedQuotes) {
-      try {
-        quotesArray = JSON.parse(storedQuotes);
-      } catch (e) {}
-    } else {
-      quotesArray = [
-        {
-          id: "QU-001",
-          fullName: "Nguyễn Minh Phú",
-          phone: "0912837264",
-          email: "phu.nguyen@vietcons.vn",
-          companyName: "Công ty Cổ phần VietCons",
-          projectName: "Chung cư Hoàng Mai Block B",
-          projectType: "Commercial",
-          area: 1200,
-          paintType: "Sơn Ngoại Thất Jotashield + Sơn Lót",
-          message: "Cần báo giá khối lượng sơn phủ ngoại thất cao cấp cho tòa chung cư 18 tầng.",
-          status: "PENDING",
-          createdAt: "2026-06-05"
-        },
-        {
-          id: "QU-002",
-          fullName: "Trần Thị Hạnh",
-          phone: "0987654321",
-          email: "hanhtran.vin@gmail.com",
-          companyName: "HanhTran Decor",
-          projectName: "Biệt thự Vinhomes Riverside",
-          projectType: "Residential",
-          area: 650,
-          paintType: "Sơn Nội Thất Jotun Majestic",
-          message: "Biệt thự song lập đang trong giai đoạn trát hoàn thiện.",
-          status: "CONTACTED",
-          createdAt: "2026-06-03"
-        },
-        {
-          id: "QU-003",
-          fullName: "Vương Đình Việt",
-          phone: "0909123456",
-          email: "vietvd.industrial@gmail.com",
-          companyName: "TNHH Cơ khí Đại Phong",
-          projectName: "Nhà xưởng KCN Quế Võ",
-          projectType: "Industrial",
-          area: 4500,
-          paintType: "Sơn Chống Thấm Jotun Waterguard",
-          message: "Cần báo giá sơn chống thấm ngoài nhà xưởng diện tích lớn.",
-          status: "QUOTED",
-          createdAt: "2026-05-28"
-        }
-      ];
-      localStorage.setItem("sonvn-quotes", JSON.stringify(quotesArray));
-    }
-
-    // 3. Compute stats metrics
-    const totalRevenue = ordersArray
-      .filter((o: any) => o.status !== "CANCELLED")
-      .reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
-
-    const completedCount = ordersArray.filter((o: any) => o.status === "COMPLETED").length;
-    const colorsCount = 17; // total COLOR_SWATCHES
-
-    setStats([
-      {
-        label: language === "vi" ? "Tổng doanh thu thực tế" : "Total Actual Revenue",
-        value: totalRevenue,
-        color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-        change: "+12.4%",
-        isPositive: true
-      },
-      {
-        label: language === "vi" ? "Đơn hàng thành công" : "Completed Orders",
-        value: completedCount,
-        color: "bg-jotun-teal/10 text-jotun-teal border-jotun-teal/20",
-        change: "+8.2%",
-        isPositive: true
-      },
-      {
-        label: language === "vi" ? "Mã màu thiết kế" : "Colors Available",
-        value: colorsCount,
-        color: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-        change: "0.0%",
-        isPositive: true
-      }
-    ]);
-
-    // Set lists for displays
-    setRecentOrders(ordersArray.slice(0, 4));
-
-    // 3. Generate last 30 days daily revenue
-    const dailyRevs: number[] = [];
-    const dailyLabelsArray: string[] = [];
-    
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      
-      const day = String(d.getDate()).padStart(2, "0");
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const year = d.getFullYear();
-      
-      const dateStr = `${year}-${month}-${day}`;
-      const labelStr = `${day}/${month}`;
-      
-      let daySum = ordersArray
-        .filter((o: any) => o.status !== "CANCELLED" && o.date === dateStr)
-        .reduce((sum: number, o: any) => sum + Number(o.total || 0), 0);
-      
-      dailyRevs.push(daySum);
-      dailyLabelsArray.push(labelStr);
-    }
-    
-    setDailyRevenue(dailyRevs);
-    setDailyLabels(dailyLabelsArray);
-
-    // 4. Calculate best-selling products dynamically
-    const storedPaints = localStorage.getItem("sonvn-paints");
-    let paintsList: Paint[] = [];
-    if (storedPaints) {
-      try {
-        paintsList = JSON.parse(storedPaints);
-      } catch (e) {}
-    }
-    if (paintsList.length === 0) {
-      paintsList = MOCK_PAINTS;
-    }
-
-    const salesMap: Record<string, number> = {
-      "paint-1": 48,
-      "paint-3": 36,
-      "paint-5": 29,
-      "paint-2": 18,
-    };
-
-    ordersArray.forEach((o: any) => {
-      if (o.status === "COMPLETED") {
-        if (o.items.includes("Majestic 5L")) {
-          salesMap["paint-1"] = (salesMap["paint-1"] || 0) + 2;
-        } else if (o.items.includes("Weathershield")) {
-          salesMap["paint-3"] = (salesMap["paint-3"] || 0) + 1;
-        } else if (o.items.includes("lót chống kiềm")) {
-          salesMap["paint-5"] = (salesMap["paint-5"] || 0) + 1;
-        }
-      }
-    });
-
-    const bestSellersData = Object.entries(salesMap)
-        .map(([paintId, salesCount]) => {
-          const paint = paintsList.find((p) => p.id === paintId);
-          return {
-            id: paintId,
-            name: paint ? (language === "vi" ? paint.name : paint.nameEn) : "Unknown Paint",
-            sku: paint ? paint.sku : "N/A",
-            price: paint ? paint.price : 0,
-            sales: salesCount,
-            revenue: salesCount * (paint ? paint.price : 0),
-            stock: paint ? paint.stock : 0,
-          };
-        })
-        .sort((a, b) => b.sales - a.sales)
-        .slice(0, 4);
-
-    setBestSellers(bestSellersData);
+        setStats([
+          {
+            label: language === "vi" ? "Tổng doanh thu thực tế" : "Total Actual Revenue",
+            value: data.stats.totalRevenue,
+            color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+            change: "",
+            isPositive: true,
+          },
+          {
+            label: language === "vi" ? "Đơn hàng thành công" : "Completed Orders",
+            value: data.stats.completedOrders,
+            color: "bg-jotun-teal/10 text-jotun-teal border-jotun-teal/20",
+            change: "",
+            isPositive: true,
+          },
+          {
+            label: language === "vi" ? "Mã màu thiết kế" : "Colors Available",
+            value: data.stats.colorsCount,
+            color: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+            change: "",
+            isPositive: true,
+          },
+          {
+            label: language === "vi" ? "Sản phẩm sắp hết" : "Low Stock Products",
+            value: data.stats.lowStockCount,
+            color: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+            change: "",
+            isPositive: false,
+          },
+        ]);
+        setRecentOrders(data.recentOrders);
+        setDailyRevenue(data.dailyRevenue);
+        setDailyLabels(data.dailyLabels);
+        setBestSellers(
+          data.bestSellers.map((paint: any) => ({
+            ...paint,
+            name: language === "vi" ? paint.name : paint.nameEn,
+          })),
+        );
+      })
+      .catch((error) => console.error(error));
   }, [language]);
 
   if (!mounted) return null;
@@ -370,14 +233,14 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 text-left">
+    <div className="flex flex-col gap-6 text-left">
       {/* Title with subtle spring reveal */}
       <motion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
       >
-        <h1 className="text-3xl font-bold font-serif text-warm-900">
+        <h1 className="text-2xl font-bold text-warm-900">
           {language === "vi" ? "Tổng Quan Quản Trị" : "Dashboard Overview"}
         </h1>
         <p className="text-warm-550 text-xs mt-1">
@@ -387,24 +250,43 @@ export default function AdminDashboardPage() {
         </p>
       </motion.div>
 
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          { href: "/admin/orders", label: language === "vi" ? "Xử lý đơn hàng" : "Process orders", icon: ShoppingBag },
+          { href: "/admin/import", label: language === "vi" ? "Nhập hàng vào kho" : "Import inventory", icon: PackagePlus },
+          { href: "/admin/paints", label: language === "vi" ? "Quản lý sản phẩm" : "Manage products", icon: Boxes },
+          { href: "/admin/quotes", label: language === "vi" ? "Xử lý báo giá" : "Manage quotes", icon: MessageSquareQuote },
+        ].map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link
+              key={action.href}
+              href={action.href}
+              className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm hover:border-jotun-teal/30 hover:bg-slate-50"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-jotun-teal/10 text-jotun-teal">
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1 text-xs font-bold text-slate-800">{action.label}</span>
+              <ArrowRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-jotun-teal" />
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Grid of stats with staggered spring-up and interactive scale on hover */}
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
       >
         {stats.map((stat, index) => {
           return (
             <motion.div
               variants={itemVariants}
-              whileHover={{ 
-                y: -5,
-                boxShadow: "0 12px 30px -10px rgba(107, 95, 82, 0.12)",
-                borderColor: "rgba(107, 95, 82, 0.3)"
-              }}
               key={index}
-              className="bg-white border border-warm-200/80 p-5 rounded-2xl shadow-sm flex items-center justify-between transition-colors duration-200"
+              className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
             >
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-warm-450 font-semibold">{stat.label}</span>
@@ -413,12 +295,9 @@ export default function AdminDashboardPage() {
                     ? formatPrice(stat.value)
                     : stat.value}
                 </span>
-                <div className="flex items-center gap-1 text-[10px] font-semibold">
-                  <span className="text-emerald-600">
-                    {stat.change}
-                  </span>
-                  <span className="text-warm-400">so với tháng trước</span>
-                </div>
+                <span className="text-[10px] font-semibold text-slate-400">
+                  {language === "vi" ? "Cập nhật từ dữ liệu hệ thống" : "Live system data"}
+                </span>
               </div>
             </motion.div>
           );

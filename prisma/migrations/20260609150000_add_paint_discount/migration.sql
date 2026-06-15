@@ -1,0 +1,2 @@
+ALTER TABLE "Paint"
+ADD COLUMN "discountPercent" INTEGER NOT NULL DEFAULT 0;

@@ -123,14 +123,14 @@ CLOUDINARY_API_SECRET="your-api-secret"
 RESEND_API_KEY="re_yourApiKeyHere"
 ```
 
-### Step 4: Synchronize Database & Seed Initial Data
-The project uses Prisma to generate tables and populate them with over 50 realistic color swatches, authorized dealers, top paint brands (Jotun, Dulux, Nippon), and sample test accounts:
+### Step 4: Apply Migrations & Seed Local/Staging Data
+The project uses committed Prisma migrations so Neon and the application stay on the same schema version. Do not use `prisma db push` in production.
 ```bash
-# Push schema changes to the database
-npx prisma db push
+# Apply controlled migrations
+npm run db:migrate
 
-# Seed initial database records
-npx prisma db seed
+# Seed local/staging only
+npm run db:seed
 ```
 
 ### Step 5: Run the Development Server
@@ -138,6 +138,14 @@ npx prisma db seed
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+### Quality Checks Before Deployment
+```bash
+npm run check
+npm run db:status
+```
+
+On Vercel, configure `DATABASE_URL`, `AUTH_SECRET`, Cloudinary, and Resend. Run `npm run db:migrate` in the release workflow before moving traffic to the new deployment.
 
 ---
 

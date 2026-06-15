@@ -127,14 +127,14 @@ CLOUDINARY_API_SECRET="your-api-secret"
 RESEND_API_KEY="re_yourApiKeyHere"
 ```
 
-### Bước 4: Đồng bộ hóa Database Schema & Seed dữ liệu mẫu
-Hệ thống sử dụng Prisma để tạo bảng tự động và nạp dữ liệu chuẩn bị sẵn gồm hơn 50 mã màu thực tế, đại lý toàn quốc, các thương hiệu lớn (Jotun, Dulux, Nippon), và tài khoản admin mẫu:
+### Bước 4: Chạy migration và seed dữ liệu local/staging
+Hệ thống dùng Prisma migration để Neon và source code luôn cùng phiên bản. Không dùng `prisma db push` trên production.
 ```bash
-# Đồng bộ hóa cấu trúc bảng lên Database
-npx prisma db push
+# Áp dụng migration đã được kiểm soát
+npm run db:migrate
 
-# Nạp dữ liệu seeding ban đầu
-npx prisma db seed
+# Chỉ seed trên local/staging
+npm run db:seed
 ```
 
 ### Bước 5: Chạy dự án ở môi trường phát triển (Development Mode)
@@ -142,6 +142,14 @@ npx prisma db seed
 npm run dev
 ```
 Mở trình duyệt truy cập vào [http://localhost:3000](http://localhost:3000) để trải nghiệm nền tảng.
+
+### Kiểm tra chất lượng trước khi deploy
+```bash
+npm run check
+npm run db:status
+```
+
+Trên Vercel, cấu hình đầy đủ `DATABASE_URL`, `AUTH_SECRET`, Cloudinary và Resend. Chạy `npm run db:migrate` trong quy trình phát hành trước khi chuyển traffic sang bản mới.
 
 ---
 

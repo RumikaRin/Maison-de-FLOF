@@ -9,6 +9,9 @@ import Footer from "@/components/layout/Footer";
 import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
 import { Toaster } from "sonner";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
+import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
+import { ChatBubble } from "@/components/layout/ChatBubble";
+import { Suspense } from "react";
 import "./globals.css";
 
 const noto = Noto_Sans({
@@ -29,12 +32,14 @@ const bromise = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: "FLOF — Maison de FLOF Premium Paint Boutique | Sơn Cao Cấp Jotun, Dulux Chính Hãng",
   description: "Mua sơn cao cấp chính hãng Jotun, Dulux tại Maison de FLOF. Bảng màu thượng lưu, tư vấn phối màu AI trực quan và định mức sơn miễn phí.",
   keywords: ["mua sơn", "sơn nội thất", "sơn ngoại thất", "bảng màu sơn", "Jotun", "Dulux", "FLOF", "Maison de FLOF"],
   openGraph: {
     locale: "vi_VN",
     type: "website",
+    siteName: "Maison de FLOF",
   },
 };
 
@@ -91,6 +96,10 @@ export default function RootLayout({
                 }}
               />
               <ScrollToTop />
+              <ChatBubble />
+              <Suspense fallback={null}>
+                <GlobalNavigationLoader />
+              </Suspense>
             </ThemeProvider>
           </QueryProvider>
         </SessionProvider>
@@ -98,4 +107,3 @@ export default function RootLayout({
     </html>
   );
 }
-

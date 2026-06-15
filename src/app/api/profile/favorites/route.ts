@@ -1,127 +1,77 @@
-import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/lib/db";
-import { auth } from "@/auth";
+import { apiErrorResponse, requireUser } from "@/lib/api-auth";
 
-export async function GET(request: NextRequest) {
+const favoriteSchema = z.object({
+  code: z.string().trim().min(1).max(32),
+});
+
+export async function GET() {
   try {
-    const session = await auth();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email");
-    if (!email) {
-      return NextResponse.json({ error: "Email query param is required" }, { status: 400 });
-    }
-
-    const isAdmin = (session.user as any).role === "ADMIN";
-    if (email !== session.user.email && !isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
+    const sessionUser = await requireUser();
     const user = await db.user.findUnique({
-      where: { email },
+      where: { email: sessionUser.email },
       include: {
         customer: {
           include: {
             wishlistColors: {
-              include: {
-                color: true
-              }
-            }
-          }
-        }
-      }
+              include: { color: true },
+            },
+          },
+        },
+      },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    if (!user.customer) {
-      return NextResponse.json([]);
-    }
-
-    const colorCodes = user.customer.wishlistColors.map((wc) => wc.color.code);
-    return NextResponse.json(colorCodes);
+    return Response.json(user?.customer?.wishlistColors.map((item) => item.color.code) ?? []);
   } catch (error) {
-    console.error("GET favorites failed:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const sessionUser = await requireUser();
+    const { code } = favoriteSchema.parse(await request.json());
 
-    const body = await request.json();
-    const { email, code } = body;
+    const [user, paintColor] = await Promise.all([
+      db.user.findUnique({
+        where: { email: sessionUser.email },
+        include: { customer: true },
+      }),
+      db.paintColor.findUnique({ where: { code } }),
+    ]);
 
-    if (!email || !code) {
-      return NextResponse.json({ error: "Missing email or color code" }, { status: 400 });
-    }
+    if (!user) return Response.json({ error: "User not found" }, { status: 404 });
+    if (!paintColor) return Response.json({ error: "Paint color not found" }, { status: 404 });
 
-    const isAdmin = (session.user as any).role === "ADMIN";
-    if (email !== session.user.email && !isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const user = await db.user.findUnique({
-      where: { email },
-      include: { customer: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Lazily create customer profile if missing
-    let customer = user.customer;
-    if (!customer) {
-      customer = await db.customer.create({
-        data: {
-          userId: user.id
-        }
-      });
-    }
-
-    const paintColor = await db.paintColor.findUnique({
-      where: { code }
-    });
-
-    if (!paintColor) {
-      return NextResponse.json({ error: "Paint color not found in database" }, { status: 404 });
-    }
+    const customer =
+      user.customer ??
+      (await db.customer.create({
+        data: { userId: user.id },
+      }));
 
     const existing = await db.wishlistColor.findUnique({
       where: {
         customerId_colorId: {
           customerId: customer.id,
-          colorId: paintColor.id
-        }
-      }
+          colorId: paintColor.id,
+        },
+      },
     });
 
     if (existing) {
-      await db.wishlistColor.delete({
-        where: { id: existing.id }
-      });
-      return NextResponse.json({ favorited: false, code });
-    } else {
-      await db.wishlistColor.create({
-        data: {
-          customerId: customer.id,
-          colorId: paintColor.id
-        }
-      });
-      return NextResponse.json({ favorited: true, code });
+      await db.wishlistColor.delete({ where: { id: existing.id } });
+      return Response.json({ favorited: false, code });
     }
+
+    await db.wishlistColor.create({
+      data: {
+        customerId: customer.id,
+        colorId: paintColor.id,
+      },
+    });
+    return Response.json({ favorited: true, code });
   } catch (error) {
-    console.error("POST favorites failed:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }

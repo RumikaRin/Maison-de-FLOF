@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
-import { MOCK_PAINTS, MOCK_CATEGORIES, MOCK_SUPPLIERS } from "@/lib/mock-data";
 import { formatPrice } from "@/lib/utils";
 import { Search, SlidersHorizontal, ArrowUpDown, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ function ProductsPageContent() {
   const { language } = useLanguageStore();
   const t = useTrans(language);
 
-  const [paints, setPaints] = useState<any[]>(MOCK_PAINTS);
+  const [paints, setPaints] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSupplier, setSelectedSupplier] = useState("all");
@@ -37,27 +36,25 @@ function ProductsPageContent() {
   useEffect(() => {
     setMounted(true);
 
-    const storedPaints = localStorage.getItem("sonvn-paints");
-    if (storedPaints) {
-      try { setPaints(JSON.parse(storedPaints)); } catch (e) {}
-    }
-
     fetch("/api/products")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setPaints(data);
-          localStorage.setItem("sonvn-paints", JSON.stringify(data));
+          const catParam = searchParams.get("category");
+          const match = data.find((paint) => paint.category?.slug === catParam)?.category;
+          if (match) setSelectedCategory(match.id);
         }
       })
       .catch((err) => console.error("Error loading products from DB API:", err));
-
-    const catParam = searchParams.get("category");
-    if (catParam) {
-      const match = MOCK_CATEGORIES.find((c) => c.slug === catParam);
-      if (match) setSelectedCategory(match.id);
-    }
   }, [searchParams]);
+
+  const categories = Array.from(
+    new Map(paints.filter((paint) => paint.category).map((paint) => [paint.category.id, paint.category])).values(),
+  );
+  const suppliers = Array.from(
+    new Map(paints.filter((paint) => paint.supplier).map((paint) => [paint.supplier.id, paint.supplier])).values(),
+  );
 
   const filteredProducts = paints.filter((p) => {
     const matchesSearch =
@@ -127,8 +124,8 @@ function ProductsPageContent() {
                   : selectedCategory === "promo"
                   ? (language === "vi" ? "Sản phẩm khuyến mãi" : "Sale Products")
                   : (language === "vi"
-                    ? MOCK_CATEGORIES.find((c) => c.id === selectedCategory)?.name
-                    : MOCK_CATEGORIES.find((c) => c.id === selectedCategory)?.nameEn)}
+                    ? categories.find((c: any) => c.id === selectedCategory)?.name
+                    : categories.find((c: any) => c.id === selectedCategory)?.nameEn)}
               </span>
               <ChevronDown className="h-4 w-4 text-warm-450 opacity-60 shrink-0 ml-2" />
             </Button>
@@ -141,7 +138,7 @@ function ProductsPageContent() {
               <DropdownMenuRadioItem value="promo" className="text-xs font-semibold text-warm-900 cursor-pointer">
                 {language === "vi" ? "Sản phẩm khuyến mãi" : "Sale Products"}
               </DropdownMenuRadioItem>
-              {MOCK_CATEGORIES.map((c) => (
+              {categories.map((c: any) => (
                 <DropdownMenuRadioItem key={c.id} value={c.id} className="text-xs font-semibold text-warm-900 cursor-pointer">
                   {language === "vi" ? c.name : c.nameEn}
                 </DropdownMenuRadioItem>
@@ -160,7 +157,7 @@ function ProductsPageContent() {
               <span className="truncate">
                 {selectedSupplier === "all"
                   ? (language === "vi" ? "Tất cả hãng sản xuất" : "All Brands")
-                  : MOCK_SUPPLIERS.find((s) => s.id === selectedSupplier)?.name}
+                  : suppliers.find((s: any) => s.id === selectedSupplier)?.name}
               </span>
               <ChevronDown className="h-4 w-4 text-warm-450 opacity-60 shrink-0 ml-2" />
             </Button>
@@ -170,7 +167,7 @@ function ProductsPageContent() {
               <DropdownMenuRadioItem value="all" className="text-xs font-semibold text-warm-900 cursor-pointer">
                 {language === "vi" ? "Tất cả hãng sản xuất" : "All Brands"}
               </DropdownMenuRadioItem>
-              {MOCK_SUPPLIERS.map((s) => (
+              {suppliers.map((s: any) => (
                 <DropdownMenuRadioItem key={s.id} value={s.id} className="text-xs font-semibold text-warm-900 cursor-pointer">
                   {s.name}
                 </DropdownMenuRadioItem>
@@ -307,13 +304,13 @@ function ProductsPageContent() {
             )}
             {selectedCategory !== "all" && (
               <button onClick={() => setSelectedCategory("all")} className="flex items-center gap-1 px-2.5 py-1 bg-[#88734C]/10 text-[#88734C] rounded-full text-[10px] font-bold">
-                {language === "vi" ? MOCK_CATEGORIES.find(c => c.id === selectedCategory)?.name : MOCK_CATEGORIES.find(c => c.id === selectedCategory)?.nameEn}
+                {language === "vi" ? categories.find((c: any) => c.id === selectedCategory)?.name : categories.find((c: any) => c.id === selectedCategory)?.nameEn}
                 <X className="h-3 w-3" />
               </button>
             )}
             {selectedSupplier !== "all" && (
               <button onClick={() => setSelectedSupplier("all")} className="flex items-center gap-1 px-2.5 py-1 bg-[#88734C]/10 text-[#88734C] rounded-full text-[10px] font-bold">
-                {MOCK_SUPPLIERS.find(s => s.id === selectedSupplier)?.name} <X className="h-3 w-3" />
+                {suppliers.find((s: any) => s.id === selectedSupplier)?.name} <X className="h-3 w-3" />
               </button>
             )}
             {selectedFinish !== "all" && (
@@ -407,7 +404,7 @@ function ProductsPageContent() {
                 className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-8"
               >
                 {sortedProducts.map((p) => {
-                  const supplier = MOCK_SUPPLIERS.find((s) => s.id === p.supplierId);
+                  const supplier = suppliers.find((s: any) => s.id === p.supplierId);
                   return (
                     <motion.div
                       key={p.id}

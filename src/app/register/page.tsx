@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { toast } from "sonner";
@@ -37,9 +38,9 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast.error(
-        language === "vi" ? "Mật khẩu phải có ít nhất 6 ký tự." : "Password must be at least 6 characters."
+        language === "vi" ? "Mật khẩu phải có ít nhất 8 ký tự." : "Password must be at least 8 characters."
       );
       return;
     }
@@ -118,6 +119,7 @@ export default function RegisterPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 required
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••"
@@ -140,6 +142,7 @@ export default function RegisterPage() {
             <input
               type="password"
               required
+              minLength={8}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••"
@@ -155,6 +158,26 @@ export default function RegisterPage() {
             {isLoading ? (language === "vi" ? "Đang xử lý..." : "Processing...") : (language === "vi" ? "Đăng ký tài khoản" : "Sign Up")}
           </button>
         </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-warm-200"></span>
+          </div>
+          <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+            <span className="bg-white px-2 text-warm-450">{language === "vi" ? "Hoặc tiếp tục với" : "Or continue with"}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => signIn("google", { callbackUrl: "/profile" })}
+          className="w-full bg-white border border-warm-200 text-warm-800 font-bold py-3.5 rounded-xl hover:bg-warm-50 transition-colors shadow-xs flex items-center justify-center gap-2 text-xs"
+        >
+          <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 19">
+            <path fillRule="evenodd" d="M8.842 18.083a8.8 8.8 0 0 1-8.65-8.948 8.841 8.841 0 0 1 8.8-8.652h.153a8.439 8.439 0 0 1 5.7 2.257l-2.193 2.038A5.27 5.27 0 0 0 9.09 3.4a5.882 5.882 0 0 0-.2 11.76h.124a5.091 5.091 0 0 0 5.248-4.057L14.3 11H9V8h8.34c.066.543.095 1.09.088 1.636-.086 5.053-3.463 8.449-8.4 8.449l-.186-.002Z" clipRule="evenodd"/>
+          </svg>
+          Google
+        </button>
 
         <div className="text-center text-xs text-warm-550">
           <span>{language === "vi" ? "Đã có tài khoản?" : "Already have an account?"}</span>{" "}

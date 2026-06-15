@@ -1,12 +1,40 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const dbDealers = await db.dealer.findMany({
+    const rateLimitRes = rateLimit(request);
+    if (!rateLimitRes.success) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+    
+    let page = 1;
+    let limit = 20;
+    
+    if (pageParam) page = parseInt(pageParam);
+    if (limitParam) limit = parseInt(limitParam);
+
+    const isPaginationRequested = !!pageParam || !!limitParam;
+
+    const queryOptions: any = {
       where: { isActive: true },
-      include: { supplier: true }
-    });
+      include: { supplier: { select: { name: true } } }
+    };
+
+    if (isPaginationRequested) {
+      queryOptions.skip = (page - 1) * limit;
+      queryOptions.take = limit;
+    }
+
+    const [dbDealers, total] = await Promise.all([
+      db.dealer.findMany(queryOptions) as Promise<any[]>,
+      isPaginationRequested ? db.dealer.count({ where: { isActive: true } }) : Promise.resolve(0)
+    ]);
 
     const adapted = dbDealers.map((d) => ({
       id: d.id,
@@ -23,7 +51,21 @@ export async function GET() {
       lat: d.latitude ? Number(d.latitude) : 21.0267
     }));
 
-    return NextResponse.json(adapted);
+    if (isPaginationRequested) {
+      return NextResponse.json({
+        data: adapted,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }, {
+        headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+      });
+    }
+
+    return NextResponse.json(adapted, {
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+    });
   } catch (error) {
     console.error("Failed to fetch dealers:", error);
     return NextResponse.json([]);

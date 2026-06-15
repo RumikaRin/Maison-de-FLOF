@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { ChevronDown, MapPin, Phone, Search, Map as MapIcon, List, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Map, MapMarker, MarkerContent, MarkerTooltip } from "@/components/ui/mapcn-marker-tooltip";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,7 +14,16 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+
+const DealerMap = dynamic(() => import("@/components/maps/dealer-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full items-center justify-center bg-warm-50 text-xs font-semibold text-warm-500">
+      Đang tải bản đồ...
+    </div>
+  ),
+});
 
 interface Dealer {
   id: string;
@@ -32,82 +40,6 @@ interface Dealer {
   lat: number;
 }
 
-const MOCK_DEALERS: Dealer[] = [
-  {
-    id: "1",
-    name: "Showroom Sơn FLOF Hà Nội",
-    nameEn: "FLOF Hanoi Paint Boutique",
-    phone: "0243123456",
-    email: "hanoi@flof.vn",
-    address: "Số 15 Cầu Giấy, Láng Thượng, Cầu Giấy",
-    addressEn: "15 Cau Giay, Lang Thuong, Cau Giay",
-    province: "Hà Nội",
-    district: "Cầu Giấy",
-    brand: "Jotun",
-    lng: 105.8016,
-    lat: 21.0267
-  },
-  {
-    id: "2",
-    name: "Trung Tâm Phối Màu Jotun Tây Hồ",
-    nameEn: "Tay Ho Jotun Tinting Center",
-    phone: "0243789456",
-    email: "tayho@flof.vn",
-    address: "Số 102 Lạc Long Quân, Bưởi, Tây Hồ",
-    addressEn: "102 Lac Long Quan, Buoi, Tay Ho",
-    province: "Hà Nội",
-    district: "Tây Hồ",
-    brand: "Jotun",
-    lng: 105.8066,
-    lat: 21.0664
-  },
-  {
-    id: "3",
-    name: "Đại Lý Sơn Dulux Quận 1",
-    nameEn: "Dulux Paint Shop District 1",
-    phone: "0283999888",
-    email: "q1@flof.vn",
-    address: "240 Trần Hưng Đạo, Nguyễn Cư Trinh, Quận 1",
-    addressEn: "240 Tran Hung Dao, Nguyen Cu Trinh, District 1",
-    province: "Hồ Chí Minh",
-    district: "Quận 1",
-    brand: "Dulux",
-    lng: 106.6894,
-    lat: 10.7628
-  },
-  {
-    id: "4",
-    name: "Nhà Phân Phối Sơn Jotun Bình Thạnh",
-    nameEn: "Binh Thanh Jotun Paint Distributor",
-    phone: "0283511222",
-    email: "binhthanh@flof.vn",
-    address: "45 Điện Biên Phủ, Phường 15, Bình Thạnh",
-    addressEn: "45 Dien Bien Phu, Ward 15, Binh Thanh",
-    province: "Hồ Chí Minh",
-    district: "Bình Thạnh",
-    brand: "Jotun",
-    lng: 106.7022,
-    lat: 10.7992
-  },
-  {
-    id: "5",
-    name: "Đại Lý Sơn Nippon Đà Nẵng",
-    nameEn: "Nippon Paint Da Nang Shop",
-    phone: "02363555777",
-    email: "danang@flof.vn",
-    address: "98 Nguyễn Văn Linh, Nam Dương, Hải Châu",
-    addressEn: "98 Nguyen Van Linh, Nam Duong, Hai Chau",
-    province: "Đà Nẵng",
-    district: "Hải Châu",
-    brand: "Nippon Paint",
-    lng: 108.2215,
-    lat: 16.0601
-  }
-];
-
-const PROVINCES = ["Tất cả / All", "Hà Nội", "Hồ Chí Minh", "Đà Nẵng"];
-const BRANDS = ["Tất cả / All", "Jotun", "Dulux", "Nippon Paint"];
-
 const BRAND_COLORS: Record<string, string> = {
   "Jotun": "bg-red-50 text-red-600 border-red-100",
   "Dulux": "bg-purple-50 text-purple-600 border-purple-100",
@@ -117,7 +49,7 @@ const BRAND_COLORS: Record<string, string> = {
 export default function FindDealerPage() {
   const { language } = useLanguageStore();
   const t = useTrans(language);
-  const [dealers, setDealers] = useState<Dealer[]>(MOCK_DEALERS);
+  const [dealers, setDealers] = useState<Dealer[]>([]);
   const [selectedProvince, setSelectedProvince] = useState("Tất cả / All");
   const [selectedBrand, setSelectedBrand] = useState("Tất cả / All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -134,27 +66,18 @@ export default function FindDealerPage() {
   useEffect(() => {
     setMounted(true);
 
-    const storedDealers = localStorage.getItem("sonvn-dealers");
-    if (storedDealers) {
-      try {
-        const parsed = JSON.parse(storedDealers);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setDealers(parsed);
-          return;
-        }
-      } catch (e) { }
-    }
-
     fetch("/api/dealers")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setDealers(data);
-          localStorage.setItem("sonvn-dealers", JSON.stringify(data));
         }
       })
       .catch((err) => console.error("Error loading dealers from DB API:", err));
   }, []);
+
+  const provinces = ["Tất cả / All", ...Array.from(new Set(dealers.map((dealer) => dealer.province)))];
+  const brands = ["Tất cả / All", ...Array.from(new Set(dealers.map((dealer) => dealer.brand)))];
 
   useEffect(() => {
     if (selectedProvince === "Hà Nội") {
@@ -284,7 +207,7 @@ export default function FindDealerPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-44 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50">
                 <DropdownMenuRadioGroup value={selectedProvince} onValueChange={setSelectedProvince}>
-                  {PROVINCES.map((p) => (
+                  {provinces.map((p) => (
                     <DropdownMenuRadioItem key={p} value={p} className="text-xs font-semibold text-warm-900 cursor-pointer">{p}</DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
@@ -301,7 +224,7 @@ export default function FindDealerPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-44 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50">
                 <DropdownMenuRadioGroup value={selectedBrand} onValueChange={setSelectedBrand}>
-                  {BRANDS.map((b) => (
+                  {brands.map((b) => (
                     <DropdownMenuRadioItem key={b} value={b} className="text-xs font-semibold text-warm-900 cursor-pointer">{b}</DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
@@ -404,24 +327,7 @@ export default function FindDealerPage() {
           {/* Map */}
           <div className={`lg:col-span-7 rounded-2xl border border-black/5 overflow-hidden shadow-sm relative ${mobileView === "list" ? "hidden lg:block" : "block"}`}>
             <div className="h-[360px] sm:h-[440px] lg:h-[600px]">
-              <Map viewport={mapViewport}>
-                {filteredDealers.map((dl) => (
-                  <MapMarker key={dl.id} longitude={dl.lng} latitude={dl.lat}>
-                    <MarkerContent>
-                      <div className="size-7 rounded-full border-2 border-white bg-jotun-teal shadow-lg flex items-center justify-center transition-transform hover:scale-110 active:scale-95">
-                        <MapPin className="size-3.5 text-white" />
-                      </div>
-                    </MarkerContent>
-                    <MarkerTooltip>
-                      <div className="p-2 max-w-[220px] text-left">
-                        <p className="font-bold text-xs mb-1 text-warm-900">{language === "vi" ? dl.name : (dl.nameEn || dl.name)}</p>
-                        <p className="text-[10px] text-warm-600 leading-tight mb-1">{language === "vi" ? dl.address : (dl.addressEn || dl.address)}</p>
-                        <p className="text-[9px] text-warm-500 font-mono">{dl.phone}</p>
-                      </div>
-                    </MarkerTooltip>
-                  </MapMarker>
-                ))}
-              </Map>
+              <DealerMap dealers={filteredDealers} language={language} viewport={mapViewport} />
             </div>
 
             {/* Mobile: back to list overlay button */}

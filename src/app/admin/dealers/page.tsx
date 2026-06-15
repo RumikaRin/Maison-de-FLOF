@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useLanguageStore } from "@/store/language-store";
 import { toast } from "sonner";
 import { CustomSelect } from "@/components/ui/custom-select";
-import { Map, MapMarker, MarkerContent } from "@/components/ui/mapcn-marker-tooltip";
 import { MapPin, Search, Plus, Trash2, Edit2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
+
+const LocationPreviewMap = dynamic(() => import("@/components/maps/location-preview-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full items-center justify-center text-xs font-medium text-warm-450">
+      Đang tải bản đồ...
+    </div>
+  ),
+});
 
 interface Dealer {
   id: string;
@@ -23,79 +32,6 @@ interface Dealer {
   lng: number;
   lat: number;
 }
-
-const FALLBACK_DEALERS: Dealer[] = [
-  {
-    id: "1",
-    name: "Showroom Sơn FLOF Hà Nội",
-    nameEn: "FLOF Hanoi Paint Boutique",
-    phone: "0243123456",
-    email: "hanoi@flof.vn",
-    address: "Số 15 Cầu Giấy, Láng Thượng, Cầu Giấy",
-    addressEn: "15 Cau Giay, Lang Thuong, Cau Giay",
-    province: "Hà Nội",
-    district: "Cầu Giấy",
-    brand: "Jotun",
-    lng: 105.8016,
-    lat: 21.0267
-  },
-  {
-    id: "2",
-    name: "Trung Tâm Phối Màu Jotun Tây Hồ",
-    nameEn: "Tay Ho Jotun Tinting Center",
-    phone: "0243789456",
-    email: "tayho@flof.vn",
-    address: "Số 102 Lạc Long Quân, Bưởi, Tây Hồ",
-    addressEn: "102 Lac Long Quan, Buoi, Tay Ho",
-    province: "Hà Nội",
-    district: "Tây Hồ",
-    brand: "Jotun",
-    lng: 105.8066,
-    lat: 21.0664
-  },
-  {
-    id: "3",
-    name: "Đại Lý Sơn Dulux Quận 1",
-    nameEn: "Dulux Paint Shop District 1",
-    phone: "0283999888",
-    email: "q1@flof.vn",
-    address: "240 Trần Hưng Đạo, Nguyễn Cư Trinh, Quận 1",
-    addressEn: "240 Tran Hung Dao, Nguyen Cu Trinh, District 1",
-    province: "Hồ Chí Minh",
-    district: "Quận 1",
-    brand: "Dulux",
-    lng: 106.6894,
-    lat: 10.7628
-  },
-  {
-    id: "4",
-    name: "Nhà Phân Phối Sơn Jotun Bình Thạnh",
-    nameEn: "Binh Thanh Jotun Paint Distributor",
-    phone: "0283511222",
-    email: "binhthanh@flof.vn",
-    address: "45 Điện Biên Phủ, Phường 15, Bình Thạnh",
-    addressEn: "45 Dien Bien Phu, Ward 15, Binh Thanh",
-    province: "Hồ Chí Minh",
-    district: "Bình Thạnh",
-    brand: "Jotun",
-    lng: 106.7022,
-    lat: 10.7992
-  },
-  {
-    id: "5",
-    name: "Đại Lý Sơn Nippon Đà Nẵng",
-    nameEn: "Nippon Paint Da Nang Shop",
-    phone: "02363555777",
-    email: "danang@flof.vn",
-    address: "98 Nguyễn Văn Linh, Nam Dương, Hải Châu",
-    addressEn: "98 Nguyen Van Linh, Nam Duong, Hai Chau",
-    province: "Đà Nẵng",
-    district: "Hải Châu",
-    brand: "Nippon Paint",
-    lng: 108.2215,
-    lat: 16.0601
-  }
-];
 
 export default function AdminDealersPage() {
   const { language } = useLanguageStore();
@@ -126,49 +62,15 @@ export default function AdminDealersPage() {
   const [formLng, setFormLng] = useState<number>(105.8016);
   const [formLat, setFormLat] = useState<number>(21.0267);
 
-  // Load from local storage and normalize if nested object
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("sonvn-dealers");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setDealers(parsed);
-        } else if (parsed && typeof parsed === "object") {
-          // Normalise legacy Record<"hanoi" | "hcm", Dealer[]> format
-          const flat: Dealer[] = [];
-          (["hanoi", "hcm"] as const).forEach((cityKey) => {
-            const list = (parsed as any)[cityKey] || [];
-            list.forEach((dl: any, index: number) => {
-              flat.push({
-                id: dl.id || `dl-${cityKey}-${index}-${Date.now()}`,
-                name: dl.name,
-                nameEn: dl.nameEn || dl.name,
-                phone: dl.phone,
-                email: dl.email || "",
-                address: dl.address,
-                addressEn: dl.addressEn || dl.address,
-                province: cityKey === "hanoi" ? "Hà Nội" : "Hồ Chí Minh",
-                district: dl.district || (cityKey === "hanoi" ? "Cầu Giấy" : "Quận 1"),
-                brand: dl.brand || "Jotun",
-                lng: dl.lng,
-                lat: dl.lat,
-              });
-            });
-          });
-          setDealers(flat);
-          localStorage.setItem("sonvn-dealers", JSON.stringify(flat));
-        } else {
-          setDealers(FALLBACK_DEALERS);
-        }
-      } catch (e) {
-        setDealers(FALLBACK_DEALERS);
-      }
-    } else {
-      localStorage.setItem("sonvn-dealers", JSON.stringify(FALLBACK_DEALERS));
-      setDealers(FALLBACK_DEALERS);
-    }
+    fetch("/api/admin/dealers")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Không thể tải đại lý");
+        setDealers(data);
+      })
+      .catch((error) => toast.error(error.message))
+      .finally(() => setMounted(true));
   }, []);
 
   if (!mounted) return null;
@@ -220,7 +122,7 @@ export default function AdminDealersPage() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formName || !formNameEn || !formAddress || !formAddressEn || !formPhone || !formLng || !formLat || !formProvince || !formDistrict) {
@@ -245,22 +147,26 @@ export default function AdminDealersPage() {
       lat: Number(formLat),
     };
 
-    let nextState: Dealer[];
-
-    if (modalMode === "add") {
-      nextState = [...dealers, updatedDealer];
-      toast.success(
-        language === "vi" ? "Đã thêm chi nhánh mới thành công!" : "New branch added successfully!"
-      );
-    } else {
-      nextState = dealers.map((dl) => dl.id === editingId ? updatedDealer : dl);
-      toast.success(
-        language === "vi" ? "Đã cập nhật thông tin chi nhánh!" : "Branch updated successfully!"
-      );
+    const response = await fetch("/api/admin/dealers", {
+      method: modalMode === "add" ? "POST" : "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...updatedDealer, id: modalMode === "edit" ? editingId : undefined }),
+    });
+    const saved = await response.json();
+    if (!response.ok) {
+      toast.error(saved.error || "Không thể lưu đại lý");
+      return;
     }
-
-    setDealers(nextState);
-    localStorage.setItem("sonvn-dealers", JSON.stringify(nextState));
+    setDealers((current) =>
+      modalMode === "add"
+        ? [...current, saved]
+        : current.map((dealer) => (dealer.id === saved.id ? saved : dealer)),
+    );
+    toast.success(
+      modalMode === "add"
+        ? language === "vi" ? "Đã thêm chi nhánh mới thành công!" : "New branch added successfully!"
+        : language === "vi" ? "Đã cập nhật thông tin chi nhánh!" : "Branch updated successfully!",
+    );
     setIsModalOpen(false);
   };
 
@@ -269,12 +175,18 @@ export default function AdminDealersPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!dealerToDelete) return;
     const target = dealers.find((dl) => dl.id === dealerToDelete);
-    const nextState = dealers.filter((dl) => dl.id !== dealerToDelete);
-    setDealers(nextState);
-    localStorage.setItem("sonvn-dealers", JSON.stringify(nextState));
+    const response = await fetch(`/api/admin/dealers?id=${encodeURIComponent(dealerToDelete)}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      toast.error(data.error || "Không thể xóa đại lý");
+      return;
+    }
+    setDealers((current) => current.filter((dealer) => dealer.id !== dealerToDelete));
     toast.success(
       language === "vi" ? `Đã xóa chi nhánh "${target?.name || ""}" thành công.` : "Branch deleted successfully."
     );
@@ -648,22 +560,7 @@ export default function AdminDealersPage() {
 
                 <div className="flex-grow min-h-[220px] rounded-xl overflow-hidden border border-warm-200 shadow-inner relative bg-white">
                   {formLng && formLat ? (
-                    <Map
-                      viewport={{
-                        center: [formLng, formLat],
-                        zoom: 14,
-                        bearing: 0,
-                        pitch: 0
-                      }}
-                    >
-                      <MapMarker longitude={formLng} latitude={formLat}>
-                        <MarkerContent>
-                          <div className="size-6 rounded-full border-2 border-white bg-jotun-teal shadow-lg flex items-center justify-center transition-transform hover:scale-110">
-                            <MapPin className="size-3.5 text-white" />
-                          </div>
-                        </MarkerContent>
-                      </MapMarker>
-                    </Map>
+                    <LocationPreviewMap longitude={formLng} latitude={formLat} />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-xs text-warm-450 font-medium">
                       {language === "vi" ? "Đang đợi tọa độ..." : "Waiting for coordinates..."}
@@ -708,4 +605,3 @@ export default function AdminDealersPage() {
     </div>
   );
 }
-

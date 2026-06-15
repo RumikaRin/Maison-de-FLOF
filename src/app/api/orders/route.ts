@@ -1,134 +1,157 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { auth } from "@/auth";
+import { apiErrorResponse, requireUser } from "@/lib/api-auth";
+import { checkoutSchema } from "@/lib/order-validation";
+import { processCheckout } from "@/services/checkout.service";
+
+async function serializeOrders(
+  orders: Awaited<ReturnType<typeof getOrders>>,
+) {
+  const colorIds = orders.flatMap((order) =>
+    order.items.flatMap((item) => (item.colorId ? [item.colorId] : [])),
+  );
+  const colors = colorIds.length
+    ? await db.paintColor.findMany({
+        where: { id: { in: [...new Set(colorIds)] } },
+        select: { id: true, code: true, name: true },
+      })
+    : [];
+  const colorMap = new Map(colors.map((color) => [color.id, color]));
+
+  return orders.map((order) => {
+    const structuredItems = order.items.map((item) => {
+      const color = item.colorId ? colorMap.get(item.colorId) : undefined;
+      return {
+        id: item.id,
+        paintId: item.paintId,
+        name: item.productName || item.paint.name,
+        sku: item.productSku || item.paint.sku,
+        color:
+          item.colorName && item.colorCode
+            ? `${item.colorName} (${item.colorCode})`
+            : color
+              ? `${color.name} (${color.code})`
+              : "",
+        quantity: item.quantity,
+        price: Number(item.price),
+        total: Number(item.total),
+      };
+    });
+
+    return {
+      id: order.orderNumber,
+      date: order.createdAt.toISOString().split("T")[0],
+      userEmail: order.customer.user.email,
+      customer: order.shippingName || order.address?.fullName || order.customer.user.name || "Khách hàng",
+      phone: order.shippingPhone || order.address?.phone || order.customer.user.phone || "",
+      address: order.shippingAddress
+        ? [order.shippingAddress, order.shippingDistrict, order.shippingProvince].filter(Boolean).join(", ")
+        : order.address
+          ? [
+              order.address.addressLine1,
+              order.address.addressLine2,
+              order.address.district,
+              order.address.province,
+            ]
+              .filter(Boolean)
+              .join(", ")
+          : "",
+      items: structuredItems
+        .map(
+          (item) =>
+            `${item.name} x ${item.quantity}${item.color ? `, ${item.color}` : ""}`,
+        )
+        .join("; "),
+      structuredItems,
+      subtotal: Number(order.subtotal),
+      discount: Number(order.discount),
+      shippingFee: Number(order.shippingFee),
+      total: Number(order.total),
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      paymentId: order.payment?.id || "",
+      paymentStatus: order.payment?.status || "PENDING",
+      paymentTransactionCode: order.payment?.transactionCode || "",
+      note: order.note || "",
+      statusHistory: order.statusHistory.map((history) => ({
+        previousStatus: history.previousStatus,
+        newStatus: history.newStatus,
+        changedByEmail: history.changedByEmail,
+        note: history.note || "",
+        createdAt: history.createdAt.toISOString(),
+      })),
+    };
+  });
+}
+
+function getOrders(where: Prisma.OrderWhereInput) {
+  return db.order.findMany({
+    where,
+    include: {
+      address: true,
+      customer: { include: { user: true } },
+      items: { include: { paint: true } },
+      statusHistory: { orderBy: { createdAt: "asc" } },
+      payment: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const user = await requireUser();
     const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email");
-    if (!email) {
-      return NextResponse.json({ error: "Email parameter is required" }, { status: 400 });
-    }
+    const requestedEmail = searchParams.get("email");
+    const isStaff = user.role === "ADMIN" || user.role === "STAFF";
 
-    const isAdmin = (session.user as any).role === "ADMIN";
-    if (email !== session.user.email && !isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const user = await db.user.findUnique({
-      where: { email },
-      include: {
-        customer: {
-          include: {
-            orders: {
-              include: {
-                items: {
-                  include: {
-                    paint: true
-                  }
-                }
+    const where: Prisma.OrderWhereInput =
+      isStaff && !requestedEmail
+        ? {}
+        : {
+            customer: {
+              user: {
+                email: isStaff && requestedEmail ? requestedEmail : user.email,
               },
-              orderBy: { createdAt: "desc" }
-            }
-          }
-        }
-      }
-    });
+            },
+          };
 
-    if (!user || !user.customer) {
-      return NextResponse.json([]);
-    }
-
-    // Adapt database orders to match frontend order history schema
-    const adapted = user.customer.orders.map((o) => ({
-      id: o.orderNumber,
-      date: o.createdAt.toISOString().split("T")[0],
-      userEmail: email,
-      customer: user.name || "Nguyễn Văn Khách",
-      items: o.items.map((i) => `${i.paint?.name || 'Sản phẩm'} x ${i.quantity}`).join(", "),
-      total: Number(o.total),
-      status: o.status
-    }));
-
-    return NextResponse.json(adapted);
+    return NextResponse.json(await serializeOrders(await getOrders(where)));
   } catch (error) {
-    console.error("GET orders failed:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const sessionUser = await requireUser();
+    const parsed = checkoutSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Dữ liệu đặt hàng không hợp lệ", details: parsed.error.flatten() },
+        { status: 400 },
+      );
     }
 
-    const body = await request.json();
-    const { email, items, total, paymentMethod, discount, shippingFee, note } = body;
+    const input = parsed.data;
+    const idempotencyKey = request.headers.get("Idempotency-Key");
+    const ipAddr = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const returnUrl = new URL("/api/vnpay/return", request.url).toString();
 
-    if (!email || !items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    const isAdmin = (session.user as any).role === "ADMIN";
-    if (email !== session.user.email && !isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const user = await db.user.findUnique({
-      where: { email },
-      include: { customer: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    let customer = user.customer;
-    if (!customer) {
-      customer = await db.customer.create({
-        data: { userId: user.id }
-      });
-    }
-
-    const orderNumber = `FLOF-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    const createdOrder = await db.order.create({
-      data: {
-        orderNumber,
-        customerId: customer.id,
-        subtotal: total - (shippingFee || 0) + (discount || 0),
-        discount: discount || 0,
-        shippingFee: shippingFee || 0,
-        total: total,
-        paymentMethod: paymentMethod || "COD",
-        note: note || "",
-        status: "PROCESSING",
-        items: {
-          create: items.map((item: any) => ({
-            paintId: item.paintId || "paint-1",
-            colorId: item.colorId || null,
-            quantity: item.quantity,
-            price: item.price,
-            total: item.price * item.quantity
-          }))
-        }
-      }
-    });
-
-    return NextResponse.json({
-      success: true,
-      orderId: orderNumber,
-      total: Number(createdOrder.total)
-    });
+    const result = await processCheckout(input, sessionUser, idempotencyKey, ipAddr, returnUrl);
+    
+    // Fetch and serialize the created/existing order
+    const targetOrderId = result.existingOrderId || result.newOrderId;
+    const orderData = await getOrders({ id: targetOrderId });
+    const [serializedOrder] = await serializeOrders(orderData);
+    
+    return NextResponse.json({ 
+      success: true, 
+      order: serializedOrder,
+      paymentUrl: result.paymentUrl 
+    }, { status: result.existingOrderId ? 200 : 201 });
   } catch (error) {
-    console.error("POST order failed:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return apiErrorResponse(error);
   }
 }

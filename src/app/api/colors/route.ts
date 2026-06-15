@@ -10,7 +10,11 @@ export async function GET() {
       orderBy: { code: "asc" }
     });
 
-    return NextResponse.json(colors);
+    return NextResponse.json(colors, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (error) {
     console.error("Failed to fetch colors:", error);
     return NextResponse.json({ error: "Failed to fetch colors" }, { status: 500 });

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useLanguageStore } from "@/store/language-store";
-import { MOCK_BLOGS, Blog } from "@/lib/mock-data";
+import { Blog } from "@/types";
 import { toast } from "sonner";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,8 +36,14 @@ export default function AdminArticlesPage() {
   const [image, setImage] = useState("");
 
   useEffect(() => {
-    setMounted(true);
-    setArticles(MOCK_BLOGS);
+    fetch("/api/admin/articles")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Không thể tải bài viết");
+        setArticles(data);
+      })
+      .catch((error) => toast.error(error.message))
+      .finally(() => setMounted(true));
   }, []);
 
   useEffect(() => {
@@ -82,7 +89,7 @@ export default function AdminArticlesPage() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title || !titleEn || !summary || !summaryEn || !image) {
@@ -92,41 +99,34 @@ export default function AdminArticlesPage() {
       return;
     }
 
-    if (modalMode === "add") {
-      const newArticle: Blog = {
-        id: `blog-${Date.now()}`,
-        slug: title.toLowerCase().replace(/ /g, "-").replace(/[^\w-]+/g, ""),
+    const response = await fetch("/api/admin/articles", {
+      method: modalMode === "add" ? "POST" : "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingArticleId || undefined,
         title,
         titleEn,
         summary,
         summaryEn,
-        category,
-        categoryEn,
-        author,
-        readTime,
         image,
-        content: "",
-        contentEn: "",
-        createdAt: new Date().toISOString().split("T")[0]
-      };
-
-      setArticles([newArticle, ...articles]);
-      toast.success(
-        language === "vi" ? "Đã xuất bản bài viết mới thành công!" : "Article published successfully!"
-      );
-    } else {
-      setArticles(
-        articles.map((art) =>
-          art.id === editingArticleId
-            ? { ...art, title, titleEn, summary, summaryEn, category, categoryEn, author, readTime, image }
-            : art
-        )
-      );
-      toast.success(
-        language === "vi" ? "Cập nhật bài viết thành công!" : "Article updated successfully!"
-      );
+      }),
+    });
+    const saved = await response.json();
+    if (!response.ok) {
+      toast.error(saved.error || "Không thể lưu bài viết");
+      return;
     }
 
+    setArticles((current) =>
+      modalMode === "add"
+        ? [saved, ...current]
+        : current.map((article) => (article.id === saved.id ? saved : article)),
+    );
+    toast.success(
+      modalMode === "add"
+        ? language === "vi" ? "Đã xuất bản bài viết mới thành công!" : "Article published successfully!"
+        : language === "vi" ? "Cập nhật bài viết thành công!" : "Article updated successfully!",
+    );
     setIsModalOpen(false);
   };
 
@@ -135,10 +135,18 @@ export default function AdminArticlesPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!articleToDelete) return;
     const target = articles.find((art) => art.id === articleToDelete);
-    setArticles(articles.filter((art) => art.id !== articleToDelete));
+    const response = await fetch(`/api/admin/articles?id=${encodeURIComponent(articleToDelete)}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      toast.error(data.error || "Không thể xóa bài viết");
+      return;
+    }
+    setArticles((current) => current.filter((article) => article.id !== articleToDelete));
     toast.success(
       language === "vi" ? `Đã xóa bài viết "${target?.title || ""}" thành công.` : "Article deleted successfully."
     );
@@ -220,8 +228,12 @@ export default function AdminArticlesPage() {
                 <tr key={art.id} className="hover:bg-warm-50/30 transition-colors">
                   <td className="py-3.5 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-16 rounded-lg overflow-hidden border border-warm-200 shrink-0 bg-warm-50">
-                        <img src={art.image} alt={art.title} className="h-full w-full object-cover" />
+                      <div className="relative h-10 w-16 rounded-lg overflow-hidden border border-warm-200 shrink-0 bg-warm-50 flex items-center justify-center">
+                        {art.image ? (
+                          <Image src={art.image} alt={art.title} fill sizes="64px" className="object-cover" />
+                        ) : (
+                          <span className="text-[10px] text-warm-400 font-bold">N/A</span>
+                        )}
                       </div>
                       <div>
                         <h4 className="text-sm font-bold text-warm-900 line-clamp-1">

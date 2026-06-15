@@ -9,7 +9,6 @@ import { ChevronDown, BookOpen, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { MOCK_BLOGS } from "@/lib/mock-data";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,13 +18,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 
-const MOCK_CALC_PAINTS = [
-  { id: "1", name: "Jotun Majestic Đẹp Hoàn Hảo", nameEn: "Jotun Majestic Perfect Beauty", coverage: 12, pricePerLiter: 190000 },
-  { id: "2", name: "Jotun Essence Dễ Lau Chùi", nameEn: "Jotun Essence Easy Clean", coverage: 12, pricePerLiter: 84000 },
-  { id: "3", name: "Jotun Jotashield Bền Màu Tối Ưu", nameEn: "Jotun Jotashield Extreme", coverage: 10, pricePerLiter: 270000 },
-  { id: "4", name: "Dulux Weathershield Ngoại Thất", nameEn: "Dulux Weathershield Exterior", coverage: 11, pricePerLiter: 256000 },
-  { id: "5", name: "Nippon Paint Weathergard", nameEn: "Nippon Paint Weathergard", coverage: 8, pricePerLiter: 95000 },
-];
+type CalculatorPaint = {
+  id: string;
+  name: string;
+  nameEn: string;
+  coverage: number;
+  pricePerLiter: number;
+};
 
 const inputClass = "w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 focus:border-warm-350 transition-colors text-warm-900";
 const labelClass = "block text-[10px] font-bold text-warm-450 uppercase tracking-wider mb-1.5";
@@ -33,7 +32,30 @@ const labelClass = "block text-[10px] font-bold text-warm-450 uppercase tracking
 export default function PaintCalculatorPage() {
   const { language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const [calculatorPaints, setCalculatorPaints] = useState<CalculatorPaint[]>([]);
+  const [blogs, setBlogs] = useState<any[]>([]);
+  useEffect(() => {
+    setMounted(true);
+    Promise.all([
+      fetch("/api/products").then((response) => response.json()),
+      fetch("/api/blog").then((response) => response.json()),
+    ]).then(([products, blogData]) => {
+      if (Array.isArray(products)) {
+        const adapted = products
+          .filter((paint) => Number(paint.coverage) > 0 && Number(paint.volume) > 0)
+          .map((paint) => ({
+            id: paint.id,
+            name: paint.name,
+            nameEn: paint.nameEn || paint.name,
+            coverage: Number(paint.coverage),
+            pricePerLiter: Number(paint.price) / Number(paint.volume),
+          }));
+        setCalculatorPaints(adapted);
+        if (adapted[0]) setSelectedPaintId(adapted[0].id);
+      }
+      if (Array.isArray(blogData)) setBlogs(blogData);
+    });
+  }, []);
   const currentLang = mounted ? language : "vi";
   const t = useTrans(currentLang);
 
@@ -43,13 +65,14 @@ export default function PaintCalculatorPage() {
   const [doors, setDoors] = useState<string | number>("1");
   const [windows, setWindows] = useState<string | number>("1");
   const [coats, setCoats] = useState<number>(2);
-  const [selectedPaintId, setSelectedPaintId] = useState<string>("1");
+  const [selectedPaintId, setSelectedPaintId] = useState<string>("");
   const [results, setResults] = useState<PaintCalculatorResult | null>(null);
   const [estCost, setEstCost] = useState<number>(0);
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
-    const activePaint = MOCK_CALC_PAINTS.find((p) => p.id === selectedPaintId) || MOCK_CALC_PAINTS[0];
+    const activePaint = calculatorPaints.find((p) => p.id === selectedPaintId);
+    if (!activePaint) return;
     const calcResult = calculatePaint({
       length: Number(length) || 0,
       width: Number(width) || 0,
@@ -66,7 +89,7 @@ export default function PaintCalculatorPage() {
   const handleReset = () => {
     setLength("5"); setWidth("4"); setHeight("2.8");
     setDoors("1"); setWindows("1"); setCoats(2);
-    setSelectedPaintId("1"); setResults(null);
+    setSelectedPaintId(calculatorPaints[0]?.id || ""); setResults(null);
   };
 
   return (
@@ -164,7 +187,7 @@ export default function PaintCalculatorPage() {
                   >
                     <span className="truncate">
                       {(() => {
-                        const p = MOCK_CALC_PAINTS.find((x) => x.id === selectedPaintId);
+                        const p = calculatorPaints.find((x) => x.id === selectedPaintId);
                         return p ? `${currentLang === "vi" ? p.name : p.nameEn} — ${p.coverage} m²/L` : "";
                       })()}
                     </span>
@@ -173,7 +196,7 @@ export default function PaintCalculatorPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-72 bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-50">
                   <DropdownMenuRadioGroup value={selectedPaintId} onValueChange={setSelectedPaintId}>
-                    {MOCK_CALC_PAINTS.map((p) => (
+                    {calculatorPaints.map((p) => (
                       <DropdownMenuRadioItem
                         key={p.id}
                         value={p.id}
@@ -290,7 +313,7 @@ export default function PaintCalculatorPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {[...MOCK_BLOGS].reverse().map((blog) => (
+            {[...blogs].reverse().map((blog) => (
               <div
                 key={blog.id}
                 className="bg-white border border-warm-200/80 rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-500 flex flex-col sm:flex-row items-stretch group text-left"

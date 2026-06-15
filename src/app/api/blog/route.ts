@@ -1,11 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const rateLimitRes = rateLimit(request);
+    if (!rateLimitRes.success) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const blogs = await db.blog.findMany({
       where: { isActive: true },
-      include: { author: true },
+      include: { author: { select: { name: true } } },
       orderBy: { createdAt: "desc" }
     });
 
@@ -26,7 +32,11 @@ export async function GET() {
       createdAt: b.createdAt.toISOString().split("T")[0]
     }));
 
-    return NextResponse.json(adapted);
+    return NextResponse.json(adapted, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (error) {
     console.error("Failed to fetch blogs:", error);
     return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 });
