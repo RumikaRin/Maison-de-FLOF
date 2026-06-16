@@ -233,7 +233,7 @@ export async function processCheckout(
       await tx.notification.createMany({ data: notifications });
     }
 
-    // @ts-ignore - Insert to Outbox to be processed asynchronously
+    // Insert to Outbox to be processed asynchronously
     await tx.emailOutbox.create({
       data: {
         type: "ORDER_CONFIRMATION",

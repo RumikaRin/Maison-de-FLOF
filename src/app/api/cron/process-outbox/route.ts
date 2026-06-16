@@ -11,7 +11,6 @@ export async function GET(request: Request) {
 
   try {
     // Fetch pending or failed emails (up to 3 retries)
-    // @ts-ignore
     const pendingEmails = await db.emailOutbox.findMany({
       where: {
         OR: [
@@ -41,7 +40,6 @@ export async function GET(request: Request) {
           );
         }
 
-        // @ts-ignore
         await db.emailOutbox.update({
           where: { id: record.id },
           data: { status: "SENT", updatedAt: new Date() }
@@ -56,7 +54,6 @@ export async function GET(request: Request) {
         const nextRetryMinutes = retryCount === 1 ? 1 : retryCount === 2 ? 5 : 15;
         const nextRetryAt = new Date(Date.now() + nextRetryMinutes * 60000);
 
-        // @ts-ignore
         await db.emailOutbox.update({
           where: { id: record.id },
           data: { 
