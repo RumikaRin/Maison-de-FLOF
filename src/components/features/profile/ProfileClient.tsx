@@ -158,8 +158,9 @@ export function ProfileClient() {
     }
   };
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: window.location.origin });
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    window.location.href = window.location.origin;
   };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {

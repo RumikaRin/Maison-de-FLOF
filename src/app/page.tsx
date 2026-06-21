@@ -2,6 +2,8 @@ import { HomeClient } from "@/components/features/home/HomeClient";
 import { Metadata } from "next";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Maison de FLOF - Sắc màu nghệ thuật",
   description: "Kiến tạo không gian sống đậm chất nghệ thuật với hàng ngàn màu sơn từ Maison de FLOF.",

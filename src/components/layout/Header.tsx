@@ -209,10 +209,11 @@ export default function Header() {
                             </Link>
                           )}
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               setMobileOpen(false);
                               setIsAvatarOpen(false);
-                              signOut({ callbackUrl: window.location.origin });
+                              await signOut({ redirect: false });
+                              window.location.href = window.location.origin;
                             }}
                             className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl font-bold w-full text-left"
                           >
@@ -348,9 +349,10 @@ export default function Header() {
                         </Link>
                       )}
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           setMobileOpen(false);
-                          signOut({ callbackUrl: window.location.origin });
+                          await signOut({ redirect: false });
+                          window.location.href = window.location.origin;
                         }}
                         className={cn(
                           "flex items-center justify-center px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-500 text-xs font-bold rounded-xl border border-red-100 transition-colors",

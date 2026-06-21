@@ -149,7 +149,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link href="/" className="rounded-xl bg-warm-900 px-4 py-3 text-xs font-bold text-white hover:bg-warm-800">
               {language === "vi" ? "Quay về cửa hàng" : "Return to storefront"}
             </Link>
-            <button onClick={() => signOut({ callbackUrl: "/login" })} className="rounded-xl border border-warm-200 px-4 py-3 text-xs font-bold text-warm-700 hover:bg-warm-50">
+            <button onClick={async () => { await signOut({ redirect: false }); window.location.href = "/login"; }} className="rounded-xl border border-warm-200 px-4 py-3 text-xs font-bold text-warm-700 hover:bg-warm-50">
               {language === "vi" ? "Đăng xuất" : "Sign out"}
             </button>
           </div>
@@ -224,7 +224,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Store className="h-4 w-4" />
             {!isCollapsed && <span>{language === "vi" ? "Cửa hàng" : "Store"}</span>}
           </Link>
-          <button onClick={() => signOut({ callbackUrl: "/login" })} title={language === "vi" ? "Đăng xuất" : "Sign out"} className="flex h-9 items-center justify-center gap-2 rounded-xl text-[11px] font-semibold text-white/60 hover:bg-white/10 hover:text-white">
+          <button onClick={async () => { await signOut({ redirect: false }); window.location.href = "/login"; }} title={language === "vi" ? "Đăng xuất" : "Sign out"} className="flex h-9 items-center justify-center gap-2 rounded-xl text-[11px] font-semibold text-white/60 hover:bg-white/10 hover:text-white">
             <LogOut className="h-4 w-4" />
             {!isCollapsed && <span>{language === "vi" ? "Đăng xuất" : "Sign out"}</span>}
           </button>
