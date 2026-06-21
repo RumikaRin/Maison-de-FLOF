@@ -76,27 +76,42 @@ export function ProfileClient() {
       return;
     }
 
-    Promise.all([
-      fetch("/api/profile").then((response) => response.json()),
-      fetch("/api/orders").then((response) => response.json()),
-      fetch("/api/profile/addresses").then((response) => response.json()),
-      fetch("/api/profile/favorites").then((response) => response.json()),
-      fetch("/api/profile/favorite-products").then((response) => response.json()),
-    ])
-      .then(([profile, dbOrders, dbAddresses, favorites, favoriteProducts]) => {
+    const fetchJson = async (url: string) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (e) {
+        console.error(`Error fetching ${url}:`, e);
+        return null;
+      }
+    };
+
+    // Fetch primary user profile first to render the page quickly
+    fetchJson("/api/profile").then((profile) => {
+      if (profile) {
         setUser(profile);
         setProfileName(profile.name || "");
         setProfileEmail(profile.email || "");
         setProfilePhone(profile.phone || "");
-        if (Array.isArray(dbOrders)) setOrders(dbOrders);
-        if (Array.isArray(dbAddresses)) {
-          setAddresses(dbAddresses);
-          syncProfileAddressFromDefault(dbAddresses);
-        }
-        if (Array.isArray(favorites)) setWishlistColors(favorites);
-        if (Array.isArray(favoriteProducts)) setWishlistProducts(favoriteProducts);
-      })
-      .catch((error) => console.error("Error loading profile:", error));
+      }
+    });
+
+    // Fetch other data in parallel without blocking user profile
+    Promise.all([
+      fetchJson("/api/orders"),
+      fetchJson("/api/profile/addresses"),
+      fetchJson("/api/profile/favorites"),
+      fetchJson("/api/profile/favorite-products"),
+    ]).then(([dbOrders, dbAddresses, favorites, favoriteProducts]) => {
+      if (Array.isArray(dbOrders)) setOrders(dbOrders);
+      if (Array.isArray(dbAddresses)) {
+        setAddresses(dbAddresses);
+        syncProfileAddressFromDefault(dbAddresses);
+      }
+      if (Array.isArray(favorites)) setWishlistColors(favorites);
+      if (Array.isArray(favoriteProducts)) setWishlistProducts(favoriteProducts);
+    });
   }, [router, authSession, authStatus]);
 
   if (!mounted) return null;
@@ -144,7 +159,7 @@ export function ProfileClient() {
   };
 
   const handleLogout = () => {
-    signOut({ callbackUrl: "/" });
+    signOut({ callbackUrl: window.location.origin });
   };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
