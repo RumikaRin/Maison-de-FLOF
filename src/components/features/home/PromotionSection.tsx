@@ -22,7 +22,7 @@ export function PromotionSection() {
             <div className="absolute inset-0 bg-gradient-to-tr from-jotun-teal/5 to-transparent rounded-2xl -z-10" />
             <div className="relative w-full h-full rounded-[2rem] overflow-hidden shadow-2xl">
               <Image
-                src="/product_interior.png"
+                src="/product_interior.webp"
                 alt="Majestic Premium Paint"
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-105"

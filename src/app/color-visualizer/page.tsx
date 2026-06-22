@@ -33,25 +33,25 @@ const MOCK_ROOMS = [
     id: "facade",
     name: "Mặt tiền nhà",
     nameEn: "House Facade",
-    baseImage: "/facade_sage.png"
+    baseImage: "/facade_sage.webp"
   },
   {
     id: "living",
     name: "Phòng khách",
     nameEn: "Living Room",
-    baseImage: "/living_sage.png"
+    baseImage: "/living_sage.webp"
   },
   {
     id: "bedroom",
     name: "Phòng ngủ",
     nameEn: "Bedroom",
-    baseImage: "/bedroom_beige.png"
+    baseImage: "/bedroom_beige.webp"
   },
   {
     id: "kitchen",
     name: "Phòng bếp",
     nameEn: "Kitchen",
-    baseImage: "/kitchen_grey.png"
+    baseImage: "/kitchen_grey.webp"
   }
 ];
 
@@ -68,10 +68,10 @@ const CURATED_COMBINATIONS = [
     descriptionVi: "Sự kết hợp giữa xanh rêu đất mộc mạc và trắng ngà ấm áp, mang lại sự bình yên, thư thái.",
     descriptionEn: "A rustic sage green paired with warm ivory white, delivering serene tranquility.",
     images: {
-      facade: "/facade_sage.png",
-      living: "/living_sage.png",
-      bedroom: "/bedroom_sage.png",
-      kitchen: "/kitchen_sage.png"
+      facade: "/facade_sage.webp",
+      living: "/living_sage.webp",
+      bedroom: "/bedroom_sage.webp",
+      kitchen: "/kitchen_sage.webp"
     }
   },
   {
@@ -86,10 +86,10 @@ const CURATED_COMBINATIONS = [
     descriptionVi: "Tông màu trung tính be cát ấm kết hợp kem vani ngọt ngào tạo cảm giác rộng rãi, dễ chịu.",
     descriptionEn: "Earth-toned sandy beige combined with sweet vanilla cream for a spacious, cozy look.",
     images: {
-      facade: "/facade_beige.png",
-      living: "/living_beige.png",
-      bedroom: "/bedroom_beige.png",
-      kitchen: "/kitchen_beige.png"
+      facade: "/facade_beige.webp",
+      living: "/living_beige.webp",
+      bedroom: "/bedroom_beige.webp",
+      kitchen: "/kitchen_beige.webp"
     }
   },
   {
@@ -104,10 +104,10 @@ const CURATED_COMBINATIONS = [
     descriptionVi: "Màu cam đất ấm kết hợp sắc nâu gỗ sồi sang trọng mang đậm tinh thần kiến trúc hiện đại.",
     descriptionEn: "Warm terracotta earth tones styled with premium oak wood brown for a timeless design.",
     images: {
-      facade: "/facade_terracotta.png",
-      living: "/living_terracotta.png",
-      bedroom: "/bedroom_terracotta.png",
-      kitchen: "/kitchen_terracotta.png"
+      facade: "/facade_terracotta.webp",
+      living: "/living_terracotta.webp",
+      bedroom: "/bedroom_terracotta.webp",
+      kitchen: "/kitchen_terracotta.webp"
     }
   },
   {
@@ -122,10 +122,10 @@ const CURATED_COMBINATIONS = [
     descriptionVi: "Sự tương phản sắc nét giữa xám sương mù và xám than củi đậm chất đô thị tối giản.",
     descriptionEn: "A sharp contrast of mist grey and deep charcoal slate, perfect for modern minimalism.",
     images: {
-      facade: "/facade_grey.png",
-      living: "/living_grey.png",
-      bedroom: "/bedroom_grey.png",
-      kitchen: "/kitchen_grey.png"
+      facade: "/facade_grey.webp",
+      living: "/living_grey.webp",
+      bedroom: "/bedroom_grey.webp",
+      kitchen: "/kitchen_grey.webp"
     }
   },
   {
@@ -140,10 +140,10 @@ const CURATED_COMBINATIONS = [
     descriptionVi: "Không gian mang hơi gió biển khơi mát mẻ từ xanh pastel dịu và sắc cát ấm bình yên.",
     descriptionEn: "A cool ocean breeze style with soft pastel blue paired with peaceful sand beige.",
     images: {
-      facade: "/facade_p5.png",
-      living: "/living_p5.png",
-      bedroom: "/bedroom_p5.png",
-      kitchen: "/kitchen_p5.png"
+      facade: "/facade_p5.webp",
+      living: "/living_p5.webp",
+      bedroom: "/bedroom_p5.webp",
+      kitchen: "/kitchen_p5.webp"
     }
   },
   {
@@ -158,10 +158,10 @@ const CURATED_COMBINATIONS = [
     descriptionVi: "Sự kết hợp hoài cổ, ấm cúng và đầy tính nghệ thuật giữa vàng mù tạt cổ điển và xanh ô-liu trầm ấm.",
     descriptionEn: "A nostalgic, warm and artistic combination of classic mustard gold and warm olive green.",
     images: {
-      facade: "/facade_p6.png",
-      living: "/living_p6.png",
-      bedroom: "/bedroom_p6.png",
-      kitchen: "/kitchen_p6.png"
+      facade: "/facade_p6.webp",
+      living: "/living_p6.webp",
+      bedroom: "/bedroom_p6.webp",
+      kitchen: "/kitchen_p6.webp"
     }
   }
 ];
@@ -229,7 +229,7 @@ export default function ColorVisualizerPage() {
             className="lg:col-span-7 relative min-h-[320px] lg:min-h-full overflow-hidden"
           >
             <Image
-              src="/facade_sage.png"
+              src="/facade_sage.webp"
               alt="Premium House Exterior"
               fill
               className="object-cover"

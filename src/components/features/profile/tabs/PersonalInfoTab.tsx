@@ -43,7 +43,7 @@ export function PersonalInfoTab({
             <div key={product.id} className="relative rounded-2xl border border-warm-200 p-3">
               <Link href={`/products/${product.slug}`} className="block">
                 <div className="relative h-32 rounded-xl bg-warm-50">
-                  <Image src={product.images?.[0] || "/product_interior.png"} alt={product.name} fill className="object-contain p-3" />
+                  <Image src={product.images?.[0] || "/product_interior.webp"} alt={product.name} fill className="object-contain p-3" />
                 </div>
                 <h4 className="mt-3 text-xs font-bold text-warm-900">{language === "vi" ? product.name : product.nameEn}</h4>
                 <p className="mt-1 text-xs font-bold text-jotun-teal">{formatPrice(product.price * (1 - product.discountPercent / 100))}</p>
