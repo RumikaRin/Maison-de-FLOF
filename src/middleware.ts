@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { InMemoryRateLimiter } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
+import { getRateLimitPolicy } from "@/lib/security/rate-limit-policy";
 
 const authMiddleware = NextAuth(authConfig).auth;
 
@@ -17,12 +18,19 @@ export default async function middleware(request: NextRequest, event: any) {
   // Extract client IP address securely
   const ip = getClientIp(request);
 
-  // 1. Rate Limit for Credentials Auth (Login brute-force protection)
-  if (pathname === "/api/auth/callback/credentials") {
-    const rateCheck = await authLimiter.checkLimit(`auth_${ip}`);
+  // 1. Rate Limit for sensitive auth endpoints and general API routes
+  const rateLimitPolicy = getRateLimitPolicy(pathname);
+  if (rateLimitPolicy) {
+    const limiter = rateLimitPolicy.limiter === "auth" ? authLimiter : apiLimiter;
+    const rateCheck = await limiter.checkLimit(`${rateLimitPolicy.keyPrefix}_${ip}`);
     if (!rateCheck.success) {
       return new NextResponse(
-        JSON.stringify({ error: "Too many login attempts. Please try again later." }),
+        JSON.stringify({
+          error:
+            rateLimitPolicy.limiter === "auth"
+              ? "Too many attempts. Please try again later."
+              : "Too many requests. Please slow down.",
+        }),
         {
           status: 429,
           headers: {
@@ -34,24 +42,7 @@ export default async function middleware(request: NextRequest, event: any) {
     }
   }
 
-  // 2. Rate Limit for general API routes
-  if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
-    const rateCheck = await apiLimiter.checkLimit(`api_${ip}`);
-    if (!rateCheck.success) {
-      return new NextResponse(
-        JSON.stringify({ error: "Too many requests. Please slow down." }),
-        {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": Math.ceil((rateCheck.resetTime - Date.now()) / 1000).toString(),
-          },
-        }
-      );
-    }
-  }
-
-  // 3. Delegate to authentication middleware
+  // 2. Delegate to authentication middleware
   return authMiddleware(request as any, event);
 }
 
@@ -63,4 +54,3 @@ export const config = {
     "/api/:path*",
   ],
 };
-
