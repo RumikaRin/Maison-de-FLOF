@@ -134,12 +134,34 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     createdAt: r.createdAt.toISOString()
   }));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": mappedProduct.name,
+    "image": mappedProduct.images[0] || "",
+    "description": mappedProduct.description || "",
+    "sku": mappedProduct.sku,
+    "offers": {
+      "@type": "Offer",
+      "url": `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/products/${mappedProduct.slug}`,
+      "priceCurrency": "VND",
+      "price": mappedProduct.price,
+      "availability": mappedProduct.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    }
+  };
+
   return (
-    <ProductClient
-      initialProduct={mappedProduct}
-      initialRelatedPaints={mappedRelated}
-      initialColorCatalog={colorsData}
-      initialReviews={mappedReviews}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductClient
+        initialProduct={mappedProduct}
+        initialRelatedPaints={mappedRelated}
+        initialColorCatalog={colorsData}
+        initialReviews={mappedReviews}
+      />
+    </>
   );
 }

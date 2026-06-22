@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const rateLimitRes = rateLimit(request);
+    const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
       return Response.json({ error: "Too many requests" }, { status: 429 });
     }

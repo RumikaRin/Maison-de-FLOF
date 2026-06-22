@@ -3,6 +3,7 @@ import { authConfig } from "@/auth.config";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { InMemoryRateLimiter } from "@/lib/rate-limiter";
+import { getClientIp } from "@/lib/ip";
 
 const authMiddleware = NextAuth(authConfig).auth;
 
@@ -13,12 +14,12 @@ const apiLimiter = new InMemoryRateLimiter(60 * 1000, 60);  // 60 requests per m
 export default async function middleware(request: NextRequest, event: any) {
   const { pathname } = request.nextUrl;
   
-  // Extract client IP address
-  const ip = request.headers.get("x-forwarded-for") || (request as any).ip || "127.0.0.1";
+  // Extract client IP address securely
+  const ip = getClientIp(request);
 
   // 1. Rate Limit for Credentials Auth (Login brute-force protection)
   if (pathname === "/api/auth/callback/credentials") {
-    const rateCheck = authLimiter.checkLimit(`auth_${ip}`);
+    const rateCheck = await authLimiter.checkLimit(`auth_${ip}`);
     if (!rateCheck.success) {
       return new NextResponse(
         JSON.stringify({ error: "Too many login attempts. Please try again later." }),
@@ -35,7 +36,7 @@ export default async function middleware(request: NextRequest, event: any) {
 
   // 2. Rate Limit for general API routes
   if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
-    const rateCheck = apiLimiter.checkLimit(`api_${ip}`);
+    const rateCheck = await apiLimiter.checkLimit(`api_${ip}`);
     if (!rateCheck.success) {
       return new NextResponse(
         JSON.stringify({ error: "Too many requests. Please slow down." }),
@@ -62,3 +63,4 @@ export const config = {
     "/api/:path*",
   ],
 };
+

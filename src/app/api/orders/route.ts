@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { apiErrorResponse, requireUser } from "@/lib/api-auth";
 import { checkoutSchema } from "@/lib/order-validation";
 import { processCheckout } from "@/services/checkout.service";
+import { getClientIp } from "@/lib/ip";
 
 async function serializeOrders(
   orders: Awaited<ReturnType<typeof getOrders>>,
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     const input = parsed.data;
     const idempotencyKey = request.headers.get("Idempotency-Key");
-    const ipAddr = request.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ipAddr = getClientIp(request);
     const returnUrl = new URL("/api/vnpay/return", request.url).toString();
 
     const result = await processCheckout(input, sessionUser, idempotencyKey, ipAddr, returnUrl);

@@ -57,10 +57,29 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
   // We can fetch related blogs here. For now just passing empty array since old code didn't actually fetch them.
   const relatedBlogs: any[] = [];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": mappedBlog.title,
+    "image": mappedBlog.image ? [mappedBlog.image] : [],
+    "datePublished": blog.createdAt.toISOString(),
+    "description": mappedBlog.summary || "",
+    "author": [{
+      "@type": "Person",
+      "name": mappedBlog.author
+    }]
+  };
+
   return (
-    <BlogClient
-      initialBlog={mappedBlog}
-      initialRelatedBlogs={relatedBlogs}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BlogClient
+        initialBlog={mappedBlog}
+        initialRelatedBlogs={relatedBlogs}
+      />
+    </>
   );
 }

@@ -4,16 +4,38 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
   try {
-    const rateLimitRes = rateLimit(request);
+    const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
-    const blogs = await db.blog.findMany({
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+    
+    let page = 1;
+    let limit = 20;
+    
+    if (pageParam) page = parseInt(pageParam);
+    if (limitParam) limit = parseInt(limitParam);
+
+    const isPaginationRequested = !!pageParam || !!limitParam;
+
+    const queryOptions: any = {
       where: { isActive: true },
       include: { author: { select: { name: true } } },
       orderBy: { createdAt: "desc" }
-    });
+    };
+
+    if (isPaginationRequested) {
+      queryOptions.skip = (page - 1) * limit;
+      queryOptions.take = limit;
+    }
+
+    const [blogs, total] = await Promise.all([
+      db.blog.findMany(queryOptions) as Promise<any[]>,
+      isPaginationRequested ? db.blog.count({ where: { isActive: true } }) : Promise.resolve(0)
+    ]);
 
     const adapted = blogs.map((b) => ({
       id: b.id,
@@ -32,6 +54,18 @@ export async function GET(request: NextRequest) {
       createdAt: b.createdAt.toISOString().split("T")[0]
     }));
 
+    if (isPaginationRequested) {
+      return NextResponse.json({
+        data: adapted,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }, {
+        headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+      });
+    }
+
     return NextResponse.json(adapted, {
       headers: {
         "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
@@ -42,3 +76,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 });
   }
 }
+

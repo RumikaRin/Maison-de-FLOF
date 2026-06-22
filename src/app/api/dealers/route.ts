@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
   try {
-    const rateLimitRes = rateLimit(request);
+    const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }

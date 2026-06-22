@@ -1,32 +1,30 @@
 import { NextRequest } from "next/server";
+import { UnifiedRateLimiter } from "./rate-limiter";
+import { getClientIp } from "./ip";
 
-interface RateLimitInfo {
-  count: number;
-  resetTime: number;
-}
+// Cache rate limiters by configuration to reuse them
+const limiters = new Map<string, UnifiedRateLimiter>();
 
-const rateLimitMap = new Map<string, RateLimitInfo>();
-
-export function rateLimit(
+export async function rateLimit(
   req: NextRequest,
   limit: number = 60, // Default: 60 requests per window
   windowMs: number = 60000 // Default: 1 minute
 ) {
-  const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
-  const now = Date.now();
-  
-  let info = rateLimitMap.get(ip);
-  
-  if (!info || info.resetTime < now) {
-    info = { count: 1, resetTime: now + windowMs };
-    rateLimitMap.set(ip, info);
-    return { success: true, remaining: limit - 1, reset: info.resetTime };
+  const ip = getClientIp(req);
+  const registryKey = `${limit}_${windowMs}`;
+
+  let limiter = limiters.get(registryKey);
+  if (!limiter) {
+    limiter = new UnifiedRateLimiter(windowMs, limit);
+    limiters.set(registryKey, limiter);
   }
-  
-  if (info.count >= limit) {
-    return { success: false, remaining: 0, reset: info.resetTime };
-  }
-  
-  info.count++;
-  return { success: true, remaining: limit - info.count, reset: info.resetTime };
+
+  const rateCheck = await limiter.checkLimit(`api_${ip}`);
+
+  return {
+    success: rateCheck.success,
+    remaining: rateCheck.remaining,
+    reset: rateCheck.resetTime,
+  };
 }
+
