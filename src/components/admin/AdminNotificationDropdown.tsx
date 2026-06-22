@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Bell, Check, Package, FileText, MessageCircle, Star, AlertTriangle } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,7 +47,7 @@ export function AdminNotificationDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/notifications?type=${activeTab}&limit=20`);
       if (res.ok) {
@@ -58,13 +58,13 @@ export function AdminNotificationDropdown() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [activeTab]);
 
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 10000); // Poll every 10s
     return () => clearInterval(interval);
-  }, [activeTab]); // Refetch when tab changes
+  }, [fetchNotifications]); // Refetch when tab changes
 
   const handleMarkAllRead = async () => {
     try {
