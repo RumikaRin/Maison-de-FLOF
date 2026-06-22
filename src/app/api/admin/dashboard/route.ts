@@ -9,14 +9,28 @@ export async function GET() {
     since.setHours(0, 0, 0, 0);
     since.setDate(since.getDate() - 29);
 
-    const [orders, revenueAggregate, completedOrdersCount, colorsCount, bestSellers, lowStockCount] = await Promise.all([
+    const [recentOrders, chartOrders, revenueAggregate, completedOrdersCount, colorsCount, bestSellers, lowStockCount] = await Promise.all([
       db.order.findMany({
-        where: { createdAt: { gte: since } },
-        include: {
-          customer: { include: { user: true } },
-          items: { include: { paint: true } },
-        },
         orderBy: { createdAt: "desc" },
+        take: 4,
+        select: {
+          orderNumber: true,
+          createdAt: true,
+          total: true,
+          status: true,
+          customer: { select: { user: { select: { name: true, email: true } } } },
+          items: {
+            select: {
+              quantity: true,
+              productName: true,
+              paint: { select: { name: true } },
+            },
+          },
+        },
+      }),
+      db.order.findMany({
+        where: { createdAt: { gte: since }, status: "COMPLETED" },
+        select: { createdAt: true, total: true },
       }),
       db.order.aggregate({
         where: { status: "COMPLETED" },
@@ -32,10 +46,9 @@ export async function GET() {
       db.paint.count({ where: { isActive: true, stock: { lte: 5 } } }),
     ]);
 
-    const completedOrders = orders.filter((order) => order.status === "COMPLETED");
     const totalRevenue = Number(revenueAggregate._sum.total || 0);
     const revenueByDate = new Map<string, number>();
-    completedOrders.forEach((order) => {
+    chartOrders.forEach((order) => {
       const date = order.createdAt.toISOString().split("T")[0];
       revenueByDate.set(date, (revenueByDate.get(date) || 0) + Number(order.total));
     });
@@ -59,7 +72,7 @@ export async function GET() {
         colorsCount,
         lowStockCount,
       },
-      recentOrders: orders.slice(0, 4).map((order) => ({
+      recentOrders: recentOrders.map((order) => ({
         id: order.orderNumber,
         date: order.createdAt.toISOString().split("T")[0],
         customer: order.customer.user.name || "Khách hàng",
