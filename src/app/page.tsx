@@ -2,7 +2,7 @@ import { HomeClient } from "@/components/features/home/HomeClient";
 import { Metadata } from "next";
 import { db } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Maison de FLOF - Sắc màu nghệ thuật",
@@ -19,17 +19,20 @@ async function getHomePageData() {
         colors: { select: { color: { select: { code: true } } } },
       },
       orderBy: { createdAt: "desc" },
+      take: 12,
     }),
     db.paintColor.findMany({
       include: {
         collection: true,
       },
-      orderBy: { code: "asc" }
+      orderBy: { code: "asc" },
+      take: 36,
     }),
     db.blog.findMany({
       where: { isActive: true },
       include: { author: { select: { name: true } } },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      take: 3,
     })
   ]);
 
