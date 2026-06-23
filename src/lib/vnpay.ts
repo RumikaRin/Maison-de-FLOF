@@ -21,11 +21,21 @@ export function resolveVnpayConfig(env: VnpayEnv = process.env) {
     };
 }
 
-const vnpayConfig = resolveVnpayConfig();
+export function createVnpayInstance(env: VnpayEnv = process.env) {
+    return new VNPay({
+        ...resolveVnpayConfig(env),
+        hashAlgorithm: HashAlgorithm.SHA512,
+        enableLog: env.NODE_ENV !== "production",
+        loggerFn: ignoreLogger,
+    });
+}
 
-export const vnpayInstance = new VNPay({
-    ...vnpayConfig,
-    hashAlgorithm: HashAlgorithm.SHA512,
-    enableLog: process.env.NODE_ENV !== "production",
-    loggerFn: ignoreLogger,
-});
+let cachedVnpayInstance: VNPay | null = null;
+
+export function getVnpayInstance() {
+    if (!cachedVnpayInstance) {
+        cachedVnpayInstance = createVnpayInstance();
+    }
+
+    return cachedVnpayInstance;
+}

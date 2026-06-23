@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveVnpayConfig } from "../src/lib/vnpay.ts";
+import { createVnpayInstance, resolveVnpayConfig } from "../src/lib/vnpay.ts";
 
 test("VNPay config rejects missing production credentials", () => {
   assert.throws(
@@ -34,4 +34,18 @@ test("VNPay config supports explicit production host", () => {
   assert.equal(config.secureSecret, "real-secret");
   assert.equal(config.vnpayHost, "https://pay.vnpay.vn");
   assert.equal(config.testMode, false);
+});
+
+test("VNPay client creation validates credentials only when invoked", () => {
+  assert.equal(typeof createVnpayInstance({ NODE_ENV: "development" }).buildPaymentUrl, "function");
+
+  assert.throws(
+    () =>
+      createVnpayInstance({
+        NODE_ENV: "production",
+        VNPAY_TMN_CODE: "",
+        VNPAY_HASH_SECRET: "",
+      }),
+    /VNPAY_TMN_CODE and VNPAY_HASH_SECRET/,
+  );
 });
