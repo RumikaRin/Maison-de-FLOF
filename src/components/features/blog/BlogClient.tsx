@@ -10,7 +10,6 @@ import {
   User,
   Clock,
   Sparkles,
-  Calculator,
   ArrowRight
 } from "lucide-react";
 
@@ -128,27 +127,27 @@ export function BlogClient({ initialBlog, initialRelatedBlogs }: BlogClientProps
         )}
 
         {blog.id === "blog-2" && (
-          <div className="bg-gradient-to-r from-jotun-yellow/5 to-amber-500/5 dark:from-zinc-900/40 border border-border p-6 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6 my-8 shadow-sm">
+          <div className="bg-gradient-to-r from-jotun-teal/5 to-indigo-500/5 dark:from-zinc-900/40 border border-border p-6 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6 my-8 shadow-sm">
             <div className="flex gap-4 items-start">
-              <div className="p-3 bg-jotun-yellow/15 text-jotun-yellow rounded-full shrink-0">
-                <Calculator className="h-6 w-6" />
+              <div className="p-3 bg-jotun-teal/15 text-jotun-teal rounded-full shrink-0">
+                <Sparkles className="h-6 w-6" />
               </div>
               <div>
                 <h4 className="font-bold text-base mb-1">
-                  {language === "vi" ? "Tính toán lượng sơn thi công" : "Calculate Paint Amount"}
+                  {language === "vi" ? "Thử nghiệm phối màu 3D trực quan" : "Try Our 3D Color Visualizer"}
                 </h4>
                 <p className="text-xs text-muted-foreground">
                   {language === "vi"
-                    ? "Sử dụng công cụ tính toán lượng sơn để lập định mức tối ưu nhất cho công trình của bạn."
-                    : "Use our paint calculator tool to get the most optimized paint estimation for your walls."}
+                    ? "Trực quan hóa màu sơn mong ước trên các không gian phòng mẫu 3D thực tế trước khi quyết định mua hàng."
+                    : "Visualize your dream paint colors on interactive 3D model rooms before making a purchase."}
                 </p>
               </div>
             </div>
             <Link
-              href="/paint-calculator"
-              className="bg-[#88734C] text-white font-bold text-xs px-6 py-3 rounded hover:bg-[#88734C]/95 transition-colors shrink-0 flex items-center gap-2"
+              href="/color-visualizer"
+              className="bg-jotun-teal text-white font-bold text-xs px-6 py-3 rounded hover:bg-jotun-darkTeal transition-colors shrink-0 flex items-center gap-2"
             >
-              {language === "vi" ? "Tính toán ngay" : "Calculate Now"}
+              {language === "vi" ? "Trải nghiệm ngay" : "Try It Now"}
               <ArrowRight className="h-3.5 w-3.5 text-white" />
             </Link>
           </div>

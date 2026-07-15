@@ -12,6 +12,13 @@ export function getRateLimitPolicy(pathname: string): RateLimitPolicy | null {
     return { keyPrefix: "register", limiter: "auth" };
   }
 
+  if (
+    pathname === "/api/auth/forgot-password" ||
+    pathname === "/api/auth/reset-password"
+  ) {
+    return { keyPrefix: "auth", limiter: "auth" };
+  }
+
   if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
     return { keyPrefix: "api", limiter: "api" };
   }

@@ -7,7 +7,6 @@ import {
   calculateShippingFee,
   isCouponUsable,
 } from "@/lib/commerce";
-import { sendOrderConfirmationEmail } from "@/lib/email";
 import { hashCheckoutRequest, isValidIdempotencyKey } from "@/lib/idempotency";
 import { z } from "zod";
 import { paymentService } from "./vnpay.service";
@@ -233,18 +232,21 @@ export async function processCheckout(
       await tx.notification.createMany({ data: notifications });
     }
 
-    // Insert to Outbox to be processed asynchronously
-    await tx.emailOutbox.create({
-      data: {
-        type: "ORDER_CONFIRMATION",
-        payload: {
-          email: sessionUser.email,
-          fullName: input.shipping.fullName,
-          orderNumber,
-          total
-        }
-      }
-    });
+    // COD / TRANSFER: confirm receipt immediately.
+    // VNPAY: wait until payment is PAID (IPN/return) before emailing.
+    if (input.paymentMethod !== "VNPAY") {
+      await tx.emailOutbox.create({
+        data: {
+          type: "ORDER_CONFIRMATION",
+          payload: {
+            email: sessionUser.email,
+            fullName: input.shipping.fullName,
+            orderNumber,
+            total: Number(total),
+          },
+        },
+      });
+    }
 
     return { orderId: order.id, orderNumber: order.orderNumber, total: Number(total) };
   });

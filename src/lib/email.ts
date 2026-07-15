@@ -47,3 +47,14 @@ export function sendOrderStatusEmail(to: string, orderNumber: string, status: st
     `<p>Đơn hàng <strong>${escapeHtml(orderNumber)}</strong> đã chuyển sang trạng thái <strong>${escapeHtml(status)}</strong>.</p>`,
   );
 }
+
+export function sendPasswordResetEmail(to: string, name: string, resetUrl: string) {
+  return sendEmail(
+    to,
+    "Đặt lại mật khẩu Maison de FLOF",
+    `<p>Xin chào <strong>${escapeHtml(name)}</strong>,</p>
+     <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
+     <p><a href="${escapeHtml(resetUrl)}">Nhấn vào đây để đặt lại mật khẩu</a></p>
+     <p>Liên kết có hiệu lực trong 1 giờ. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>`,
+  );
+}

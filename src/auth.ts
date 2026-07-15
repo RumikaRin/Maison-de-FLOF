@@ -5,6 +5,10 @@ import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { authConfig } from "@/auth.config";
 import GoogleProvider from "next-auth/providers/google";
+import type { RoleType } from "@prisma/client";
+
+/** Re-check role from DB at least every 5 minutes so demotions take effect. */
+const ROLE_REFRESH_MS = 5 * 60 * 1000;
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -24,11 +28,59 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   } as any,
   session: { strategy: "jwt" },
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user.role as RoleType) || "CUSTOMER";
+        token.roleCheckedAt = Date.now();
+        return token;
+      }
+
+      const roleCheckedAt =
+        typeof token.roleCheckedAt === "number" ? token.roleCheckedAt : 0;
+      const shouldRefresh =
+        Boolean(token.id) && Date.now() - roleCheckedAt >= ROLE_REFRESH_MS;
+
+      if (shouldRefresh && typeof token.id === "string") {
+        try {
+          const dbUser = await db.user.findUnique({
+            where: { id: token.id },
+            include: { role: true },
+          });
+          if (!dbUser) {
+            token.role = "CUSTOMER";
+            token.id = undefined;
+          } else {
+            token.role = dbUser.role.type;
+            token.email = dbUser.email;
+          }
+        } catch (error) {
+          console.error("JWT role refresh failed:", error);
+        }
+        token.roleCheckedAt = Date.now();
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = typeof token.id === "string" ? token.id : "";
+        session.user.role =
+          token.role === "ADMIN" || token.role === "STAFF" || token.role === "CUSTOMER"
+            ? token.role
+            : "CUSTOMER";
+      }
+      return session;
+    },
+  },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: process.env.AUTH_ALLOW_DANGEROUS_EMAIL_LINKING === "true",
+      allowDangerousEmailAccountLinking:
+        process.env.AUTH_ALLOW_DANGEROUS_EMAIL_LINKING === "true",
     }),
     Credentials({
       name: "credentials",
