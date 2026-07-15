@@ -135,7 +135,7 @@ export function FeaturedProductsSection({
                       <Link href={`/products/${slug}`} className="flex flex-col gap-2.5 sm:gap-4 flex-grow cursor-pointer">
                         <div className="relative h-36 xs:h-44 sm:h-64 md:h-80 w-full bg-jotun-ivory-100 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-2.5 sm:p-6 shadow-inner">
                           <Image
-                            src={paint.images?.[0] || "/product_interior.png"}
+                            src={paint.images?.[0] || "/product_interior.webp"}
                             alt={language === "vi" ? prod.name : (prod.nameEn || prod.name)}
                             fill
                             className="object-contain p-2.5 sm:p-6 transition-transform duration-700 group-hover:scale-105"

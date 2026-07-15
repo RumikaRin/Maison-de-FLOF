@@ -66,7 +66,7 @@ export function VisualizerPromoSection() {
               className="relative w-full max-w-[620px] aspect-square rounded-3xl overflow-hidden shadow-2xl cursor-pointer"
             >
               <Image
-                src="/visualizer_mockup.png"
+                src="/visualizer_mockup.webp"
                 alt="Modern Visualizer Design with Dual Colors"
                 fill
                 className="object-cover transition-transform duration-700 hover:scale-103"

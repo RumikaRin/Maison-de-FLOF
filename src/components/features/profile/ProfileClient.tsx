@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
+import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
 import { toast } from "sonner";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { ProfileSidebar } from "./ProfileSidebar";
@@ -192,6 +193,10 @@ export function ProfileClient() {
     }
     if (newPassword !== confirmPassword) {
       toast.error(language === "vi" ? "Mật khẩu mới không trùng khớp" : "New passwords do not match");
+      return;
+    }
+    if (!isPasswordStrong(newPassword)) {
+      toast.error(passwordPolicyMessage(language === "vi" ? "vi" : "en"));
       return;
     }
     try {

@@ -10,7 +10,7 @@ import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
 import { Toaster } from "sonner";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
-import { ChatBubble } from "@/components/layout/ChatBubble";
+import { LazyChatBubble } from "@/components/layout/LazyChatBubble";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -96,7 +96,7 @@ export default function RootLayout({
                 }}
               />
               <ScrollToTop />
-              <ChatBubble />
+              <LazyChatBubble />
               <Suspense fallback={null}>
                 <GlobalNavigationLoader />
               </Suspense>

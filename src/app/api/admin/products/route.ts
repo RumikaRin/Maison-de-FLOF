@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
           costPrice: parsed.data.costPrice ?? parsed.data.price * 0.6,
           discountPercent: parsed.data.discountPercent,
           stock: parsed.data.stock,
-          images: ["/product_interior.png"],
+          images: ["/product_interior.webp"],
           colors: { create: colorIds.map((colorId) => ({ colorId })) },
         },
         include: includeProductRelations,

@@ -3,11 +3,12 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requireAdmin } from "@/lib/api-auth";
+import { passwordSchema } from "@/lib/password-policy";
 
 const createUserSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email(),
-  password: z.string().min(8).max(100),
+  password: passwordSchema,
   role: z.enum(["CUSTOMER", "STAFF", "ADMIN"]),
 });
 

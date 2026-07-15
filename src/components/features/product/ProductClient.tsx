@@ -235,7 +235,7 @@ export function ProductClient({
         <div className="lg:col-span-5 flex flex-col gap-4">
           <div className="relative h-[450px] w-full rounded-xl overflow-hidden border border-border bg-zinc-50 shadow-sm">
             <Image
-              src={paint.images?.[0] || "/product_interior.png"}
+              src={paint.images?.[0] || "/product_interior.webp"}
               alt={paint.name}
               fill
               priority
@@ -669,7 +669,7 @@ export function ProductClient({
                 >
                   <div className="relative h-48 w-full bg-zinc-100 rounded-md overflow-hidden">
                     <Image
-                      src={item.images?.[0] || "/product_interior.png"}
+                      src={item.images?.[0] || "/product_interior.webp"}
                       alt={item.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"

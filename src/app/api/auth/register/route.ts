@@ -3,17 +3,23 @@ import { z } from "zod";
 import { ApiError, apiErrorResponse } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
+import { passwordSchema } from "@/lib/password-policy";
 
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
-  password: z.string().min(8).max(100),
+  password: passwordSchema,
 });
 
 export async function POST(request: Request) {
   try {
     const parsed = registerSchema.safeParse(await request.json());
-    if (!parsed.success) throw new ApiError(400, "Thông tin đăng ký không hợp lệ");
+    if (!parsed.success) {
+      throw new ApiError(
+        400,
+        parsed.error.issues[0]?.message || "Thông tin đăng ký không hợp lệ",
+      );
+    }
     const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
     if (existing) throw new ApiError(409, "Email đã được đăng ký");
     const customerRole = await db.role.findUnique({ where: { type: "CUSTOMER" } });

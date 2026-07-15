@@ -75,7 +75,7 @@ export function HeroSection() {
         >
           <div className="relative aspect-[4/3] sm:h-[450px] md:h-[620px] lg:h-[720px] xl:h-[800px] lg:aspect-none w-full overflow-hidden bg-white shadow-2xl rounded-3xl border border-black/5 max-w-[960px]">
             <Image
-              src="/hero_bg.png"
+              src="/hero_bg.webp"
               alt={language === "vi" ? "Không gian sống cao cấp" : "Premium living space"}
               fill
               className="object-cover transition-transform duration-1000 hover:scale-103"

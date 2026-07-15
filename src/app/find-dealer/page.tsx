@@ -161,7 +161,7 @@ export default function FindDealerPage() {
             >
               <div className="relative w-full max-w-[620px] aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-black/5 bg-white">
                 <Image
-                  src="/showroom_hero.png"
+                  src="/showroom_hero.webp"
                   alt={language === "vi" ? "Showroom sơn cao cấp" : "Premium Paint Showroom"}
                   fill
                   className="object-cover"

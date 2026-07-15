@@ -39,3 +39,8 @@ test("terminal order states cannot produce further side effects", () => {
   assert.equal(canTransitionOrderStatus("CANCELLED", "PENDING"), false);
   assert.equal(canTransitionOrderStatus("CANCELLED", "COMPLETED"), false);
 });
+
+test("pending orders can still be cancelled for unpaid VNPay timeout flow", () => {
+  assert.equal(canTransitionOrderStatus("PENDING", "CANCELLED"), true);
+  assert.equal(canTransitionOrderStatus("PENDING", "CONFIRMED"), true);
+});

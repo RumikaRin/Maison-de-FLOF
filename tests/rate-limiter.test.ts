@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { getClientIp } from "../src/lib/ip.ts";
 import { UnifiedRateLimiter } from "../src/lib/rate-limiter.ts";
+import { getRateLimitPolicy } from "../src/lib/security/rate-limit-policy.ts";
 
 // Helper to mock request headers
 function mockRequest(headersDict: Record<string, string>): Request {
@@ -77,4 +78,20 @@ test("UnifiedRateLimiter falls back to memory rate limiting if Redis connection 
   // Clean up
   delete process.env.UPSTASH_REDIS_REST_URL;
   delete process.env.UPSTASH_REDIS_REST_TOKEN;
+});
+
+test("rate limit policy protects credentials login and account registration separately", () => {
+  assert.deepEqual(getRateLimitPolicy("/api/auth/callback/credentials"), {
+    keyPrefix: "auth",
+    limiter: "auth",
+  });
+  assert.deepEqual(getRateLimitPolicy("/api/auth/register"), {
+    keyPrefix: "register",
+    limiter: "auth",
+  });
+  assert.deepEqual(getRateLimitPolicy("/api/products"), {
+    keyPrefix: "api",
+    limiter: "api",
+  });
+  assert.equal(getRateLimitPolicy("/api/auth/session"), null);
 });

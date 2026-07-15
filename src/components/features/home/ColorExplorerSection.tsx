@@ -98,15 +98,15 @@ export function ColorExplorerSection({
             <div className="relative aspect-[4/3] sm:aspect-video lg:h-[500px] lg:aspect-none w-full overflow-hidden bg-white shadow-md rounded-3xl border border-warm-300 group">
               <Image
                 src={
-                  selectedFamily === "green" ? "/living_sage.png" :
-                  selectedFamily === "beige" ? "/living_beige.png" :
-                  selectedFamily === "blue" ? "/living_p5.png" :
-                  selectedFamily === "grey" ? "/living_grey.png" :
-                  selectedFamily === "yellow" ? "/living_p6.png" :
-                  selectedFamily === "red" ? "/living_terracotta.png" :
-                  selectedFamily === "peach" ? "/living_terracotta.png" :
-                  selectedFamily === "purple" ? "/living_grey.png" :
-                  "/living_sage.png"
+                  selectedFamily === "green" ? "/living_sage.webp" :
+                  selectedFamily === "beige" ? "/living_beige.webp" :
+                  selectedFamily === "blue" ? "/living_p5.webp" :
+                  selectedFamily === "grey" ? "/living_grey.webp" :
+                  selectedFamily === "yellow" ? "/living_p6.webp" :
+                  selectedFamily === "red" ? "/living_terracotta.webp" :
+                  selectedFamily === "peach" ? "/living_terracotta.webp" :
+                  selectedFamily === "purple" ? "/living_grey.webp" :
+                  "/living_sage.webp"
                 }
                 alt={language === "vi" ? "Mô phỏng phòng khách" : "Room Preview"}
                 fill
@@ -384,7 +384,7 @@ export function ColorExplorerSection({
                   <div key={paint.id} className="bg-white p-2 xs:p-3 sm:p-4 border border-warm-300 rounded-2xl hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full relative group text-left min-w-[calc(50%-6px)] xs:min-w-[calc(50%-8px)] sm:min-w-[260px] md:min-w-0 snap-start shrink-0">
                     <Link href={`/products/${paint.slug}`} className="relative w-full aspect-[4/3] bg-warm-50/50 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-1 xs:p-2 shadow-inner shrink-0 cursor-pointer">
                       <Image
-                        src={paint.images?.[0] || "/product_interior.png"}
+                        src={paint.images?.[0] || "/product_interior.webp"}
                         alt={paint.name}
                         fill
                         className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"

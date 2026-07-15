@@ -1,4 +1,4 @@
-import { vnpayInstance } from "@/lib/vnpay";
+import { getVnpayInstance } from "@/lib/vnpay";
 import { PaymentService, CreatePaymentUrlParams, PaymentVerificationResult } from "./payment.service";
 
 export class VNPayService implements PaymentService {
@@ -15,11 +15,11 @@ export class VNPayService implements PaymentService {
         payload.vnp_BankCode = params.bankCode;
     }
 
-    return vnpayInstance.buildPaymentUrl(payload);
+    return getVnpayInstance().buildPaymentUrl(payload);
   }
 
   verifyReturn(query: any): PaymentVerificationResult {
-    const verify = vnpayInstance.verifyReturnUrl(query);
+    const verify = getVnpayInstance().verifyReturnUrl(query);
     return {
       isSuccess: verify.isSuccess,
       message: verify.message,
@@ -32,7 +32,7 @@ export class VNPayService implements PaymentService {
   }
 
   verifyIpn(query: any): PaymentVerificationResult {
-    const verify = vnpayInstance.verifyIpnCall(query);
+    const verify = getVnpayInstance().verifyIpnCall(query);
     return {
       isSuccess: verify.isSuccess,
       message: verify.message,

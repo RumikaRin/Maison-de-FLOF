@@ -32,7 +32,7 @@ export function CheckoutOrderSummary({
           <div key={item.id} className="flex gap-3 items-center justify-between text-xs py-1 border-b border-zinc-50 dark:border-zinc-900 last:border-0">
             <div className="flex items-center gap-2">
               <div className="relative h-10 w-10 border border-border bg-zinc-50 rounded overflow-hidden shrink-0">
-                <Image src={item.paint.images?.[0] || "/product_interior.png"} alt={item.paint.name} fill sizes="40px" className="object-cover" />
+                <Image src={item.paint.images?.[0] || "/product_interior.webp"} alt={item.paint.name} fill sizes="40px" className="object-cover" />
               </div>
               <div>
                 <h4 className="font-bold line-clamp-1">

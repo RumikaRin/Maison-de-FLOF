@@ -5,7 +5,7 @@
 
 Maison de FLOF (FLOF Paint Platform) là một nền tảng thương mại điện tử kết hợp tư vấn phối màu sơn nước hiện đại, được xây dựng dựa trên Next.js 15, React 19, TailwindCSS, Prisma và cơ sở dữ liệu PostgreSQL (Neon DB). 
 
-Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản phẩm, phối màu trực quan trên không gian mẫu (Color Visualizer), tính toán lượng sơn cần thiết (Paint Calculator), tìm kiếm đại lý phân phối gần nhất (Find Dealer), thanh toán trực tuyến qua VNPay cho đến hệ thống quản trị hành chính (Admin Dashboard) mạnh mẽ.
+Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản phẩm, phối màu trực quan trên không gian mẫu (Color Visualizer), tìm kiếm đại lý phân phối gần nhất (Find Dealer), thanh toán trực tuyến qua VNPay cho đến hệ thống quản trị hành chính (Admin Dashboard) mạnh mẽ.
 
 ---
 
@@ -96,7 +96,7 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 │   └── seed.ts              # Dữ liệu mẫu (roles, users, suppliers, colors, paints, dealers)
 ├── public/                  # File tĩnh (logo, hình ảnh phối màu trực quan)
 ├── reports/                 # Báo cáo đồ án & doanh nghiệp (DOCX, PDF)
-├── tests/                   # Unit tests (commerce, paint-calculator, security)
+├── tests/                   # Unit tests (commerce, security)
 ├── tools/                   # Script công cụ hỗ trợ (generate reports)
 ├── src/
 │   ├── app/                 # Next.js App Router Pages
@@ -141,7 +141,6 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 │   │   ├── find-dealer/     # Định vị đại lý bản đồ
 │   │   ├── login/           # Đăng nhập
 │   │   ├── register/        # Đăng ký tài khoản
-│   │   ├── paint-calculator/ # Công cụ tính lượng sơn cần thiết
 │   │   ├── products/        # Danh sách & chi tiết sản phẩm ([slug])
 │   │   ├── profile/         # Hồ sơ cá nhân & lịch sử đơn hàng
 │   │   ├── quote-request/   # Yêu cầu báo giá công trình
@@ -176,7 +175,6 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 │   │   ├── idempotency.ts   # Checkout idempotency logic
 │   │   ├── mock-data.ts     # Dữ liệu mẫu cho Color Visualizer
 │   │   ├── order-validation.ts # Order validation rules
-│   │   ├── paint-calculator.ts # Tính toán lượng sơn
 │   │   ├── permissions.ts   # Authorization & permission checks
 │   │   ├── rate-limit.ts    # Rate limiting (throttle API)
 │   │   ├── rate-limiter.ts  # Rate limiter implementation

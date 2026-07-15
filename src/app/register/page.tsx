@@ -6,6 +6,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
+import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
 import { toast } from "sonner";
 
 
@@ -38,10 +39,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 8) {
-      toast.error(
-        language === "vi" ? "Mật khẩu phải có ít nhất 8 ký tự." : "Password must be at least 8 characters."
-      );
+    if (!isPasswordStrong(password)) {
+      toast.error(passwordPolicyMessage(language === "vi" ? "vi" : "en"));
       return;
     }
 

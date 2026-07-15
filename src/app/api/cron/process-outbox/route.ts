@@ -1,25 +1,22 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { assertCronAuthorized } from "@/lib/cron-auth";
 
 export async function GET(request: Request) {
-  // Simple auth for cron endpoints
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const unauthorized = assertCronAuthorized(request);
+  if (unauthorized) return unauthorized;
 
   try {
-    // Fetch pending or failed emails (up to 3 retries)
     const pendingEmails = await db.emailOutbox.findMany({
       where: {
         OR: [
           { status: "PENDING" },
-          { status: "FAILED", retryCount: { lt: 3 }, nextRetryAt: { lte: new Date() } }
-        ]
+          { status: "FAILED", retryCount: { lt: 3 }, nextRetryAt: { lte: new Date() } },
+        ],
       },
-      take: 10, // Process batch of 10
-      orderBy: { createdAt: "asc" }
+      take: 10,
+      orderBy: { createdAt: "asc" },
     });
 
     if (pendingEmails.length === 0) {
@@ -31,41 +28,49 @@ export async function GET(request: Request) {
     for (const record of pendingEmails) {
       try {
         if (record.type === "ORDER_CONFIRMATION") {
-          const payload = record.payload as any;
+          const payload = record.payload as {
+            email: string;
+            fullName: string;
+            orderNumber: string;
+            total: number;
+          };
           await sendOrderConfirmationEmail(
             payload.email,
             payload.fullName,
             payload.orderNumber,
-            payload.total
+            payload.total,
           );
+        } else if (record.type === "PASSWORD_RESET") {
+          // Password reset emails are sent inline for lower latency;
+          // keep branch for future outbox processing if needed.
         }
 
         await db.emailOutbox.update({
           where: { id: record.id },
-          data: { status: "SENT", updatedAt: new Date() }
+          data: { status: "SENT", updatedAt: new Date() },
         });
-        
+
         results.push({ id: record.id, status: "SENT" });
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(`Failed to send email ${record.id}:`, error);
-        
+
         const retryCount = record.retryCount + 1;
-        // Exponential backoff for retries: 1min, 5min, 15min
         const nextRetryMinutes = retryCount === 1 ? 1 : retryCount === 2 ? 5 : 15;
         const nextRetryAt = new Date(Date.now() + nextRetryMinutes * 60000);
+        const message = error instanceof Error ? error.message : "Unknown error";
 
         await db.emailOutbox.update({
           where: { id: record.id },
-          data: { 
-            status: "FAILED", 
-            error: error.message || "Unknown error",
+          data: {
+            status: "FAILED",
+            error: message,
             retryCount,
             nextRetryAt,
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
 
-        results.push({ id: record.id, status: "FAILED", error: error.message });
+        results.push({ id: record.id, status: "FAILED", error: message });
       }
     }
 
