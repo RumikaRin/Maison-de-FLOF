@@ -6,20 +6,43 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
+/**
+ * Cinematic full-bleed hero (Aura-style immersion)
+ * + clear dual CTAs (product-site clarity from coffee/ecom landings).
+ */
 export function HeroSection() {
   const { language } = useLanguageStore();
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="relative w-full min-h-[min(100dvh,920px)] flex items-center overflow-hidden bg-jotun-ivory pt-20 pb-12 md:pt-16 md:pb-16">
-      <div className="w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+    <section className="relative w-full min-h-[100dvh] flex items-end overflow-hidden bg-warm-950">
+      {/* Full-bleed media */}
+      <div className="absolute inset-0">
+        <Image
+          src="/generated/hero-cinematic.jpg"
+          alt={language === "vi" ? "Không gian sống với màu sơn cao cấp" : "Living space with premium paint"}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center scale-105"
+        />
+        {/* Cinematic scrim: readable type without killing the photo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-warm-950 via-warm-950/55 to-warm-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-warm-950/70 via-warm-950/20 to-transparent" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 pb-16 md:pb-24 pt-32">
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-5 flex flex-col gap-6 text-left items-start"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-2xl text-left"
         >
-          <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-serif font-bold tracking-tight text-warm-950 leading-[1.12]">
+          <p className="text-[11px] md:text-xs font-semibold tracking-[0.22em] uppercase text-white/70 mb-5">
+            Maison de FLOF
+          </p>
+
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold text-white tracking-tight leading-[1.05]">
             {language === "vi" ? (
               <>
                 Màu sơn cho
@@ -35,16 +58,16 @@ export function HeroSection() {
             )}
           </h1>
 
-          <p className="text-warm-600 text-sm sm:text-base font-light leading-relaxed max-w-md">
+          <p className="mt-5 md:mt-6 text-sm md:text-base text-white/75 font-light leading-relaxed max-w-md">
             {language === "vi"
-              ? "Hơn 1000 sắc, phối trên phòng mẫu, mua online hoặc qua đại lý."
-              : "1000+ shades. Preview on real rooms. Shop online or find a dealer."}
+              ? "Hơn 1000 sắc. Phối trên phòng mẫu. Mua online hoặc qua đại lý ủy quyền."
+              : "1000+ shades. Preview on real rooms. Shop online or visit a dealer."}
           </p>
 
-          <div className="flex flex-wrap items-center gap-3 pt-1">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/colors"
-              className="inline-flex items-center gap-2 rounded-full bg-jotun-teal text-white text-xs font-bold px-6 py-3 hover:bg-jotun-teal-dark transition-colors active:scale-[0.98]"
+              className="inline-flex items-center gap-2.5 rounded-full bg-jotun-teal text-white text-xs font-bold px-7 py-3.5 hover:bg-jotun-teal-light transition-colors active:scale-[0.98] shadow-[0_12px_40px_rgba(0,123,138,0.35)]"
             >
               {language === "vi" ? "Khám phá màu" : "Explore colors"}
               <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
@@ -53,30 +76,19 @@ export function HeroSection() {
             </Link>
             <Link
               href="/color-visualizer"
-              className="inline-flex items-center gap-2 rounded-full border border-warm-300 bg-white text-warm-900 text-xs font-bold px-6 py-3 hover:border-jotun-teal/40 hover:text-jotun-teal transition-colors active:scale-[0.98]"
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/5 backdrop-blur-md text-white text-xs font-bold px-7 py-3.5 hover:bg-white/12 transition-colors active:scale-[0.98]"
             >
               {language === "vi" ? "Phối màu ngay" : "Try visualizer"}
             </Link>
           </div>
-        </motion.div>
 
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: reduceMotion ? 0 : 0.1 }}
-          className="lg:col-span-7 w-full"
-        >
-          <div className="relative p-1.5 rounded-[1.75rem] bg-warm-200/50 border border-warm-300/70">
-            <div className="relative aspect-[4/3] sm:aspect-[16/11] w-full overflow-hidden rounded-[1.35rem] bg-warm-100 shadow-lg">
-              <Image
-                src="/hero_bg.webp"
-                alt={language === "vi" ? "Không gian sống cao cấp" : "Premium living space"}
-                fill
-                priority
-                sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover transition-transform duration-700 hover:scale-[1.02]"
-              />
-            </div>
+          {/* Micro trust strip - coffee landings use this under hero copy */}
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-2 text-[11px] text-white/55 font-medium">
+            <span>{language === "vi" ? "1000+ mã màu" : "1000+ colors"}</span>
+            <span className="hidden sm:inline text-white/25">|</span>
+            <span>{language === "vi" ? "Visualizer phòng mẫu" : "Room visualizer"}</span>
+            <span className="hidden sm:inline text-white/25">|</span>
+            <span>{language === "vi" ? "Đại lý toàn quốc" : "Nationwide dealers"}</span>
           </div>
         </motion.div>
       </div>
