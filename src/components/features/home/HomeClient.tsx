@@ -12,6 +12,7 @@ import { HeroSection } from "./HeroSection";
 import { PromotionSection } from "./PromotionSection";
 import { ColorExplorerSection } from "./ColorExplorerSection";
 import { VisualizerPromoSection } from "./VisualizerPromoSection";
+import { StoreOverviewSection } from "./StoreOverviewSection";
 import { FeaturedProductsSection } from "./FeaturedProductsSection";
 import { ExpertBlogsSection } from "./ExpertBlogsSection";
 
@@ -194,6 +195,7 @@ export function HomeClient({ initialPaints, initialColors, initialBlogs }: HomeC
         addItem={addItem}
       />
       <VisualizerPromoSection />
+      <StoreOverviewSection />
       <FeaturedProductsSection
         activeTab={activeTab}
         setActiveTab={setActiveTab}
