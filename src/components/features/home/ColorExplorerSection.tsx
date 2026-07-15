@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Check, Heart, ArrowRight, ShoppingBag } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 import { cn, formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { toast } from "sonner";
 import { COLOR_FAMILIES, COLOR_SWATCHES, FAMILY_METADATA } from "@/lib/constants/home-data";
 import { Paint, PaintColor } from "@/types";
@@ -410,7 +411,7 @@ export function ColorExplorerSection({
                     className="relative w-full aspect-[4/3] bg-warm-50 rounded-xl overflow-hidden border border-warm-100 mb-3"
                   >
                     <Image
-                      src={paint.images?.[0] || "/product_interior.webp"}
+                      src={getProductImage(paint.images)}
                       alt={paint.name}
                       fill
                       className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"

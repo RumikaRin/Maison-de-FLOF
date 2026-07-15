@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 import { cn, formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { Paint, PaintColor } from "@/types";
 
 interface FeaturedProductsSectionProps {
@@ -147,7 +148,7 @@ export function FeaturedProductsSection({
                         className="relative aspect-[4/5] sm:aspect-square bg-white overflow-hidden"
                       >
                         <Image
-                          src={paint.images?.[0] || "/generated/promo-paint-can.jpg"}
+                          src={getProductImage(paint.images)}
                           alt={language === "vi" ? prod.name : prod.nameEn || prod.name}
                           fill
                           sizes="(min-width: 768px) 30vw, 45vw"

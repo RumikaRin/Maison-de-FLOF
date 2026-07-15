@@ -9,6 +9,7 @@ import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { Paint, PaintColor } from "@/types";
 import { formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { toast } from "sonner";
 import {
   getComplementaryColors,
@@ -235,7 +236,7 @@ export function ProductClient({
         <div className="lg:col-span-5 flex flex-col gap-4">
           <div className="relative h-[450px] w-full rounded-xl overflow-hidden border border-border bg-zinc-50 shadow-sm">
             <Image
-              src={paint.images?.[0] || "/product_interior.webp"}
+              src={getProductImage(paint.images)}
               alt={paint.name}
               fill
               priority
@@ -669,7 +670,7 @@ export function ProductClient({
                 >
                   <div className="relative h-48 w-full bg-zinc-100 rounded-md overflow-hidden">
                     <Image
-                      src={item.images?.[0] || "/product_interior.webp"}
+                      src={getProductImage(item.images)}
                       alt={item.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"

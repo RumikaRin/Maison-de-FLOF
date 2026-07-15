@@ -1,4 +1,5 @@
 import { getFallbackColors, getFallbackProducts } from "./catalog-fallback-data.ts";
+import { getProductImage } from "./product-image.ts";
 
 type HomePageDatabase = {
   paint: {
@@ -54,7 +55,12 @@ function mapHomePageData(products: any[], colors: any[], blogs: any[]): HomePage
     price: Number(product.price),
     discountPercent: product.discountPercent,
     stock: product.stock,
-    images: product.images,
+    images: (() => {
+      const list = Array.isArray(product.images)
+        ? product.images.filter((src: unknown) => typeof src === "string" && src.trim().length > 0)
+        : [];
+      return list.length > 0 ? list : [getProductImage(null)];
+    })(),
     isFeatured: product.isFeatured,
     soldCount: product.soldCount,
     colors: product.colors.map((link: any) => link.color.code),

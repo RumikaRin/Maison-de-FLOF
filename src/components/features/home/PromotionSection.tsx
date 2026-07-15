@@ -31,7 +31,7 @@ export function PromotionSection() {
               {/* Main product plate */}
               <div className="relative aspect-square w-[78%] ml-0 rounded-[1.75rem] overflow-hidden bg-warm-900 shadow-[0_30px_80px_rgba(47,40,34,0.22)]">
                 <Image
-                  src="/generated/promo-paint-can.jpg"
+                  src="/product_interior.webp"
                   alt={language === "vi" ? "Sơn nội thất Majestic" : "Majestic interior paint"}
                   fill
                   sizes="(min-width: 1024px) 35vw, 80vw"

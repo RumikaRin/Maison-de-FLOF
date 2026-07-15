@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { Search, SlidersHorizontal, ArrowUpDown, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -415,7 +416,7 @@ export function ProductsClient({
                         {/* Image */}
                         <div className="relative h-36 sm:h-48 w-full bg-jotun-ivory-100 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-3 sm:p-4 shadow-inner">
                           <Image
-                            src={p.images?.[0] || "/product_interior.webp"}
+                            src={getProductImage(p.images)}
                             alt={p.name}
                             fill
                             className="object-contain p-3 sm:p-4 transition-transform duration-700 group-hover:scale-105"
