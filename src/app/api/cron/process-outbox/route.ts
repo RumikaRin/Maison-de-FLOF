@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { assertCronAuthorized } from "@/lib/cron-auth";
-import {
-  dispatchOutboxRecord,
-  OutboxDispatchError,
-} from "@/lib/email-outbox";
-import { EmailDeliveryError } from "@/lib/email-delivery";
+import { processEmailOutboxRecord } from "@/lib/process-email-outbox";
 import { writeOperationalLog } from "@/lib/operational-log";
 
 export async function GET(request: Request) {
@@ -50,38 +46,13 @@ export async function GET(request: Request) {
     const results = [];
 
     for (const record of pendingEmails) {
-      try {
-        await dispatchOutboxRecord(record, sendOrderConfirmationEmail);
-
-        await db.emailOutbox.update({
-          where: { id: record.id },
-          data: { status: "SENT", updatedAt: new Date() },
-        });
-
-        results.push({ id: record.id, status: "SENT" });
-      } catch (error: unknown) {
-        const retryCount = record.retryCount + 1;
-        const nextRetryMinutes = retryCount === 1 ? 1 : retryCount === 2 ? 5 : 15;
-        const nextRetryAt = new Date(Date.now() + nextRetryMinutes * 60000);
-        const message =
-          error instanceof EmailDeliveryError ||
-          error instanceof OutboxDispatchError
-            ? error.code
-            : "UNKNOWN_ERROR";
-
-        await db.emailOutbox.update({
-          where: { id: record.id },
-          data: {
-            status: "FAILED",
-            error: message,
-            retryCount,
-            nextRetryAt,
-            updatedAt: new Date(),
-          },
-        });
-
-        results.push({ id: record.id, status: "FAILED", error: message });
-      }
+      results.push(
+        await processEmailOutboxRecord(
+          db,
+          record,
+          sendOrderConfirmationEmail,
+        ),
+      );
     }
 
     const succeeded = results.filter((result) => result.status === "SENT").length;

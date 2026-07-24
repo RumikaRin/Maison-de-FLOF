@@ -5,6 +5,7 @@ import { apiErrorResponse, requireUser } from "@/lib/api-auth";
 import { checkoutSchema } from "@/lib/order-validation";
 import { processCheckout } from "@/services/checkout.service";
 import { getClientIp } from "@/lib/ip";
+import { getOrderAccessWhere } from "@/lib/order-access";
 
 async function serializeOrders(
   orders: Awaited<ReturnType<typeof getOrders>>,
@@ -105,18 +106,7 @@ export async function GET(request: NextRequest) {
     const user = await requireUser();
     const { searchParams } = new URL(request.url);
     const requestedEmail = searchParams.get("email");
-    const isStaff = user.role === "ADMIN" || user.role === "STAFF";
-
-    const where: Prisma.OrderWhereInput =
-      isStaff && !requestedEmail
-        ? {}
-        : {
-            customer: {
-              user: {
-                email: isStaff && requestedEmail ? requestedEmail : user.email,
-              },
-            },
-          };
+    const where = getOrderAccessWhere(user, requestedEmail);
 
     return NextResponse.json(await serializeOrders(await getOrders(where)));
   } catch (error) {

@@ -17,6 +17,7 @@
     "test:db:down": "docker compose -f docker-compose.test.yml down",
     "test:db:migrate": "cross-env DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/flof_test prisma migrate deploy",
     "test:db:fixtures": "cross-env TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/flof_test tsx scripts/test-db-fixtures.ts",
+    "test:integration": "cross-env TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/flof_test tsx --test --test-concurrency=1 tests/integration/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
