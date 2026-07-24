@@ -9,13 +9,19 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  const { mappedProducts, categories, suppliers } = await getProductsPageData(db);
+  const {
+    mappedProducts,
+    categories,
+    suppliers,
+    commerceAvailable,
+  } = await getProductsPageData(db);
 
   return (
     <ProductsClient
       initialPaints={mappedProducts}
       initialCategories={categories}
       initialSuppliers={suppliers}
+      commerceAvailable={commerceAvailable}
     />
   );
 }

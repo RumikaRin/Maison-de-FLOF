@@ -23,12 +23,14 @@ interface ProductsClientProps {
   initialPaints: any[];
   initialCategories: any[];
   initialSuppliers: any[];
+  commerceAvailable: boolean;
 }
 
 export function ProductsClient({
   initialPaints,
   initialCategories,
   initialSuppliers,
+  commerceAvailable,
 }: ProductsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -239,6 +241,16 @@ export function ProductsClient({
       </motion.div>
 
       <div className="container mx-auto px-4 sm:px-6 py-4 max-w-7xl relative z-10">
+        {!commerceAvailable && (
+          <div
+            role="status"
+            className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+          >
+            {language === "vi"
+              ? "Dữ liệu sản phẩm trực tiếp đang tạm gián đoạn. Bạn vẫn có thể tham khảo danh mục, nhưng chức năng mua hàng đang tạm khóa."
+              : "Live product data is temporarily unavailable. You can still browse the catalog, but purchasing is disabled."}
+          </div>
+        )}
         {/* ── Mobile: top toolbar with filter button + sort ── */}
         <div className="flex lg:hidden items-center gap-2 mb-4">
           {/* Search bar */}

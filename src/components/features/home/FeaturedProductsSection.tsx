@@ -17,6 +17,7 @@ interface FeaturedProductsSectionProps {
   paints: (Paint & { supplier?: { name: string }; soldCount?: number })[];
   colorCatalog: PaintColor[];
   handleAddToCart: (prod: any) => void;
+  commerceAvailable: boolean;
 }
 
 /**
@@ -30,6 +31,7 @@ export function FeaturedProductsSection({
   setIsTabLoading,
   paints,
   handleAddToCart,
+  commerceAvailable,
 }: FeaturedProductsSectionProps) {
   const { language } = useLanguageStore();
   const reduceMotion = useReducedMotion();
@@ -185,7 +187,9 @@ export function FeaturedProductsSection({
                           <button
                             type="button"
                             onClick={() => handleAddToCart(prod)}
-                            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-jotun-teal text-white text-[10px] sm:text-[11px] font-bold px-3.5 py-2.5 hover:bg-jotun-teal-dark transition-colors active:scale-[0.98]"
+                            disabled={!commerceAvailable}
+                            aria-disabled={!commerceAvailable}
+                            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-jotun-teal text-white text-[10px] sm:text-[11px] font-bold px-3.5 py-2.5 hover:bg-jotun-teal-dark transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label={language === "vi" ? "Thêm vào giỏ" : "Add to cart"}
                           >
                             <ShoppingBag className="w-3.5 h-3.5" />

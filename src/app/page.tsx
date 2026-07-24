@@ -11,7 +11,20 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const { mappedProducts, colors, mappedBlogs } = await getHomePageData(db);
+  const {
+    mappedProducts,
+    colors,
+    mappedBlogs,
+    source,
+    commerceAvailable,
+  } = await getHomePageData(db);
 
-  return <HomeClient initialPaints={mappedProducts} initialColors={colors} initialBlogs={mappedBlogs} />;
+  return (
+    <HomeClient
+      initialPaints={mappedProducts}
+      initialColors={colors}
+      initialBlogs={mappedBlogs}
+      catalogAvailability={{ source, commerceAvailable }}
+    />
+  );
 }

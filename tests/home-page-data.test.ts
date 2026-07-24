@@ -23,9 +23,22 @@ const failingDatabase = {
 test("home page data falls back to curated static content when database is unavailable", async () => {
   const data = await getHomePageData(failingDatabase);
 
+  assert.equal(data.source, "fallback");
+  assert.equal(data.commerceAvailable, false);
   assert.ok(data.mappedProducts.length > 0);
   assert.ok(data.colors.length > 0);
   assert.equal(data.mappedProducts[0].supplier.name, "Maison de FLOF");
   assert.equal(data.colors[0].code, "0001");
   assert.deepEqual(data.mappedBlogs, []);
+});
+
+test("home page marks successful database results as commerce-enabled", async () => {
+  const data = await getHomePageData({
+    paint: { findMany: async () => [] },
+    paintColor: { findMany: async () => [] },
+    blog: { findMany: async () => [] },
+  });
+
+  assert.equal(data.source, "database");
+  assert.equal(data.commerceAvailable, true);
 });

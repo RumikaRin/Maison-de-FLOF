@@ -94,6 +94,8 @@ export async function getProductsPageData(database: ProductsPageDatabase) {
     ]);
 
     return {
+      source: "database" as const,
+      commerceAvailable: true,
       mappedProducts: mapProducts(paints),
       categories,
       suppliers,
@@ -102,6 +104,8 @@ export async function getProductsPageData(database: ProductsPageDatabase) {
     logCatalogFallback("products", error);
 
     return {
+      source: "fallback" as const,
+      commerceAvailable: false,
       mappedProducts: getFallbackProducts(),
       categories: getFallbackCategories(),
       suppliers: getFallbackSuppliers(),

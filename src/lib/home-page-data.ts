@@ -1,5 +1,6 @@
 import { getFallbackColors, getFallbackProducts } from "./catalog-fallback-data.ts";
 import { getProductImage } from "./product-image.ts";
+import type { CatalogAvailability } from "./catalog-result.ts";
 
 type HomePageDatabase = {
   paint: {
@@ -13,7 +14,7 @@ type HomePageDatabase = {
   };
 };
 
-type HomePageData = {
+type HomePageData = CatalogAvailability & {
   mappedProducts: any[];
   colors: any[];
   mappedBlogs: any[];
@@ -21,6 +22,8 @@ type HomePageData = {
 
 function getFallbackHomePageData(): HomePageData {
   return {
+    source: "fallback",
+    commerceAvailable: false,
     mappedProducts: getFallbackProducts(),
     colors: getFallbackColors(),
     mappedBlogs: [],
@@ -83,7 +86,13 @@ function mapHomePageData(products: any[], colors: any[], blogs: any[]): HomePage
     createdAt: blog.createdAt.toISOString().split("T")[0],
   }));
 
-  return { mappedProducts, colors, mappedBlogs };
+  return {
+    source: "database",
+    commerceAvailable: true,
+    mappedProducts,
+    colors,
+    mappedBlogs,
+  };
 }
 
 export async function getHomePageData(database: HomePageDatabase): Promise<HomePageData> {

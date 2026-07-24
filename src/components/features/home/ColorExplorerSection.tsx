@@ -52,6 +52,7 @@ interface ColorExplorerSectionProps {
   paints: (Paint & { supplier?: { name: string }; soldCount?: number })[];
   colorCatalog: PaintColor[];
   addItem: (paint: any, quantity: number, color?: any) => void;
+  commerceAvailable: boolean;
 }
 
 export function ColorExplorerSection({
@@ -64,6 +65,7 @@ export function ColorExplorerSection({
   paints,
   colorCatalog,
   addItem,
+  commerceAvailable,
 }: ColorExplorerSectionProps) {
   const { language } = useLanguageStore();
   const reduceMotion = useReducedMotion();
@@ -448,6 +450,7 @@ export function ColorExplorerSection({
                     <button
                       type="button"
                       onClick={() => {
+                        if (!commerceAvailable) return;
                         addItem(paint, 1, defaultColorObj);
                         toast.success(
                           language === "vi"
@@ -455,7 +458,9 @@ export function ColorExplorerSection({
                             : `Added ${paint.nameEn} to cart`,
                         );
                       }}
-                      className="inline-flex items-center gap-1 rounded-full bg-warm-900 text-white text-[10px] font-bold px-2.5 py-1.5 hover:bg-warm-800"
+                      disabled={!commerceAvailable}
+                      aria-disabled={!commerceAvailable}
+                      className="inline-flex items-center gap-1 rounded-full bg-warm-900 text-white text-[10px] font-bold px-2.5 py-1.5 hover:bg-warm-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <ShoppingBag className="h-3 w-3" />
                       {language === "vi" ? "Mua" : "Buy"}

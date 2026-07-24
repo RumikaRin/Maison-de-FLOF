@@ -7,6 +7,10 @@ import { toast } from "sonner";
 import { Paint, PaintColor } from "@/types";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
+import {
+  canAddCatalogItemToCart,
+  type CatalogAvailability,
+} from "@/lib/catalog-result";
 
 import { HeroSection } from "./HeroSection";
 import { PromotionSection } from "./PromotionSection";
@@ -20,9 +24,15 @@ interface HomeClientProps {
   initialPaints: any[];
   initialColors: any[];
   initialBlogs: any[];
+  catalogAvailability: CatalogAvailability;
 }
 
-export function HomeClient({ initialPaints, initialColors, initialBlogs }: HomeClientProps) {
+export function HomeClient({
+  initialPaints,
+  initialColors,
+  initialBlogs,
+  catalogAvailability,
+}: HomeClientProps) {
   const { language } = useLanguageStore();
   const addItem = useCartStore((state) => state.addItem);
   const { status: authStatus } = useSession();
@@ -114,6 +124,15 @@ export function HomeClient({ initialPaints, initialColors, initialBlogs }: HomeC
   };
 
   const handleAddToCart = (prod: any) => {
+    if (!canAddCatalogItemToCart(catalogAvailability)) {
+      toast.error(
+        language === "vi"
+          ? "Chức năng mua hàng đang tạm khóa"
+          : "Purchasing is temporarily disabled",
+      );
+      return;
+    }
+
     const paint = paints.find((p) => p.id === prod.id);
     if (!paint) {
       toast.error("Không tìm thấy sản phẩm / Product not found");
@@ -181,6 +200,16 @@ export function HomeClient({ initialPaints, initialColors, initialBlogs }: HomeC
 
   return (
     <div className="relative w-full overflow-hidden bg-jotun-ivory text-warm-900 transition-colors duration-300">
+      {!catalogAvailability.commerceAvailable && (
+        <div
+          role="status"
+          className="mx-auto mt-24 w-[calc(100%-2rem)] max-w-[1360px] rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+        >
+          {language === "vi"
+            ? "Dữ liệu sản phẩm trực tiếp đang tạm gián đoạn. Bạn vẫn có thể tham khảo danh mục, nhưng chức năng mua hàng đang tạm khóa."
+            : "Live product data is temporarily unavailable. You can still browse the catalog, but purchasing is disabled."}
+        </div>
+      )}
       <HeroSection />
       <PromotionSection />
       <ColorExplorerSection
@@ -193,6 +222,7 @@ export function HomeClient({ initialPaints, initialColors, initialBlogs }: HomeC
         paints={paints}
         colorCatalog={colorCatalog}
         addItem={addItem}
+        commerceAvailable={catalogAvailability.commerceAvailable}
       />
       <VisualizerPromoSection />
       <StoreOverviewSection />
@@ -204,6 +234,7 @@ export function HomeClient({ initialPaints, initialColors, initialBlogs }: HomeC
         paints={paints}
         colorCatalog={colorCatalog}
         handleAddToCart={handleAddToCart}
+        commerceAvailable={catalogAvailability.commerceAvailable}
       />
       <ExpertBlogsSection blogs={blogs} />
     </div>
