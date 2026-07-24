@@ -113,7 +113,7 @@ export function ProfileSidebar({
 
         <button
           onClick={handleLogout}
-          className="hidden lg:flex items-center gap-2 px-3.5 py-2.5 lg:p-3 rounded-xl text-red-500 hover:bg-red-500/10 text-left transition-colors duration-200 lg:mt-4 border border-red-500/10 bg-red-500/[0.02] shrink-0 whitespace-nowrap focus:outline-none"
+          className="hidden lg:flex items-center gap-2 px-3.5 py-2.5 lg:p-3 rounded-xl text-red-600 hover:bg-red-500/10 text-left transition-colors duration-200 lg:mt-4 border border-red-500/10 bg-red-500/[0.02] shrink-0 whitespace-nowrap focus:outline-none"
         >
           <span>{language === "vi" ? "Đăng xuất" : "Log Out"}</span>
         </button>

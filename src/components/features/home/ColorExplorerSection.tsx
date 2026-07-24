@@ -311,56 +311,58 @@ export function ColorExplorerSection({
                       return (
                         <div
                           key={swatch.code}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => {
-                            setVisWallMainColor(swatch.hex);
-                            toast.success(
-                              language === "vi"
-                                ? `Đã chọn màu ${swatch.name}`
-                                : `Selected ${swatch.nameEn || swatch.name}`,
-                            );
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setVisWallMainColor(swatch.hex);
-                            }
-                          }}
                           className={cn(
-                            "border rounded-xl p-2 flex flex-col gap-1.5 cursor-pointer text-left transition-all",
+                            "relative border rounded-xl p-2 flex flex-col gap-1.5 text-left transition-all",
                             isActive
                               ? "border-warm-900 ring-1 ring-warm-900/15 bg-white shadow-sm"
                               : "border-warm-200 bg-jotun-ivory-50 hover:border-warm-400",
                           )}
                         >
-                          <div
-                            className="h-11 rounded-lg border border-black/5 relative shadow-inner"
-                            style={{ backgroundColor: swatch.hex }}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setVisWallMainColor(swatch.hex);
+                              toast.success(
+                                language === "vi"
+                                  ? `Đã chọn màu ${swatch.name}`
+                                  : `Selected ${swatch.nameEn || swatch.name}`,
+                              );
+                            }}
+                            className="flex min-w-0 flex-col gap-1.5 text-left"
+                            aria-label={
+                              language === "vi"
+                                ? `Chọn màu ${swatch.name}`
+                                : `Select ${swatch.nameEn || swatch.name}`
+                            }
                           >
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleWishlist(swatch.code);
-                              }}
-                              className="absolute top-1 right-1 p-1 bg-white/95 hover:bg-white rounded-full text-warm-400 hover:text-rose-500 shadow-sm z-10"
-                              aria-label="favorite"
-                            >
-                              <Heart
-                                className={cn(
-                                  "h-2.5 w-2.5",
-                                  isFav && "fill-rose-500 text-rose-500",
-                                )}
-                              />
-                            </button>
-                          </div>
-                          <span className="text-[8px] font-mono font-bold text-warm-400 truncate">
-                            #{swatch.code}
-                          </span>
-                          <span className="text-[10px] font-semibold text-warm-850 truncate">
-                            {language === "vi" ? swatch.name : swatch.nameEn}
-                          </span>
+                            <span
+                              className="h-11 w-full rounded-lg border border-black/5 shadow-inner"
+                              style={{ backgroundColor: swatch.hex }}
+                            />
+                            <span className="text-[8px] font-mono font-bold text-warm-400 truncate">
+                              #{swatch.code}
+                            </span>
+                            <span className="text-[10px] font-semibold text-warm-850 truncate">
+                              {language === "vi" ? swatch.name : swatch.nameEn}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleWishlist(swatch.code)}
+                            className="absolute top-3 right-3 min-h-6 min-w-6 p-1 bg-white/95 hover:bg-white rounded-full text-warm-400 hover:text-rose-500 shadow-sm z-10"
+                            aria-label={
+                              language === "vi"
+                                ? `Yêu thích màu ${swatch.name}`
+                                : `Favorite ${swatch.nameEn || swatch.name}`
+                            }
+                          >
+                            <Heart
+                              className={cn(
+                                "h-2.5 w-2.5",
+                                isFav && "fill-rose-500 text-rose-500",
+                              )}
+                            />
+                          </button>
                         </div>
                       );
                     },

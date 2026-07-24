@@ -86,19 +86,28 @@ export default function QuoteRequestPage() {
       </div>
 
       <form onSubmit={submit} className="grid gap-5 rounded-2xl border border-warm-200 bg-white p-6 shadow-sm md:grid-cols-2">
-        <input required className={inputClass} placeholder="Họ và tên *" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} />
-        <input required className={inputClass} placeholder="Số điện thoại *" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
-        <input required type="email" className={inputClass} placeholder="Email *" value={form.email} onChange={(e) => update("email", e.target.value)} />
-        <input className={inputClass} placeholder="Công ty / tổ chức" value={form.companyName} onChange={(e) => update("companyName", e.target.value)} />
-        <input className={inputClass} placeholder="Tên dự án" value={form.projectName} onChange={(e) => update("projectName", e.target.value)} />
-        <select className={inputClass} value={form.projectType} onChange={(e) => update("projectType", e.target.value)}>
+        <label htmlFor="quote-full-name" className="sr-only">Họ và tên</label>
+        <input id="quote-full-name" required className={inputClass} placeholder="Họ và tên *" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} />
+        <label htmlFor="quote-phone" className="sr-only">Số điện thoại</label>
+        <input id="quote-phone" required className={inputClass} placeholder="Số điện thoại *" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
+        <label htmlFor="quote-email" className="sr-only">Email</label>
+        <input id="quote-email" required type="email" className={inputClass} placeholder="Email *" value={form.email} onChange={(e) => update("email", e.target.value)} />
+        <label htmlFor="quote-company" className="sr-only">Công ty hoặc tổ chức</label>
+        <input id="quote-company" className={inputClass} placeholder="Công ty / tổ chức" value={form.companyName} onChange={(e) => update("companyName", e.target.value)} />
+        <label htmlFor="quote-project-name" className="sr-only">Tên dự án</label>
+        <input id="quote-project-name" className={inputClass} placeholder="Tên dự án" value={form.projectName} onChange={(e) => update("projectName", e.target.value)} />
+        <label htmlFor="quote-project-type" className="sr-only">Loại dự án</label>
+        <select id="quote-project-type" className={inputClass} value={form.projectType} onChange={(e) => update("projectType", e.target.value)}>
           <option value="Residential">Nhà ở / Residential</option>
           <option value="Commercial">Thương mại / Commercial</option>
           <option value="Industrial">Công nghiệp / Industrial</option>
         </select>
-        <input type="number" min="0" className={inputClass} placeholder="Diện tích dự kiến (m²)" value={form.area} onChange={(e) => update("area", e.target.value)} />
-        <input className={inputClass} placeholder="Loại sơn quan tâm" value={form.paintType} onChange={(e) => update("paintType", e.target.value)} />
-        <textarea required rows={5} className={`${inputClass} md:col-span-2`} placeholder="Mô tả nhu cầu *" value={form.message} onChange={(e) => update("message", e.target.value)} />
+        <label htmlFor="quote-area" className="sr-only">Diện tích dự kiến</label>
+        <input id="quote-area" type="number" min="0" className={inputClass} placeholder="Diện tích dự kiến (m²)" value={form.area} onChange={(e) => update("area", e.target.value)} />
+        <label htmlFor="quote-paint-type" className="sr-only">Loại sơn quan tâm</label>
+        <input id="quote-paint-type" className={inputClass} placeholder="Loại sơn quan tâm" value={form.paintType} onChange={(e) => update("paintType", e.target.value)} />
+        <label htmlFor="quote-message" className="sr-only">Mô tả nhu cầu</label>
+        <textarea id="quote-message" required rows={5} className={`${inputClass} md:col-span-2`} placeholder="Mô tả nhu cầu *" value={form.message} onChange={(e) => update("message", e.target.value)} />
         <button disabled={submitting} className="rounded-xl bg-warm-900 px-6 py-3 font-bold text-white disabled:opacity-50 md:col-span-2">
           {submitting
             ? language === "vi" ? "Đang gửi..." : "Submitting..."

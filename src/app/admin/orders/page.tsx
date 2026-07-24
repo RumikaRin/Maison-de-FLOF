@@ -240,7 +240,7 @@ export default function AdminOrdersPage() {
               onClick={() => setFilter(tab.key as any)}
               className={`relative flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[11px] font-bold transition-colors ${isActive
                 ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900"
                 }`}
             >
               <span>{tab.label}</span>

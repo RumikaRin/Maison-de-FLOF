@@ -12,9 +12,15 @@ const runAuthMiddleware = authMiddleware as unknown as (
   event: unknown,
 ) => Promise<NextResponse | undefined>;
 
+const isolatedE2eMode =
+  process.env.E2E_TEST_MODE === "1" && process.env.VERCEL !== "1";
+
 // Instantiate rate limiters in module scope to persist across requests
 const authLimiter = new UnifiedRateLimiter(60 * 1000, 10, {
-  failureMode: process.env.NODE_ENV === "production" ? "deny" : "memory",
+  failureMode:
+    process.env.NODE_ENV === "production" && !isolatedE2eMode
+      ? "deny"
+      : "memory",
 });
 const apiLimiter = new UnifiedRateLimiter(60 * 1000, 60, {
   failureMode: "memory",
@@ -98,7 +104,7 @@ export default async function middleware(request: NextRequest, event: any) {
   if (!isPassThrough) return withSecurityHeaders(authResponse, nonce);
 
   const response = nextWithNonce(requestHeaders, nonce);
-  for (const cookie of authResponse?.cookies.getAll() ?? []) {
+  for (const cookie of authResponse?.cookies?.getAll?.() ?? []) {
     response.cookies.set(cookie);
   }
   return response;

@@ -19,6 +19,7 @@
     "test:db:fixtures": "cross-env TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/flof_test tsx scripts/test-db-fixtures.ts",
     "test:integration": "cross-env TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/flof_test tsx --test --test-concurrency=1 tests/integration/*.test.ts",
     "test:openapi": "redocly lint docs/openapi.yaml && node --experimental-strip-types scripts/validate-openapi-coverage.ts",
+    "test:e2e": "cross-env TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/flof_test playwright test",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
@@ -62,6 +63,8 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.61.1",
     "@redocly/cli": "^2.40.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.14.9",

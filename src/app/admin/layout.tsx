@@ -163,7 +163,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className={cn("flex h-[72px] shrink-0 items-center border-b border-white/10", isCollapsed ? "justify-center px-3" : "justify-between px-5")}>
         <Link href="/admin" className={cn("min-w-0", isCollapsed && "hidden")}>
           <span className="block truncate text-base font-bold tracking-tight text-white">Maison de FLOF</span>
-          <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">Admin workspace</span>
+          <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">Admin workspace</span>
         </Link>
         <button
           type="button"
@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <nav className="admin-sidebar-scroll flex-1 overflow-y-auto px-3 py-4">
         {visibleGroups.map((group) => (
           <div key={group.label} className="mb-5 last:mb-0">
-            {!isCollapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">{group.label}</p>}
+            {!isCollapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">{group.label}</p>}
             <div className="space-y-1">
               {group.items.map((item) => {
                 const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
@@ -215,7 +215,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {!isCollapsed && (
             <div className="min-w-0">
               <p className="truncate text-xs font-bold text-white">{session?.user?.name || "FLOF Admin"}</p>
-              <p className="truncate text-[10px] text-white/45">{role}</p>
+              <p className="truncate text-[10px] text-white/60">{role}</p>
             </div>
           )}
         </div>

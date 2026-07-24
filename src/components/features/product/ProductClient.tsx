@@ -434,6 +434,8 @@ export function ProductClient({
           <div className="flex flex-col sm:flex-row items-center gap-4 border-t border-border pt-6">
             <div className="flex items-center border border-border rounded-md w-full sm:w-auto bg-white dark:bg-zinc-950">
               <button
+                type="button"
+                aria-label={language === "vi" ? "Giảm số lượng" : "Decrease quantity"}
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
               >
@@ -443,6 +445,8 @@ export function ProductClient({
                 {quantity}
               </span>
               <button
+                type="button"
+                aria-label={language === "vi" ? "Tăng số lượng" : "Increase quantity"}
                 onClick={() => setQuantity((q) => q + 1)}
                 className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
               >

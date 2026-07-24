@@ -4,9 +4,19 @@ export const authConfig = {
   pages: {
     signIn: "/login",
   },
-  // jwt/session callbacks with DB role refresh live in auth.ts (Node runtime).
-  // Edge middleware only needs the authorized guard below.
+  // Keep the edge-safe session mapping here so middleware authorization sees
+  // the role stored in the JWT. DB-backed role refresh remains in auth.ts.
   callbacks: {
+    session({ session, token }) {
+      if (session.user) {
+        session.user.id = typeof token.id === "string" ? token.id : "";
+        session.user.role =
+          token.role === "ADMIN" || token.role === "STAFF" || token.role === "CUSTOMER"
+            ? token.role
+            : "CUSTOMER";
+      }
+      return session;
+    },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnAdmin = nextUrl.pathname.startsWith("/admin");

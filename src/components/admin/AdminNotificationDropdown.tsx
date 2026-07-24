@@ -125,6 +125,8 @@ export function AdminNotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
+        aria-label={language === "vi" ? "Mở thông báo" : "Open notifications"}
+        aria-expanded={open}
         className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-warm-250 bg-white/80 text-warm-700 hover:bg-white transition-colors"
       >
         <Bell className="h-4 w-4" />

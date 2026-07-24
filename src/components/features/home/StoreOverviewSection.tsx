@@ -107,7 +107,7 @@ export function StoreOverviewSection() {
                 : "“Choosing color is no longer guesswork - you preview, then buy.”"}
             </p>
             <div className="mt-8">
-              <p className="text-xs font-bold text-jotun-teal">Maison de FLOF</p>
+              <p className="text-xs font-bold text-white">Maison de FLOF</p>
               <p className="text-[11px] text-white/50 mt-0.5">
                 {language === "vi" ? "Nền tảng sơn & tư vấn màu" : "Paint & color platform"}
               </p>

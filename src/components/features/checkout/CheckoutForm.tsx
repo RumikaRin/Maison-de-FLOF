@@ -93,11 +93,12 @@ export function CheckoutForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1">
+              <label htmlFor="checkout-full-name" className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1">
                 <User className="h-3 w-3" />
                 {language === "vi" ? "Họ và tên" : "Full Name"} <span className="text-red-500">*</span>
               </label>
               <input
+                id="checkout-full-name"
                 type="text"
                 required
                 value={fullName}
@@ -107,11 +108,12 @@ export function CheckoutForm({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1">
+              <label htmlFor="checkout-phone" className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1">
                 <Phone className="h-3 w-3" />
                 {language === "vi" ? "Số điện thoại" : "Phone"} <span className="text-red-500">*</span>
               </label>
               <input
+                id="checkout-phone"
                 type="tel"
                 required
                 value={phone}
@@ -123,10 +125,11 @@ export function CheckoutForm({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold uppercase text-muted-foreground">
+            <label htmlFor="checkout-email" className="text-xs font-bold uppercase text-muted-foreground">
               Email
             </label>
             <input
+              id="checkout-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -137,10 +140,11 @@ export function CheckoutForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold uppercase text-muted-foreground">
+              <label htmlFor="checkout-province" className="text-xs font-bold uppercase text-muted-foreground">
                 {language === "vi" ? "Tỉnh / Thành phố" : "Province / City"} <span className="text-red-500">*</span>
               </label>
               <input
+                id="checkout-province"
                 type="text"
                 required
                 value={province}
@@ -150,10 +154,11 @@ export function CheckoutForm({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold uppercase text-muted-foreground">
+              <label htmlFor="checkout-district" className="text-xs font-bold uppercase text-muted-foreground">
                 {language === "vi" ? "Quận / Huyện" : "District"} <span className="text-red-500">*</span>
               </label>
               <input
+                id="checkout-district"
                 type="text"
                 required
                 value={district}
@@ -165,10 +170,11 @@ export function CheckoutForm({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold uppercase text-muted-foreground">
+            <label htmlFor="checkout-address" className="text-xs font-bold uppercase text-muted-foreground">
               {language === "vi" ? "Địa chỉ nhận hàng (Số nhà, đường...)" : "Address"} <span className="text-red-500">*</span>
             </label>
             <input
+              id="checkout-address"
               type="text"
               required
               value={address}
@@ -179,10 +185,11 @@ export function CheckoutForm({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold uppercase text-muted-foreground">
+            <label htmlFor="checkout-notes" className="text-xs font-bold uppercase text-muted-foreground">
               {language === "vi" ? "Ghi chú đơn hàng" : "Order Notes"}
             </label>
             <textarea
+              id="checkout-notes"
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
