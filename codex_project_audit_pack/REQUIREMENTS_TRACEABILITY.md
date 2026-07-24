@@ -55,7 +55,7 @@ Nguồn yêu cầu khả dụng: `README.md`, `PROJECT_ROADMAP_VI.md`, source co
 | SEO-01 | Metadata/robots/sitemap | Search engine | public pages | `robots.ts`, `sitemap.ts` | Blog, Paint | Build + Lighthouse SEO 91–92 | Đạt có giới hạn | Local production đạt gate; chưa Search Console/RUM |
 | SEC-01 | Security headers/CSP | All | N/A | nonce middleware + security header builder | N/A | CSP unit + production nonce smoke + build | Đạt có giới hạn | Script không còn unsafe-inline/eval; style inline vẫn được phép |
 | SEC-02 | Rate limit | All/API clients | N/A | middleware + UnifiedRateLimiter | Upstash production | fail-closed + memory-mode unit | Một phần | Auth production fail-closed; chưa health-check Upstash live |
-| TEST-01 | Automated quality gate | Developer | N/A | GitHub Actions | PostgreSQL 18 test service | 77 unit + 7 DB integration + 11 E2E/axe + OpenAPI + Lighthouse | Đạt có giới hạn | Gate đầy đủ đã chạy local; chưa có coverage threshold |
+| TEST-01 | Automated quality gate | Developer | N/A | GitHub Actions | PostgreSQL 18 test service | 77 unit + 7 DB integration + 13 E2E/axe + OpenAPI + Lighthouse | Đạt có giới hạn | Có CLS regression cho home/products; chưa có coverage threshold |
 | DEPLOY-01 | Deploy production có rollback/monitoring | Operator | N/A | GitHub Actions + deployment runbook | Neon + external services | Full local release gate + GitHub/Vercel Preview smoke | Đạt có giới hạn | Baseline CI/Preview xanh; backup/alerts/provider proof còn manual |
 
 ## Tổng hợp traceability

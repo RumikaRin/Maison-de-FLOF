@@ -46,11 +46,9 @@ export function ProductsClient({
   const [selectedSupplier, setSelectedSupplier] = useState("all");
   const [selectedFinish, setSelectedFinish] = useState("all");
   const [sortBy, setSortBy] = useState("default");
-  const [mounted, setMounted] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const catParam = searchParams.get("category");
     if (catParam) {
       const match = categories.find((c) => c.slug === catParam);
@@ -97,8 +95,6 @@ export function ProductsClient({
     selectedFinish !== "all",
     searchQuery !== "",
   ].filter(Boolean).length;
-
-  if (!mounted) return null;
 
   const FilterContent = () => (
     <div className="flex flex-col gap-5">

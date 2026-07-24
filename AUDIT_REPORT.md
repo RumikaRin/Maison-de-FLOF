@@ -9,7 +9,7 @@ Trạng thái tài liệu: đã cập nhật sau đợt remediation được ng�
 
 **Mức hoàn thiện hiện tại ước tính: 89% cho phạm vi demo không tính VNPay** (mức audit ban đầu: 65%).
 
-Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 77 unit test, 7 PostgreSQL integration test, 11 Playwright E2E/axe test, OpenAPI contract validation và Lighthouse CI. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 89% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
+Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 77 unit test, 7 PostgreSQL integration test, 13 Playwright E2E/axe test, OpenAPI contract validation và Lighthouse CI. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 89% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
 
 ### Điểm theo nhóm
 
@@ -21,8 +21,8 @@ Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Pri
 | API & nghiệp vụ | 18% | 88% | Critical error envelope, OpenAPI 9 path, checkout/order/outbox integration pass |
 | Authentication & authorization | 12% | 90% | Register, reset password và credentials customer/admin chạy xuyên UI/API/DB/session; RBAC guard vẫn có role-cache SLA |
 | Bảo mật | 15% | 91% | Nonce CSP, fail-closed auth limiter, audit sanitizer/persistence và audit runtime sạch |
-| Frontend & accessibility | 10% | 89% | 11 browser test pass; form auth có label programmatic; Lighthouse performance local còn dao động |
-| Testing | 8% | 93% | 77 unit + 7 DB integration + 11 E2E/axe, OpenAPI và Lighthouse pass; chưa có coverage threshold |
+| Frontend & accessibility | 10% | 90% | 13 browser test pass; homepage/products render SSR và có CLS regression gate <= 0.1 |
+| Testing | 8% | 94% | 77 unit + 7 DB integration + 13 E2E/axe, OpenAPI và Lighthouse pass; chưa có coverage threshold |
 | Deployment & vận hành | 5% | 88% | CI đã cấu hình PostgreSQL/Playwright/OpenAPI/Lighthouse; external manual evidence còn thiếu |
 | **Tổng** | **100%** | **89%** | **Đạt release-quality cho demo không tính VNPay; chưa đủ bằng chứng production external** |
 
@@ -51,9 +51,9 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | `npm run typecheck` | PASS, exit 0 | Chạy sau build mới, `tsc --noEmit` |
 | `npm test` | PASS | 77 test, 77 pass, 0 fail |
 | `npm run test:integration` | PASS | 7 test PostgreSQL: checkout atomic/idempotency/rollback, order ownership, audit persistence, outbox failure/retry |
-| `npm run test:e2e` | PASS | 11 Playwright Chromium: 8 axe scans + register/login + reset-password/login + COD/customer/admin |
+| `npm run test:e2e` | PASS | 13 Playwright Chromium: 8 axe scans + register/reset/COD + CLS gate cho home/products |
 | `npm run test:openapi` | PASS | OpenAPI 3.1 Redocly lint + critical source method coverage |
-| `npm run test:lighthouse` | PASS có warning | Hai lượt liên tiếp: performance 51–80 và CLS đôi lúc 0.786; Accessibility 92–100, Best Practices 93, SEO 91–92 |
+| `npm run test:lighthouse` | PASS | Sau sửa CLS: home 75/99/93/92, products 76/92/93/92, login 80/100/93/91; CLS bằng 0 trên cả ba route |
 | `npx prisma validate` | PASS | Schema Prisma hợp lệ |
 | Test DB migration deploy | PASS | 8 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
@@ -73,7 +73,7 @@ Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ li
 | H-01 email/outbox báo SENT giả | **Đã sửa** | `email-delivery.ts`, `email-outbox.ts`, cron chỉ SENT sau delivery thành công |
 | H-02 audit thiếu coverage/sanitization | **Đã sửa phần source** | Mọi admin route có mutation gọi audit; sanitizer trung tâm loại dữ liệu nhạy cảm |
 | H-03 rate limit fallback serverless | **Đã sửa** | Auth limiter production dùng deny/fail-closed khi backend phân tán không sẵn sàng |
-| H-04 thiếu integration/E2E | **Đã sửa critical path** | 7 DB integration + 11 Playwright E2E/axe; register/reset/session, checkout COD, ownership, audit và outbox có bằng chứng |
+| H-04 thiếu integration/E2E | **Đã sửa critical path** | 7 DB integration + 13 Playwright E2E/axe; register/reset/session, checkout COD, ownership, audit, outbox và CLS có bằng chứng |
 | H-05 ERD stale | **Đã bổ sung** | `docs/erd.md` phản ánh 32 model; PNG cũ được đánh dấu stale |
 | M-01 CSP | **Đã sửa cho script** | Nonce per-request trong middleware; production script-src không còn `unsafe-inline`/`unsafe-eval` |
 | M-02 pagination | **Đã sửa** | Parser dùng chung: page >= 1, 1 <= limit <= 100, input sai trả 400 |
@@ -154,7 +154,7 @@ Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ li
 
 - `docker-compose.test.yml` cung cấp PostgreSQL 18 cô lập và fixture script từ chối database production-like.
 - 7 integration test chứng minh checkout COD atomic/idempotent/rollback, order ownership, audit persistence và outbox failure/retry.
-- 11 Playwright test chạy production build, đăng ký customer, consume reset token, đăng nhập customer/admin, đặt COD, kiểm tra profile, cập nhật admin order và axe scan 8 màn hình.
+- 13 Playwright test chạy production build, đăng ký/reset, đăng nhập customer/admin, đặt COD, cập nhật order, axe scan 8 màn hình và đo CLS sau hydration cho home/products.
 
 **Khoảng trống còn lại:** chưa có integration cho phần lớn admin CRUD, OAuth/Google, concurrency/load và VNPay bị loại khỏi phạm vi.
 
@@ -254,11 +254,11 @@ Credentials dùng bcrypt cost 12, Google OAuth mặc định không link email n
 
 ### Frontend
 
-Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên 8 màn hình và Lighthouse đạt accessibility 92–100. Hai lần Lighthouse liên tiếp cho performance dao động 51–80; mỗi lần có một route public ghi nhận CLS 0.786 làm performance xuống dưới ngưỡng warning 70, trong khi lần còn lại của route đó CLS bằng 0. Đây là bằng chứng gate performance chưa ổn định, cần chạy nhiều mẫu và điều tra layout shift trước khi nâng thành error threshold. Color Visualizer vẫn dùng `MOCK_ROOMS`; blog related posts đang để rỗng; nhiều page client-side và chưa có responsive browser/device matrix, screen-reader thủ công hoặc real-user performance.
+Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên 8 màn hình và Lighthouse đạt accessibility 92–100. Nguyên nhân CLS được truy về `HomeClient`/`ProductsClient` trả `null` trước hydration rồi chèn toàn bộ nội dung phía trên footer; mount-gate đã được bỏ. Regression test dùng Layout Instability API đo home/products dưới ngưỡng tốt 0.1, còn Lighthouse hoàn chỉnh sau sửa ghi CLS bằng 0 và performance 75/76/80. Hai lần chạy Lighthouse bổ sung trên Windows gặp `EPERM` khi Chrome Launcher dọn thư mục temp; đây là flake của runner local, không phải assertion hoặc runtime app. Color Visualizer vẫn dùng `MOCK_ROOMS`; blog related posts đang để rỗng; nhiều page client-side và chưa có responsive browser/device matrix, screen-reader thủ công hoặc real-user performance.
 
 ### Testing
 
-77 unit test, 7 PostgreSQL integration test và 11 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage, Lighthouse và production dependency audit. Critical path COD/register/reset/auth/order/audit/outbox đã có bằng chứng xuyên tầng; vẫn thiếu coverage threshold, admin CRUD breadth, OAuth, load/race và cross-browser.
+77 unit test, 7 PostgreSQL integration test và 13 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage, Lighthouse và production dependency audit. Critical path COD/register/reset/auth/order/audit/outbox cùng layout stability đã có bằng chứng; vẫn thiếu coverage threshold, admin CRUD breadth, OAuth, load/race và cross-browser.
 
 ### Deployment
 

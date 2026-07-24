@@ -38,7 +38,6 @@ export function HomeClient({
   const { status: authStatus } = useSession();
 
   // States
-  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"bestseller" | "new" | "promo">("bestseller");
   const [isTabLoading, setIsTabLoading] = useState(false);
   const [networkError, setNetworkError] = useState(false);
@@ -66,10 +65,6 @@ export function HomeClient({
   const [paints, setPaints] = useState<(Paint & { supplier?: { name: string }; soldCount?: number })[]>(initialPaints);
   const [colorCatalog, setColorCatalog] = useState<PaintColor[]>(initialColors);
   const [blogs, setBlogs] = useState<any[]>(initialBlogs);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (authStatus === "authenticated") {
@@ -155,8 +150,6 @@ export function HomeClient({
         : `Added ${prod.nameEn || prod.name} to cart`
     );
   };
-
-  if (!mounted) return null;
 
   if (isOffline) {
     return (
