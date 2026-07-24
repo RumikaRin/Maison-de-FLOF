@@ -37,7 +37,7 @@
 - Modify: `package.json`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Write the failing database-name guard test**
+- [x] **Step 1: Write the failing database-name guard test**
 
 ```ts
 import assert from "node:assert/strict";
@@ -58,7 +58,7 @@ test("rejects production-like database names", () => {
 });
 ```
 
-- [ ] **Step 2: Run the guard test and confirm RED**
+- [x] **Step 2: Run the guard test and confirm RED**
 
 Run:
 
@@ -68,7 +68,7 @@ node --experimental-strip-types --test tests/test-database-guard.test.ts
 
 Expected: failure because `scripts/assert-test-database.ts` does not exist.
 
-- [ ] **Step 3: Implement the guard**
+- [x] **Step 3: Implement the guard**
 
 ```ts
 export function assertTestDatabaseUrl(value: string | undefined) {
@@ -81,7 +81,7 @@ export function assertTestDatabaseUrl(value: string | undefined) {
 }
 ```
 
-- [ ] **Step 4: Add the Docker service**
+- [x] **Step 4: Add the Docker service**
 
 ```yaml
 services:
@@ -102,7 +102,7 @@ services:
       - /var/lib/postgresql/data
 ```
 
-- [ ] **Step 5: Add deterministic fixture creation**
+- [x] **Step 5: Add deterministic fixture creation**
 
 The fixture script must call `assertTestDatabaseUrl(process.env.TEST_DATABASE_URL)`,
 construct `new PrismaClient({ datasourceUrl })`, hash the fixed password
@@ -122,7 +122,7 @@ const fixtures = {
 The product has price `500000`, stock `20`, minStock `5`, volume `5`, active
 category/supplier, and no VNPay data.
 
-- [ ] **Step 6: Add scripts and ignore generated reports**
+- [x] **Step 6: Add scripts and ignore generated reports**
 
 ```json
 {
@@ -136,7 +136,7 @@ category/supplier, and no VNPay data.
 Install `cross-env` as a dev dependency so the commands are cross-platform.
 Ignore `playwright-report/`, `test-results/`, and `.lighthouseci/`.
 
-- [ ] **Step 7: Run GREEN verification**
+- [x] **Step 7: Run GREEN verification**
 
 Run:
 
@@ -163,7 +163,7 @@ Expected: migrations apply to `flof_test`, fixtures complete, tests pass.
 - Modify: `src/lib/email-outbox.ts`
 - Modify: `package.json`
 
-- [ ] **Step 1: Write a failing real-database checkout test**
+- [x] **Step 1: Write a failing real-database checkout test**
 
 The test imports a dedicated Prisma client and calls:
 
@@ -195,7 +195,7 @@ Add separate tests proving identical idempotency returns the original order,
 changed payload returns 409, and insufficient stock leaves order/payment counts
 and stock unchanged.
 
-- [ ] **Step 2: Run integration test and confirm RED**
+- [x] **Step 2: Run integration test and confirm RED**
 
 Run:
 
@@ -207,7 +207,7 @@ node --experimental-strip-types --test tests/integration/checkout.integration.te
 Expected: TypeScript/runtime failure because `processCheckout` does not accept
 the dependency object.
 
-- [ ] **Step 3: Inject the database dependency**
+- [x] **Step 3: Inject the database dependency**
 
 Add:
 
@@ -230,7 +230,7 @@ export async function processCheckout(
 Replace every `db.*` access in the function with `database.*`. Keep
 `paymentService` untouched because integration inputs use COD only.
 
-- [ ] **Step 4: Add authorization/ownership helpers and tests**
+- [x] **Step 4: Add authorization/ownership helpers and tests**
 
 Extract a pure `getOrderAccessWhere(user, requestedEmail?)` helper from
 `src/app/api/orders/route.ts` and test it with rows in the test database:
@@ -246,7 +246,7 @@ assert.deepEqual(getOrderAccessWhere({ role: "ADMIN", email: admin.email }), {})
 Use the database to prove the customer filter returns only their order and the
 admin filter returns both fixture customers' orders.
 
-- [ ] **Step 5: Add audit and outbox integration coverage**
+- [x] **Step 5: Add audit and outbox integration coverage**
 
 Allow `createAuditLog` and the outbox batch processor to accept an optional
 database dependency, defaulting to the production singleton. Use the real test
@@ -274,7 +274,7 @@ Inject a delivery function that throws into the outbox processor and assert the
 record is `PENDING` with an incremented retry count or `FAILED` at the retry
 limit, never `SENT`.
 
-- [ ] **Step 6: Add the integration script and run GREEN**
+- [x] **Step 6: Add the integration script and run GREEN**
 
 ```json
 {
@@ -304,7 +304,7 @@ Expected: all integration and unit tests pass.
 - Modify: `src/components/features/home/HomeClient.tsx`
 - Modify: `src/components/features/home/FeaturedProductsSection.tsx`
 
-- [ ] **Step 1: Replace fallback tests with failing provenance assertions**
+- [x] **Step 1: Replace fallback tests with failing provenance assertions**
 
 ```ts
 const result = await getProductsPageData(failingCatalogDatabase);
@@ -319,7 +319,7 @@ Add matching database-success assertions and a unit test for:
 assert.equal(canAddCatalogItemToCart({ commerceAvailable: false }), false);
 ```
 
-- [ ] **Step 2: Run the focused tests and confirm RED**
+- [x] **Step 2: Run the focused tests and confirm RED**
 
 ```powershell
 node --experimental-strip-types --test tests/catalog-page-data.test.ts tests/home-page-data.test.ts tests/catalog-commerce-safety.test.ts
@@ -327,7 +327,7 @@ node --experimental-strip-types --test tests/catalog-page-data.test.ts tests/hom
 
 Expected: provenance fields and helper are absent.
 
-- [ ] **Step 3: Implement the contract**
+- [x] **Step 3: Implement the contract**
 
 ```ts
 export type CatalogSource = "database" | "fallback";
@@ -345,7 +345,7 @@ export function canAddCatalogItemToCart(value: CatalogAvailability) {
 Return `source: "database", commerceAvailable: true` after successful queries
 and `source: "fallback", commerceAvailable: false` in catch branches.
 
-- [ ] **Step 4: Propagate availability into UI**
+- [x] **Step 4: Propagate availability into UI**
 
 Server pages pass the availability fields to client components. When fallback
 is active, render:
@@ -360,7 +360,7 @@ is active, render:
 Disable add-to-cart buttons, set `aria-disabled="true"`, and make handlers
 return before calling the cart store.
 
-- [ ] **Step 5: Run GREEN checks**
+- [x] **Step 5: Run GREEN checks**
 
 ```powershell
 node --experimental-strip-types --test tests/catalog-page-data.test.ts tests/home-page-data.test.ts tests/catalog-commerce-safety.test.ts
@@ -377,7 +377,7 @@ Expected: focused tests and typecheck pass.
 - Modify: `next.config.ts`
 - Modify: `tests/security-headers.test.ts`
 
-- [ ] **Step 1: Write failing nonce policy tests**
+- [x] **Step 1: Write failing nonce policy tests**
 
 ```ts
 const policy = buildContentSecurityPolicy("production", "nonce-test-value");
@@ -387,7 +387,7 @@ assert.doesNotMatch(scriptDirective!, /'unsafe-inline'/);
 assert.doesNotMatch(scriptDirective!, /'unsafe-eval'/);
 ```
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 ```powershell
 node --experimental-strip-types --test tests/security-headers.test.ts
@@ -395,7 +395,7 @@ node --experimental-strip-types --test tests/security-headers.test.ts
 
 Expected: the builder does not accept/use a nonce.
 
-- [ ] **Step 3: Implement nonce CSP**
+- [x] **Step 3: Implement nonce CSP**
 
 Change the builder signature to:
 
@@ -427,7 +427,7 @@ replacing its control flow. A `withSecurityHeaders(response, nonce)` helper
 must decorate normal, redirect, 401/403, and 429 responses. Keep static non-CSP
 security headers in `next.config.ts`; middleware owns CSP.
 
-- [ ] **Step 4: Run GREEN and production render smoke**
+- [x] **Step 4: Run GREEN and production render smoke**
 
 ```powershell
 node --experimental-strip-types --test tests/security-headers.test.ts
@@ -449,7 +449,7 @@ production script `unsafe-inline`/`unsafe-eval`.
 - Modify: critical route/client files listed in the approved spec
 - Modify: `package.json`
 
-- [ ] **Step 1: Write failing envelope/parser tests**
+- [x] **Step 1: Write failing envelope/parser tests**
 
 ```ts
 const response = createApiErrorResponse(
@@ -464,13 +464,13 @@ assert.equal(getApiErrorMessage({ error: { message: "Forbidden" } }), "Forbidden
 assert.equal(getApiErrorMessage({ error: "Legacy error" }), "Legacy error");
 ```
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 ```powershell
 node --experimental-strip-types --test tests/api-error-contract.test.ts
 ```
 
-- [ ] **Step 3: Implement the contract**
+- [x] **Step 3: Implement the contract**
 
 ```ts
 export type ApiErrorCode =
@@ -495,7 +495,7 @@ export function getApiErrorMessage(payload: unknown, fallback = "Request failed"
 `apiErrorResponse` maps known exceptions to stable codes, uses `x-vercel-id`
 when present, otherwise `crypto.randomUUID()`, and never returns raw exceptions.
 
-- [ ] **Step 4: Add and validate OpenAPI 3.1**
+- [x] **Step 4: Add and validate OpenAPI 3.1**
 
 Document `/api/auth/register`, `/api/auth/forgot-password`, `/api/products`,
 `/api/colors`, `/api/coupons/validate`, `/api/orders`,
@@ -510,7 +510,7 @@ Install Redocly and add:
 }
 ```
 
-- [ ] **Step 5: Update critical clients and run GREEN**
+- [x] **Step 5: Update critical clients and run GREEN**
 
 Replace `data.error || fallback` with `getApiErrorMessage(data, fallback)` in
 login/register/forgot-password/products/orders/profile/quote flows.
@@ -535,7 +535,7 @@ npm run typecheck
 - Modify: checkout form components identified by axe
 - Modify: `package.json`
 
-- [ ] **Step 1: Install browser test dependencies and config**
+- [x] **Step 1: Install browser test dependencies and config**
 
 ```powershell
 npm install --save-dev @playwright/test @axe-core/playwright
@@ -567,7 +567,7 @@ Add:
 }
 ```
 
-- [ ] **Step 2: Write the COD journey**
+- [x] **Step 2: Write the COD journey**
 
 Log in using fixture credentials, open the fixture product, add it to cart,
 complete COD checkout, assert the order appears in profile, log out, log in as
@@ -581,7 +581,7 @@ await page.getByLabel(/Mật khẩu|Password/).fill("Flof-Test-2026!");
 await page.getByRole("button", { name: /Đăng nhập|Login/ }).click();
 ```
 
-- [ ] **Step 3: Write axe scans and confirm failures**
+- [x] **Step 3: Write axe scans and confirm failures**
 
 ```ts
 const results = await new AxeBuilder({ page })
@@ -596,13 +596,13 @@ expect(blocking).toEqual([]);
 Scan `/`, `/products`, `/colors`, `/login`, `/cart`, and `/quote-request`
 without authentication, then `/profile` and `/admin/orders` with fixtures.
 
-- [ ] **Step 4: Fix scoped accessibility findings**
+- [x] **Step 4: Fix scoped accessibility findings**
 
 Every quote/checkout input receives an explicit `label` with matching `htmlFor`
 and `id`; icon-only buttons receive `aria-label`; error/status containers use
 `role="alert"` or `role="status"` as appropriate.
 
-- [ ] **Step 5: Run browser GREEN**
+- [x] **Step 5: Run browser GREEN**
 
 ```powershell
 npm run build
@@ -621,14 +621,14 @@ Expected: COD journey passes and no scoped critical/serious axe violations.
 - Modify: `package.json`
 - Modify: `docs/deployment-runbook.md`
 
-- [ ] **Step 1: Write failing environment contract tests**
+- [x] **Step 1: Write failing environment contract tests**
 
 Test that production requires names for `DATABASE_URL`, `AUTH_SECRET`,
 `CRON_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
 `RESEND_API_KEY`, and `EMAIL_FROM`, but the checker returns only missing names
 and never values.
 
-- [ ] **Step 2: Implement the environment checker**
+- [x] **Step 2: Implement the environment checker**
 
 ```ts
 export function getMissingProductionVariables(environment: NodeJS.ProcessEnv) {
@@ -648,7 +648,7 @@ export function getMissingProductionVariables(environment: NodeJS.ProcessEnv) {
 The executable exits non-zero only when `REQUIRE_PRODUCTION_ENV=1`; local/CI
 contract tests use synthetic values.
 
-- [ ] **Step 3: Configure Lighthouse CI**
+- [x] **Step 3: Configure Lighthouse CI**
 
 ```json
 {
@@ -685,7 +685,7 @@ Add:
 }
 ```
 
-- [ ] **Step 4: Add CI PostgreSQL and gates**
+- [x] **Step 4: Add CI PostgreSQL and gates**
 
 Add PostgreSQL 18 as a service with health checks. Run:
 
@@ -704,13 +704,13 @@ Add PostgreSQL 18 as a service with health checks. Run:
 - run: npm audit --omit=dev --audit-level=high
 ```
 
-- [ ] **Step 5: Update runbook with manual evidence gates**
+- [x] **Step 5: Update runbook with manual evidence gates**
 
 Record that backup/PITR restore drill, production cron execution, Resend
 delivery, Upstash health, monitoring, and alert routing remain manual release
 evidence. Never mark them passing from environment-name validation alone.
 
-- [ ] **Step 6: Run local GREEN**
+- [x] **Step 6: Run local GREEN**
 
 ```powershell
 npm install --save-dev @lhci/cli
@@ -727,7 +727,7 @@ npm run test:lighthouse
 - Modify: `codex_project_audit_pack/DATA_DICTIONARY.md`
 - Modify: this plan to mark completed checkboxes
 
-- [ ] **Step 1: Run the complete local release gate**
+- [x] **Step 1: Run the complete local release gate**
 
 ```powershell
 npm run test:db:up
@@ -746,12 +746,12 @@ git diff --check
 npm run test:db:down
 ```
 
-- [ ] **Step 2: Record exact evidence**
+- [x] **Step 2: Record exact evidence**
 
 Update audit documents with test counts, E2E journeys, axe results, Lighthouse
 scores, OpenAPI scope, CSP result, and explicit remaining external gaps.
 
-- [ ] **Step 3: Verify scoped Git state**
+- [x] **Step 3: Verify scoped Git state**
 
 Confirm no `.ai-understand/` or VNPay path is staged:
 
@@ -760,13 +760,13 @@ $files = git diff --cached --name-only
 if ($files -match 'vnpay|\.ai-understand') { throw 'Unexpected staged path' }
 ```
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 Commit implementation in focused commits, push
 `feature/homepage-targeted-polish`, and let Vercel Git Integration create the
 Preview. Do not invoke a direct Vercel deployment.
 
-- [ ] **Step 5: Verify Preview and update Draft PR #2**
+- [x] **Step 5: Verify Preview and update Draft PR #2**
 
 Require READY state for the final commit, fetch root/products/colors/login and
 valid/invalid product pagination, inspect runtime errors, and update the PR body
