@@ -8,9 +8,10 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - Database: PostgreSQL, schema `public`.
 - ORM: Prisma 6.
 - Khóa chính: tất cả model nghiệp vụ dùng `String @id @default(cuid())`, ngoại trừ `VerificationToken` dùng composite key.
-- Schema hiện có: **32 model**, **11 enum**, **6 migration đã áp dụng + 1 migration pending**.
+- Schema hiện có: **32 model**, **11 enum**, **7 migration đã áp dụng**.
 - `npx prisma validate`: pass.
-- `prisma migrate status`: migration `20260724150000_add_data_invariant_checks` đang pending theo production approval gate.
+- `prisma migrate status`: database schema up to date.
+- Neon production: 17/17 CHECK constraint từ migration invariant đã installed + validated; hậu kiểm có 0 row vi phạm.
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
@@ -81,16 +82,16 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | Customer chỉ sửa address của mình | API `id + userId` filter | profile addresses route |
 | Chỉ người mua đơn completed được review | API query Order/Item | reviews route |
 | Coupon usage không vượt limit khi checkout | Conditional update trong transaction | checkout service |
+| Stock, giá, số lượng, total, payment, coupon, rating và inventory hợp lệ | DB CHECK constraint | migration `20260724150000_add_data_invariant_checks`; 17/17 validated |
 
 ## Khoảng trống dữ liệu
 
-1. Production chưa có CHECK constraint; migration additive đã chuẩn bị, dữ liệu read-only hiện có 0 row vi phạm các invariant cốt lõi, nhưng chưa áp dụng.
-2. `AuditLog.actorId` không có FK; cần ghi rõ retention/immutability policy.
-3. `InventoryTransaction.referenceId` không có FK/type discriminator.
-4. `ChatMessage` và `Conversation/Message` là hai mô hình chat song song, làm reporting và retention phức tạp.
-5. Không có model consent/privacy/retention cho PII trong user, address, quote, chat và audit.
-6. Không có bằng chứng backup restore/PITR, masking non-production hoặc data retention job.
-7. ERD trong `public/erd_diagram.png` không khớp dictionary này; dùng `docs/erd.md` làm nguồn tài liệu hiện tại.
+1. `AuditLog.actorId` không có FK; cần ghi rõ retention/immutability policy.
+2. `InventoryTransaction.referenceId` không có FK/type discriminator.
+3. `ChatMessage` và `Conversation/Message` là hai mô hình chat song song, làm reporting và retention phức tạp.
+4. Không có model consent/privacy/retention cho PII trong user, address, quote, chat và audit.
+5. Không có bằng chứng backup restore/PITR, masking non-production hoặc data retention job.
+6. ERD trong `public/erd_diagram.png` không khớp dictionary này; dùng `docs/erd.md` làm nguồn tài liệu hiện tại.
 
 ## Migration catalog
 
@@ -102,4 +103,4 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | `20260610010000_unique_product_reviews` | Unique review theo paint+user |
 | `20260610040000_add_chat_messages` | ChatMessage và indexes |
 | `20260611180000_payment_idempotency_audit` | Payment, idempotency, audit, outbox và constraint liên quan |
-| `20260724150000_add_data_invariant_checks` | CHECK constraint additive cho catalog, order, payment, coupon, review và inventory; **pending approval** |
+| `20260724150000_add_data_invariant_checks` | CHECK constraint additive cho catalog, order, payment, coupon, review và inventory; **đã áp dụng, 17/17 validated** |

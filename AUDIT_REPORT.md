@@ -7,9 +7,9 @@ Trạng thái tài liệu: đã cập nhật sau đợt remediation được ng�
 
 ## 1. Kết luận điều hành
 
-**Mức hoàn thiện hiện tại ước tính: 82% cho phạm vi demo không tính VNPay** (mức audit ban đầu: 65%).
+**Mức hoàn thiện hiện tại ước tính: 84% cho phạm vi demo không tính VNPay** (mức audit ban đầu: 65%).
 
-Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout có transaction/idempotency, inventory, payment, CI và 60 unit test. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Dependency Critical/High, email outbox, rate-limit production, audit coverage, pagination, status 401/403, CSP production, runtime contract và tài liệu vận hành đã được xử lý. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 82% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
+Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout có transaction/idempotency, inventory, payment, CI và 60 unit test. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Dependency Critical/High, email outbox, rate-limit production, audit coverage, pagination, status 401/403, CSP production, runtime contract, database invariant và tài liệu vận hành đã được xử lý. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 84% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
 
 ### Điểm theo nhóm
 
@@ -17,14 +17,14 @@ Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Pri
 |---|---:|---:|---|
 | Yêu cầu & traceability | 10% | 78% | Đã có traceability cập nhật; vẫn thiếu PRD/acceptance criteria chính thức |
 | Kiến trúc | 10% | 82% | Modular monolith phù hợp, service boundary chưa đồng đều |
-| Database & ORM | 12% | 84% | 6 migration đã áp dụng; migration CHECK invariant thứ 7 đã chuẩn bị và đang chờ approval |
+| Database & ORM | 12% | 92% | 7 migration đã áp dụng; 17/17 CHECK constraint mới đã validated trên Neon production |
 | API & nghiệp vụ | 18% | 82% | Pagination đã bound, auth status đúng hơn, email/outbox có failure contract |
 | Authentication & authorization | 12% | 82% | Auth.js + RBAC có guard; dependency audit High hiện sạch |
 | Bảo mật | 15% | 79% | Rate limit auth fail-closed, audit sanitizer và CSP production đã được siết |
 | Frontend & accessibility | 10% | 70% | 33 page, UI tương đối đầy đủ; client-heavy, nhiều form dùng placeholder thay label |
 | Testing | 8% | 72% | 60/60 unit test và browser smoke read-only pass; vẫn chưa có DB integration/coverage |
-| Deployment & vận hành | 5% | 80% | Có CI, Node 24, runbook, `vercel.json`, structured logs và Vercel telemetry; chờ Preview verification |
-| **Tổng** | **100%** | **82%** | **Đạt demo-readiness trong phạm vi không tính VNPay; chưa đủ bằng chứng production** |
+| Deployment & vận hành | 5% | 90% | Vercel Preview từ GitHub đã READY và smoke test pass; vẫn thiếu backup/alerting/external-provider proof |
+| **Tổng** | **100%** | **84%** | **Đạt demo-readiness trong phạm vi không tính VNPay; chưa đủ bằng chứng production** |
 
 ## 2. Stack và kiến trúc thực tế
 
@@ -33,7 +33,7 @@ Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Pri
 | Frontend | Next.js 15.5.21 App Router, React 19, TailwindCSS 3, Framer Motion, Zustand, React Query |
 | Backend | Next.js Route Handlers trong `src/app/api`, business service trong `src/services` |
 | Database | PostgreSQL; DB đang cấu hình là Neon PostgreSQL |
-| ORM | Prisma 6, `prisma/schema.prisma`, 6 migration đã áp dụng + 1 migration invariant pending |
+| ORM | Prisma 6, `prisma/schema.prisma`, 7 migration đã áp dụng; migration invariant có 17 CHECK constraint validated |
 | Authentication | Auth.js/NextAuth v5 beta.32; Credentials + Google; JWT session; Prisma adapter |
 | Authorization | Role `ADMIN`, `STAFF`, `CUSTOMER`; middleware + `requireUser/Staff/Admin/Permission` |
 | Test framework | Node.js built-in test runner với TypeScript strip-types |
@@ -51,12 +51,14 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | `npm run typecheck` | PASS, exit 0 | Chạy sau build mới, `tsc --noEmit` |
 | `npm test` | PASS | 60 test, 60 pass, 0 fail |
 | `npx prisma validate` | PASS | Schema Prisma hợp lệ |
-| `npm run db:status` | EXPECTED PENDING | 6 migration đã áp dụng; `20260724150000_add_data_invariant_checks` chưa áp dụng theo approval gate |
+| `npm run db:status` | PASS | 7 migration đã áp dụng; database schema up to date |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
 | Playwright CLI local smoke | PASS | `/`, products, colors, dealer, login; console 0 error/0 warning |
 | API/header local smoke | PASS | products pagination 200/400; CSP có `object-src 'none'`, không có `unsafe-eval` |
+| Vercel Preview | PASS | Deployment `dpl_G7eHSarfv2LSY2185sFFxNPdEdf5` READY; 5 trang chính 200; API 200/400; không có runtime error |
+| Neon invariant postflight | PASS | 17/17 constraint installed + validated; tổng số row vi phạm = 0 |
 
-Không chạy `db:migrate`, `db:seed`, `prisma db push`, lệnh ghi dữ liệu hoặc thử callback thanh toán. Nội dung `.env` không được đọc/hiển thị; `.env` không được Git theo dõi và đã có rule ignore. VNPay source/test không được thay đổi trong đợt remediation.
+Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ liệu. Sau khi Vercel Preview pass và người dùng phê duyệt rõ ràng, chỉ `prisma migrate deploy` được chạy để áp dụng migration additive `20260724150000_add_data_invariant_checks`; không seed/reset/db push và không thử callback thanh toán. Nội dung `.env` không được đọc/hiển thị; `.env` không được Git theo dõi và đã có rule ignore. VNPay source/test không được thay đổi trong đợt remediation.
 
 ### Trạng thái remediation
 
@@ -71,7 +73,7 @@ Không chạy `db:migrate`, `db:seed`, `prisma db push`, lệnh ghi dữ liệu 
 | H-05 ERD stale | **Đã bổ sung** | `docs/erd.md` phản ánh 32 model; PNG cũ được đánh dấu stale |
 | M-01 CSP | **Đã sửa một phần** | Production bỏ `unsafe-eval`; `unsafe-inline` còn là residual risk |
 | M-02 pagination | **Đã sửa** | Parser dùng chung: page >= 1, 1 <= limit <= 100, input sai trả 400 |
-| M-07 operations | **Đã bổ sung, chờ Preview** | Runbook, Node 24, `vercel.json`, structured logs, Analytics/Speed Insights |
+| M-07 operations | **Đã bổ sung và xác minh Preview** | Runbook, Node 24, `vercel.json`, structured logs, Analytics/Speed Insights; Vercel READY |
 | L-01/L-02/L-04 | **Đã sửa** | 401/403 tách đúng, README/API count cập nhật, Node engine được khai báo |
 
 ## 4. Phát hiện theo mức độ
@@ -174,9 +176,9 @@ Không chạy `db:migrate`, `db:seed`, `prisma db push`, lệnh ghi dữ liệu 
 
 `src/app/api/products/route.ts:13-37`, `blog/route.ts`, `colors/route.ts`, `dealers/route.ts` dùng `parseInt` trực tiếp; limit âm, NaN hoặc rất lớn có thể gây 500/DB load. `admin/notifications/route.ts:13-25` cũng nhận `take` không chặn trên.
 
-#### M-03 — Database thiếu constraint cho invariant quan trọng — **migration đã chuẩn bị, chưa áp dụng**
+#### M-03 — Database thiếu constraint cho invariant quan trọng — **đã sửa**
 
-Production hiện có 0 public CHECK constraint. Migration `20260724150000_add_data_invariant_checks` đã bổ sung các rule cho stock, price/cost/total, quantity, payment amount, coupon, rating và inventory quantity theo mẫu `NOT VALID` rồi `VALIDATE`. Truy vấn read-only trên Neon xác nhận 0 row vi phạm các rule cốt lõi; migration vẫn pending cho tới khi có approval áp dụng production.
+Migration `20260724150000_add_data_invariant_checks` đã được áp dụng sau approval, bổ sung 17 rule cho stock, price/cost/total, quantity, payment amount, coupon, rating và inventory quantity theo mẫu `NOT VALID` rồi `VALIDATE`. Hậu kiểm trực tiếp trên Neon xác nhận 17/17 constraint đã installed + validated và tổng số row vi phạm bằng 0.
 
 #### M-04 — Storefront che lỗi database bằng catalog tĩnh
 
@@ -190,9 +192,9 @@ Production hiện có 0 public CHECK constraint. Migration `20260724150000_add_d
 
 `src/auth.ts:9-10,23-51` cache role trong JWT và refresh mỗi 5 phút. API helper có đọc user/role lại từ DB nên mutation chính được bảo vệ tốt hơn, nhưng middleware/UI có thể tiếp tục coi role cũ hợp lệ trong cửa sổ này. Cần document revocation SLA.
 
-#### M-07 — Deploy/operations chưa đủ tái lập — **đã bổ sung runbook, còn thiếu bằng chứng live**
+#### M-07 — Deploy/operations chưa đủ tái lập — **đã bổ sung runbook và xác minh Vercel Preview**
 
-Chỉ có `.github/workflows/ci.yml` và hướng dẫn bằng văn bản. Không có `vercel.json`, cấu hình cron cho hai endpoint, staging topology, backup/restore proof, monitoring/alerting, migration rollback/runbook hoặc dependency pin policy.
+Đã có CI, `vercel.json`, cron outbox, Node 24 contract, runbook, structured log, Analytics/Speed Insights và Preview deployment tự động từ GitHub. Vẫn thiếu bằng chứng backup/restore, alerting, Resend/Upstash production và rollback drill.
 
 #### M-08 — Seed dùng credential cố định, có công tắc cho phép production
 
@@ -228,12 +230,11 @@ README là nguồn yêu cầu chính, nhưng không có PRD/acceptance criteria 
 
 - 32 model, 11 enum, quan hệ và index khá đầy đủ.
 - Order có snapshot shipping/product; Payment tách 1-1; idempotency có unique key.
-- Prisma schema validate và migration status đều pass.
+- Prisma schema validate và migration status đều pass; 17 CHECK constraint invariant đã validated trên Neon.
 
 Khoảng trống:
 
 - ERD stale nghiêm trọng.
-- Chưa có DB-level CHECK invariant.
 - `AuditLog.actorId` không có foreign key; đây có thể là lựa chọn giữ lịch sử sau khi xóa user nhưng cần document.
 - `InventoryTransaction.referenceId` là chuỗi tự do, không có FK.
 - Không có migration checksum/backup restore evidence ngoài Prisma status.
@@ -252,32 +253,32 @@ Các luồng chính đều có UI và API nối thật. Tuy nhiên Color Visuali
 
 ### Testing
 
-55 unit test hiện có giá trị cho commerce rules, idempotency, cron auth, rate limiter fail-closed, password policy, email delivery/outbox, pagination, audit sanitization, CSP và cấu hình VNPay. Quality gate vẫn thiếu test DB/API/browser và coverage threshold.
+60 unit test hiện có giá trị cho commerce rules, idempotency, cron auth, rate limiter fail-closed, password policy, email delivery/outbox, pagination, audit sanitization, CSP và cấu hình VNPay. Quality gate vẫn thiếu test DB/API xuyên tầng và coverage threshold.
 
 ### Deployment
 
-Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và đã có deployment runbook. Tuy vậy chưa có quyền kiểm tra cấu hình Vercel/cron/observability/rollback thật. Do đó chưa thể xác nhận production readiness end-to-end.
+Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và đã có deployment runbook. Git push đã tự tạo Vercel Preview READY; smoke test trang/API, CSP và runtime error query đều pass. Vẫn chưa có bằng chứng cron production execution, external-provider delivery, backup/PITR, alerting và rollback drill.
 
 ## 6. Ba rủi ro lớn nhất
 
 1. **Thiếu integration/E2E cho auth, ownership, transaction, outbox và các critical path**, nên unit test chưa chứng minh hành vi xuyên tầng.
-2. **Migration CHECK constraint chưa được áp dụng production**, nên trong thời gian pending writer ngoài application vẫn có thể tạo dữ liệu sai.
-3. **Hạ tầng production chưa được xác minh trực tiếp:** cron, Upstash, Resend, backup/PITR, monitoring, alerting và rollback.
+2. **Catalog fallback có thể hiển thị giá/tồn kho tĩnh khi database lỗi**, gây rủi ro dữ liệu thương mại cũ.
+3. **Vận hành production còn thiếu bằng chứng:** cron execution, Upstash, Resend, backup/PITR, alerting và rollback drill.
 
 ## 7. Năm việc phải sửa đầu tiên
 
 1. Thêm integration test với database tách biệt cho auth/RBAC/ownership, checkout transaction, audit và outbox.
 2. Thêm E2E cho register/login/cart/checkout COD/profile/admin order; VNPay tiếp tục được loại khỏi scope theo quyết định hiện tại.
-3. Sau khi Preview xanh, phê duyệt và áp dụng migration CHECK constraint đã chuẩn bị lên Neon production.
-4. Cấu hình và kiểm chứng staging cho cron, Upstash, Resend, backup/PITR, monitoring và alerting theo runbook.
+3. Loại bỏ hoặc khóa checkout khi storefront đang dùng catalog fallback; hiển thị trạng thái dữ liệu không khả dụng.
+4. Cấu hình và kiểm chứng cron, Upstash, Resend, backup/PITR, monitoring và alerting theo runbook.
 5. Giảm tiếp CSP `unsafe-inline`, chuẩn hóa API error/OpenAPI và bổ sung accessibility/performance gate.
 
 ## 8. Phần chưa đủ dữ liệu để xác minh
 
 - File được yêu cầu `codex_project_audit_pack/CODEX_PROJECT_AUDIT_PROMPT.md` không tồn tại trong repository hoặc `D:\ProjectZ`; audit dùng 10 yêu cầu trong lời nhắn làm baseline.
 - Không có PRD/SRS, acceptance criteria đã ký, KPI/SLA/SLO hoặc biên bản UAT.
-- Không kiểm tra dữ liệu row-level, PII quality, record count hay production traffic; chỉ `prisma migrate status` được phép kết nối đọc.
-- Không có quyền/telemetry để xác nhận Vercel project, Neon backup/PITR, Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
+- Không đọc nội dung row-level/PII hoặc production traffic; chỉ chạy aggregate invariant count và metadata constraint/migration.
+- Đã xác minh Vercel Preview và Neon migration trực tiếp; chưa đủ quyền/telemetry để xác nhận Neon backup/PITR, Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
 - Không có kết quả Lighthouse, axe, browser/device matrix, penetration test hoặc load test.
 - Không xác minh DNS/TLS/custom domain, webhook delivery từ VNPay thật, email deliverability, cron schedule, alerting và disaster recovery.
 
