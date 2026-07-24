@@ -6,9 +6,10 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    if (!session?.user?.id || (role !== "ADMIN" && role !== "STAFF")) {
+    if (!session?.user?.id) {
       throw new ApiError(401, "Unauthorized");
     }
+    if (role !== "ADMIN" && role !== "STAFF") throw new ApiError(403, "Forbidden");
 
     const { id } = await props.params;
 

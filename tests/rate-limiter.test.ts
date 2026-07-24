@@ -95,3 +95,30 @@ test("rate limit policy protects credentials login and account registration sepa
   });
   assert.equal(getRateLimitPolicy("/api/auth/session"), null);
 });
+
+test("deny failure mode blocks when the distributed backend is not configured", async () => {
+  const limiter = new UnifiedRateLimiter(60_000, 10, {
+    failureMode: "deny",
+    redisUrl: undefined,
+    redisToken: undefined,
+  });
+
+  const result = await limiter.checkLimit("sensitive-client");
+
+  assert.equal(result.success, false);
+  assert.equal(result.remaining, 0);
+  assert.equal(result.reason, "BACKEND_UNAVAILABLE");
+});
+
+test("memory failure mode remains available without a distributed backend", async () => {
+  const limiter = new UnifiedRateLimiter(60_000, 10, {
+    failureMode: "memory",
+    redisUrl: undefined,
+    redisToken: undefined,
+  });
+
+  const result = await limiter.checkLimit("development-client");
+
+  assert.equal(result.success, true);
+  assert.equal(result.reason, undefined);
+});

@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import { db } from "@/lib/db";
 import { hasPermission, type Permission } from "@/lib/permissions";
+import { PaginationError } from "@/lib/pagination";
 
 export class ApiError extends Error {
   constructor(
@@ -60,6 +61,9 @@ export function apiErrorResponse(error: unknown) {
   }
   if (error instanceof ZodError || error instanceof SyntaxError) {
     return Response.json({ error: "Dữ liệu gửi lên không hợp lệ" }, { status: 400 });
+  }
+  if (error instanceof PaginationError) {
+    return Response.json({ error: error.message }, { status: 400 });
   }
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") {

@@ -13,14 +13,24 @@ export class UnifiedRateLimiter {
   private useRedis: boolean;
   private redisUrl?: string;
   private redisToken?: string;
+  private failureMode: "memory" | "deny";
 
-  constructor(windowMs: number, maxLimit: number) {
+  constructor(
+    windowMs: number,
+    maxLimit: number,
+    options: {
+      failureMode?: "memory" | "deny";
+      redisUrl?: string;
+      redisToken?: string;
+    } = {},
+  ) {
     this.windowMs = windowMs;
     this.maxLimit = maxLimit;
+    this.failureMode = options.failureMode ?? "memory";
     
     // Upstash Redis config
-    this.redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-    this.redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    this.redisUrl = options.redisUrl ?? process.env.UPSTASH_REDIS_REST_URL;
+    this.redisToken = options.redisToken ?? process.env.UPSTASH_REDIS_REST_TOKEN;
     this.useRedis = Boolean(this.redisUrl && this.redisToken);
   }
 
@@ -33,18 +43,35 @@ export class UnifiedRateLimiter {
     limit: number;
     remaining: number;
     resetTime: number;
+    reason?: "BACKEND_UNAVAILABLE";
   }> {
     if (this.useRedis) {
       try {
         return await this.checkRedisLimit(key);
       } catch (error) {
-        console.error("Upstash Redis Rate Limiting failed, falling back to In-Memory:", error);
-        // Safe fallback to In-Memory
+        console.error("Distributed rate limiting backend unavailable");
+        if (this.failureMode === "deny") {
+          return this.backendUnavailableResult();
+        }
         return this.checkMemoryLimit(key);
       }
     }
 
+    if (this.failureMode === "deny") {
+      return this.backendUnavailableResult();
+    }
+
     return this.checkMemoryLimit(key);
+  }
+
+  private backendUnavailableResult() {
+    return {
+      success: false,
+      limit: this.maxLimit,
+      remaining: 0,
+      resetTime: Date.now() + this.windowMs,
+      reason: "BACKEND_UNAVAILABLE" as const,
+    };
   }
 
   private checkMemoryLimit(key: string): {
@@ -135,4 +162,3 @@ export class UnifiedRateLimiter {
 
 // Backwards-compatible alias
 export { UnifiedRateLimiter as InMemoryRateLimiter };
-

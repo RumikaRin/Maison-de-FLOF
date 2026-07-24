@@ -2,14 +2,16 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { apiErrorResponse, ApiError } from "@/lib/api-auth";
 import { z } from "zod";
+import { createAuditLog } from "@/lib/audit";
 
 export async function GET(request: Request) {
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    if (!session?.user?.id || (role !== "ADMIN" && role !== "STAFF")) {
+    if (!session?.user?.id) {
       throw new ApiError(401, "Unauthorized");
     }
+    if (role !== "ADMIN" && role !== "STAFF") throw new ApiError(403, "Forbidden");
 
     const conversations = await db.conversation.findMany({
       include: {
@@ -39,9 +41,10 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
     const role = (session?.user as any)?.role;
-    if (!session?.user?.id || (role !== "ADMIN" && role !== "STAFF")) {
+    if (!session?.user?.id) {
       throw new ApiError(401, "Unauthorized");
     }
+    if (role !== "ADMIN" && role !== "STAFF") throw new ApiError(403, "Forbidden");
 
     const parsed = replySchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -61,6 +64,16 @@ export async function POST(request: Request) {
     await db.conversation.update({
       where: { id: parsed.data.conversationId },
       data: { updatedAt: new Date(), status: "IN_PROGRESS" },
+    });
+    await createAuditLog(db, {
+      actor: {
+        id: session.user.id,
+        email: session.user.email || "unknown",
+      },
+      action: "CHAT_REPLY_SENT",
+      entityType: "Conversation",
+      entityId: parsed.data.conversationId,
+      afterData: { messageId: message.id, status: "IN_PROGRESS" },
     });
 
     return Response.json({ success: true, message }, { status: 201 });

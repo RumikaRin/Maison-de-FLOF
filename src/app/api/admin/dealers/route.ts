@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requirePermission, requireStaff } from "@/lib/api-auth";
+import { createAuditLog } from "@/lib/audit";
 
 const dealerSchema = z.object({
   id: z.string().optional(),
@@ -67,7 +68,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const parsed = dealerSchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Thông tin đại lý không hợp lệ");
     const dealer = await db.dealer.create({
@@ -84,6 +85,13 @@ export async function POST(request: NextRequest) {
       },
       include: { supplier: true },
     });
+    await createAuditLog(db, {
+      actor,
+      action: "DEALER_CREATED",
+      entityType: "Dealer",
+      entityId: dealer.id,
+      afterData: { name: dealer.name, province: dealer.province, district: dealer.district },
+    });
     return NextResponse.json(serializeDealer(dealer), { status: 201 });
   } catch (error) {
     return apiErrorResponse(error);
@@ -92,7 +100,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const parsed = dealerSchema.safeParse(await request.json());
     if (!parsed.success || !parsed.data.id) {
       throw new ApiError(400, "Thông tin đại lý không hợp lệ");
@@ -112,6 +120,13 @@ export async function PATCH(request: NextRequest) {
       },
       include: { supplier: true },
     });
+    await createAuditLog(db, {
+      actor,
+      action: "DEALER_UPDATED",
+      entityType: "Dealer",
+      entityId: dealer.id,
+      afterData: { name: dealer.name, province: dealer.province, district: dealer.district },
+    });
     return NextResponse.json(serializeDealer(dealer));
   } catch (error) {
     return apiErrorResponse(error);
@@ -120,10 +135,16 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const id = new URL(request.url).searchParams.get("id");
     if (!id) throw new ApiError(400, "Thiếu mã đại lý");
     await db.dealer.delete({ where: { id } });
+    await createAuditLog(db, {
+      actor,
+      action: "DEALER_DELETED",
+      entityType: "Dealer",
+      entityId: id,
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return apiErrorResponse(error);

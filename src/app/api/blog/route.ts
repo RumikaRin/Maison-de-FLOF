@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { parsePagination, PaginationError } from "@/lib/pagination";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,16 +11,11 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const pageParam = searchParams.get("page");
-    const limitParam = searchParams.get("limit");
-    
-    let page = 1;
-    let limit = 20;
-    
-    if (pageParam) page = parseInt(pageParam);
-    if (limitParam) limit = parseInt(limitParam);
-
-    const isPaginationRequested = !!pageParam || !!limitParam;
+    const {
+      page,
+      limit,
+      requested: isPaginationRequested,
+    } = parsePagination(searchParams);
 
     const queryOptions: any = {
       where: { isActive: true },
@@ -72,8 +68,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof PaginationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error("Failed to fetch blogs:", error);
     return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 });
   }
 }
-

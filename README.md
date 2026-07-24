@@ -12,7 +12,7 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 ## 🛠️ Công Nghệ Sử Dụng (Tech Stack)
 
 ### Frontend
-- **Framework**: Next.js 15.1 (App Router) & React 19.
+- **Framework**: Next.js 15.5.21 (App Router) & React 19.
 - **Styling**: TailwindCSS & Tailwind Animate.
 - **Hiệu ứng & Animation**: Framer Motion (Page Transitions, Smooth Entrance Animations).
 - **Quản lý trạng thái (State Management)**: Zustand (giỏ hàng, ngôn ngữ).
@@ -29,7 +29,7 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 ### Backend & Database
 - **Cơ sở dữ liệu**: PostgreSQL (được lưu trữ trên Neon Serverless Database).
 - **ORM**: Prisma Client v6.
-- **Xác thực người dùng**: NextAuth.js v5 (Beta 31) tích hợp Prisma Adapter.
+- **Xác thực người dùng**: NextAuth.js v5 (Beta 32) tích hợp Prisma Adapter.
 - **Gửi Email**: Resend SDK (hệ thống Email Outbox hàng đợi & retry).
 - **Lưu trữ hình ảnh**: Cloudinary.
 - **Thanh toán trực tuyến**: VNPay SDK.
@@ -116,7 +116,7 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 │   │   │   ├── paints/      # Quản lý sản phẩm sơn
 │   │   │   ├── quotes/      # Quản lý yêu cầu báo giá
 │   │   │   └── reviews/     # Quản lý đánh giá sản phẩm
-│   │   ├── api/             # API Routes (18 endpoints)
+│   │   ├── api/             # API Routes (52 route handlers)
 │   │   │   ├── admin/       # Admin API (CRUD resources)
 │   │   │   ├── auth/        # NextAuth.js authentication
 │   │   │   ├── blog/        # Blog API
@@ -276,6 +276,11 @@ npm run db:status
 ```
 
 Trên Vercel, cấu hình đầy đủ `DATABASE_URL`, `AUTH_SECRET`, Cloudinary và Resend. Chạy `npm run db:migrate` trong quy trình phát hành trước khi chuyển traffic sang bản mới.
+
+Tài liệu vận hành và dữ liệu:
+
+- `docs/deployment-runbook.md`: checklist release, migration, cron, smoke test, rollback và monitoring.
+- `docs/erd.md`: ERD hiện tại sinh theo 32 model trong Prisma schema.
 
 ---
 

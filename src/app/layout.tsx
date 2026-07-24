@@ -12,6 +12,9 @@ import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
 import { LazyChatBubble } from "@/components/layout/LazyChatBubble";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { shouldEnableVercelTelemetry } from "@/lib/vercel-runtime";
 import "./globals.css";
 
 const noto = Noto_Sans({
@@ -48,6 +51,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const enableVercelTelemetry = shouldEnableVercelTelemetry({
+    VERCEL: process.env.VERCEL,
+  });
+
   return (
     <html lang="vi" suppressHydrationWarning>
       <body
@@ -100,6 +107,12 @@ export default function RootLayout({
               <Suspense fallback={null}>
                 <GlobalNavigationLoader />
               </Suspense>
+              {enableVercelTelemetry ? (
+                <>
+                  <Analytics />
+                  <SpeedInsights />
+                </>
+              ) : null}
             </ThemeProvider>
           </QueryProvider>
         </SessionProvider>

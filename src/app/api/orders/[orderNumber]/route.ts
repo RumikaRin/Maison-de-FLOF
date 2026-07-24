@@ -7,6 +7,7 @@ import { sendOrderStatusEmail } from "@/lib/email";
 import { createAuditLog } from "@/lib/audit";
 import { requiresPaidBeforeFulfillment } from "@/lib/payment-policy";
 import { cancelOrderWithRestock } from "@/services/order-lifecycle.service";
+import { EmailDeliveryError } from "@/lib/email-delivery";
 
 export async function GET(
   _request: NextRequest,
@@ -181,7 +182,18 @@ export async function PATCH(
       });
     });
 
-    await sendOrderStatusEmail(order.customer.user.email, order.orderNumber, parsed.data.status);
+    try {
+      await sendOrderStatusEmail(
+        order.customer.user.email,
+        order.orderNumber,
+        parsed.data.status,
+      );
+    } catch (error) {
+      console.error(
+        "Order status email delivery failed:",
+        error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+      );
+    }
     return NextResponse.json({ success: true, status: parsed.data.status });
   } catch (error) {
     return apiErrorResponse(error);

@@ -3,6 +3,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { z } from "zod";
 import { ApiError, apiErrorResponse, requirePermission, requireStaff } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { createAuditLog } from "@/lib/audit";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -52,7 +53,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireStaff();
+    const actor = await requireStaff();
     ensureConfigured();
     const parsed = uploadSchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Ảnh không hợp lệ hoặc vượt quá 8 MB");
@@ -64,6 +65,18 @@ export async function POST(request: NextRequest) {
       folder: "flof",
       public_id: `${safeName}-${Date.now().toString(36)}`,
       resource_type: "image",
+    });
+    await createAuditLog(db, {
+      actor,
+      action: "MEDIA_UPLOADED",
+      entityType: "Media",
+      entityId: result.public_id,
+      afterData: {
+        publicId: result.public_id,
+        width: result.width,
+        height: result.height,
+        format: result.format,
+      },
     });
     return NextResponse.json(
       {
@@ -88,15 +101,12 @@ export async function DELETE(request: NextRequest) {
     const publicId = new URL(request.url).searchParams.get("publicId");
     if (!publicId?.startsWith("flof/")) throw new ApiError(400, "Mã ảnh không hợp lệ");
     await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
-    await db.auditLog.create({
-      data: {
-        actorId: admin.id,
-        actorEmail: admin.email,
-        action: "MEDIA_DELETED",
-        entityType: "Media",
-        entityId: publicId,
-        beforeData: { publicId },
-      },
+    await createAuditLog(db, {
+      actor: admin,
+      action: "MEDIA_DELETED",
+      entityType: "Media",
+      entityId: publicId,
+      beforeData: { publicId },
     });
     return NextResponse.json({ success: true });
   } catch (error) {

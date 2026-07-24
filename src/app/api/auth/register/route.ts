@@ -4,6 +4,7 @@ import { ApiError, apiErrorResponse } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
 import { passwordSchema } from "@/lib/password-policy";
+import { EmailDeliveryError } from "@/lib/email-delivery";
 
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -34,7 +35,14 @@ export async function POST(request: Request) {
         customer: { create: { customerType: "RETAIL" } },
       },
     });
-    await sendWelcomeEmail(user.email, user.name || "Khách hàng");
+    try {
+      await sendWelcomeEmail(user.email, user.name || "Khách hàng");
+    } catch (error) {
+      console.error(
+        "Welcome email delivery failed:",
+        error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+      );
+    }
     return Response.json({ success: true, email: user.email }, { status: 201 });
   } catch (error) {
     return apiErrorResponse(error);

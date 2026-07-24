@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ApiError, apiErrorResponse, requirePermission, requireStaff } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { createAuditLog } from "@/lib/audit";
 
 const categorySchema = z.object({
   id: z.string().optional(),
@@ -43,7 +44,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const parsed = categorySchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Thông tin danh mục không hợp lệ");
     const slug = slugify(parsed.data.slug || parsed.data.name);
@@ -61,6 +62,13 @@ export async function POST(request: Request) {
       },
       include: { _count: { select: { paints: true } } },
     });
+    await createAuditLog(db, {
+      actor,
+      action: "CATEGORY_CREATED",
+      entityType: "Category",
+      entityId: category.id,
+      afterData: { name: category.name, slug: category.slug, isActive: category.isActive },
+    });
     return Response.json(category, { status: 201 });
   } catch (error) {
     return apiErrorResponse(error);
@@ -69,7 +77,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const parsed = categorySchema.safeParse(await request.json());
     if (!parsed.success || !parsed.data.id) {
       throw new ApiError(400, "Thông tin danh mục không hợp lệ");
@@ -90,6 +98,13 @@ export async function PATCH(request: Request) {
       },
       include: { _count: { select: { paints: true } } },
     });
+    await createAuditLog(db, {
+      actor,
+      action: "CATEGORY_UPDATED",
+      entityType: "Category",
+      entityId: category.id,
+      afterData: { name: category.name, slug: category.slug, isActive: category.isActive },
+    });
     return Response.json(category);
   } catch (error) {
     return apiErrorResponse(error);
@@ -98,10 +113,17 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const id = new URL(request.url).searchParams.get("id");
     if (!id) throw new ApiError(400, "Thiếu mã danh mục");
     await db.category.update({ where: { id }, data: { isActive: false } });
+    await createAuditLog(db, {
+      actor,
+      action: "CATEGORY_DEACTIVATED",
+      entityType: "Category",
+      entityId: id,
+      afterData: { isActive: false },
+    });
     return Response.json({ success: true });
   } catch (error) {
     return apiErrorResponse(error);

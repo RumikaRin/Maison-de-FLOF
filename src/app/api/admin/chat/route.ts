@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ApiError, apiErrorResponse, requireStaff } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { createAuditLog } from "@/lib/audit";
 
 const updateChatSchema = z.object({
   id: z.string().min(1),
@@ -20,7 +21,7 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    await requireStaff();
+    const actor = await requireStaff();
     const parsed = updateChatSchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Dữ liệu tin nhắn không hợp lệ");
 
@@ -30,6 +31,13 @@ export async function PATCH(request: Request) {
         status: parsed.data.status,
         adminNote: parsed.data.adminNote || null,
       },
+    });
+    await createAuditLog(db, {
+      actor,
+      action: "CHAT_STATUS_CHANGED",
+      entityType: "ChatMessage",
+      entityId: message.id,
+      afterData: { status: message.status, hasAdminNote: Boolean(message.adminNote) },
     });
     return Response.json(message);
   } catch (error) {

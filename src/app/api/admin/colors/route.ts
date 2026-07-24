@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requirePermission, requireStaff } from "@/lib/api-auth";
+import { createAuditLog } from "@/lib/audit";
 
 const colorSchema = z.object({
   id: z.string().optional(),
@@ -43,7 +44,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const parsed = colorSchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Thông tin màu không hợp lệ");
     const color = await db.paintColor.create({
@@ -58,6 +59,13 @@ export async function POST(request: NextRequest) {
       },
       include: { collection: { select: { id: true, name: true, nameEn: true } } },
     });
+    await createAuditLog(db, {
+      actor,
+      action: "COLOR_CREATED",
+      entityType: "PaintColor",
+      entityId: color.id,
+      afterData: { code: color.code, name: color.name, hex: color.hex },
+    });
     return NextResponse.json(serializeColor(color), { status: 201 });
   } catch (error) {
     return apiErrorResponse(error);
@@ -66,7 +74,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const parsed = colorSchema.safeParse(await request.json());
     if (!parsed.success || !parsed.data.id) {
       throw new ApiError(400, "Thông tin màu không hợp lệ");
@@ -84,6 +92,13 @@ export async function PATCH(request: NextRequest) {
       },
       include: { collection: { select: { id: true, name: true, nameEn: true } } },
     });
+    await createAuditLog(db, {
+      actor,
+      action: "COLOR_UPDATED",
+      entityType: "PaintColor",
+      entityId: color.id,
+      afterData: { code: color.code, name: color.name, hex: color.hex },
+    });
     return NextResponse.json(serializeColor(color));
   } catch (error) {
     return apiErrorResponse(error);
@@ -92,12 +107,18 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const actor = await requirePermission("CATALOG_MANAGE");
     const id = new URL(request.url).searchParams.get("id");
     if (!id) throw new ApiError(400, "Thiếu mã màu");
     const linked = await db.paintColorLink.count({ where: { colorId: id } });
     if (linked > 0) throw new ApiError(409, "Không thể xóa màu đang được gắn với sản phẩm");
     await db.paintColor.delete({ where: { id } });
+    await createAuditLog(db, {
+      actor,
+      action: "COLOR_DELETED",
+      entityType: "PaintColor",
+      entityId: id,
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return apiErrorResponse(error);

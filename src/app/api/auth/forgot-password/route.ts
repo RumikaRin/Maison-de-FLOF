@@ -3,6 +3,7 @@ import { ApiError, apiErrorResponse } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { createPasswordResetToken } from "@/lib/password-reset";
+import { EmailDeliveryError } from "@/lib/email-delivery";
 
 const schema = z.object({
   email: z.string().trim().email().transform((v) => v.toLowerCase()),
@@ -33,7 +34,18 @@ export async function POST(request: Request) {
       const resetUrl = new URL("/reset-password", baseUrl);
       resetUrl.searchParams.set("token", rawToken);
       resetUrl.searchParams.set("email", user.email);
-      await sendPasswordResetEmail(user.email, user.name || "Khách hàng", resetUrl.toString());
+      try {
+        await sendPasswordResetEmail(
+          user.email,
+          user.name || "Khách hàng",
+          resetUrl.toString(),
+        );
+      } catch (error) {
+        console.error(
+          "Password reset email delivery failed:",
+          error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+        );
+      }
     }
 
     return Response.json({
