@@ -68,6 +68,11 @@ npm run lint
 npm run build
 npm run typecheck
 npm test
+npm run test:env
+npm run test:integration
+npm run test:e2e
+npm run test:openapi
+npm run test:lighthouse
 npx prisma validate
 npm audit --omit=dev --audit-level=high
 npm run db:status
@@ -75,6 +80,30 @@ npm run db:status
 
 Stop the release if any command exits non-zero. Do not suppress the dependency
 audit and do not use `npm audit fix --force` in a release job.
+
+`npm run check:release-env` reports missing variable names only. Set
+`REQUIRE_PRODUCTION_ENV=1` in the controlled release environment when a missing
+name must fail the job. Passing this name-only check proves configuration
+presence, not provider availability or credential validity.
+
+## Manual external evidence gates
+
+The following remain manual release evidence and must not be marked passing
+from environment-name validation, unit tests, or a successful build alone:
+
+1. Restore a backup/PITR point into a separate Neon branch or database and
+   record that the restored application data is readable.
+2. Invoke the production outbox cron through its configured scheduler and
+   confirm an authorized execution is visible in sanitized runtime logs.
+3. Deliver a non-sensitive test email through Resend and confirm both provider
+   acceptance and mailbox receipt.
+4. Exercise one low-volume protected auth request and confirm Upstash is
+   healthy, with no fail-closed HTTP 503 response.
+5. Confirm production monitoring receives application/runtime signals and that
+   the configured alert route reaches an on-call owner.
+
+If any item lacks dated evidence, record it as `NOT VERIFIED` and stop
+production promotion when that dependency is release-critical.
 
 ## Database release order
 
