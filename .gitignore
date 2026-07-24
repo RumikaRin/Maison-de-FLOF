@@ -6,6 +6,9 @@
 # testing
 /coverage
 /.playwright-cli/
+/playwright-report/
+/test-results/
+/.lighthouseci/
 
 # next.js
 /.next/
@@ -43,5 +46,4 @@ yarn-error.log*
 /reports/
 /PROJECT_AUDIT_REPORT_VI.md
 /PROJECT_ROADMAP_VI.md
-
 
