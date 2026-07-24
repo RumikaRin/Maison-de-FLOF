@@ -45,6 +45,6 @@ export async function POST(request: Request) {
     }
     return Response.json({ success: true, email: user.email }, { status: 201 });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }

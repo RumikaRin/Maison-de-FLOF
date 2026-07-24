@@ -4,6 +4,12 @@ import { ZodError } from "zod";
 import { db } from "@/lib/db";
 import { hasPermission, type Permission } from "@/lib/permissions";
 import { PaginationError } from "@/lib/pagination";
+import {
+  createApiErrorResponse,
+  getApiRequestId,
+  type ApiErrorCode,
+  type ApiErrorDescriptor,
+} from "@/lib/api-error-contract";
 
 export class ApiError extends Error {
   constructor(
@@ -55,28 +61,79 @@ export async function requirePermission(permission: Permission) {
   throw new ApiError(403, "Forbidden");
 }
 
-export function apiErrorResponse(error: unknown) {
+function codeForStatus(status: number): ApiErrorCode {
+  if (status === 400) return "BAD_REQUEST";
+  if (status === 401) return "UNAUTHORIZED";
+  if (status === 403) return "FORBIDDEN";
+  if (status === 404) return "NOT_FOUND";
+  if (status === 409) return "CONFLICT";
+  if (status === 429) return "TOO_MANY_REQUESTS";
+  return "INTERNAL_ERROR";
+}
+
+function describeApiError(error: unknown): ApiErrorDescriptor {
   if (error instanceof ApiError) {
-    return Response.json({ error: error.message }, { status: error.status });
+    return {
+      status: error.status,
+      code: codeForStatus(error.status),
+      message: error.message,
+    };
   }
   if (error instanceof ZodError || error instanceof SyntaxError) {
-    return Response.json({ error: "Dữ liệu gửi lên không hợp lệ" }, { status: 400 });
+    return {
+      status: 400,
+      code: "BAD_REQUEST",
+      message: "Dữ liệu gửi lên không hợp lệ",
+    };
   }
   if (error instanceof PaginationError) {
-    return Response.json({ error: error.message }, { status: 400 });
+    return { status: 400, code: "BAD_REQUEST", message: error.message };
   }
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") {
-      return Response.json({ error: "Dữ liệu đã tồn tại" }, { status: 409 });
+      return {
+        status: 409,
+        code: "CONFLICT",
+        message: "Dữ liệu đã tồn tại",
+      };
     }
     if (error.code === "P2025") {
-      return Response.json({ error: "Không tìm thấy dữ liệu" }, { status: 404 });
+      return {
+        status: 404,
+        code: "NOT_FOUND",
+        message: "Không tìm thấy dữ liệu",
+      };
     }
     if (error.code === "P2003") {
-      return Response.json({ error: "Dữ liệu đang được sử dụng" }, { status: 409 });
+      return {
+        status: 409,
+        code: "CONFLICT",
+        message: "Dữ liệu đang được sử dụng",
+      };
     }
   }
 
-  console.error(error);
-  return Response.json({ error: "Internal Server Error" }, { status: 500 });
+  console.error("Unhandled API error", {
+    name: error instanceof Error ? error.name : typeof error,
+  });
+  return {
+    status: 500,
+    code: "INTERNAL_ERROR",
+    message: "Internal Server Error",
+  };
+}
+
+export function apiErrorResponse(error: unknown, request?: Request) {
+  const descriptor = describeApiError(error);
+
+  // Routes not yet included in the documented critical contract retain their
+  // legacy string shape until their clients migrate to the shared parser.
+  if (!request) {
+    return Response.json(
+      { error: descriptor.message },
+      { status: descriptor.status },
+    );
+  }
+
+  return createApiErrorResponse(descriptor, getApiRequestId(request));
 }

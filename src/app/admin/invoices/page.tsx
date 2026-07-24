@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/utils";
 import { Search, FileText, Printer, CheckCircle, Clock, XCircle, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { InvoiceModal } from "@/components/admin/InvoiceModal";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 export default function AdminInvoicesPage() {
   const { language } = useLanguageStore();
@@ -22,7 +23,9 @@ export default function AdminInvoicesPage() {
     fetch("/api/orders")
       .then(async (response) => {
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Không thể tải hóa đơn");
+        if (!response.ok) {
+          throw new Error(getApiErrorMessage(data, "Không thể tải hóa đơn"));
+        }
         setOrders(data);
       })
       .catch((error) => console.error(error))

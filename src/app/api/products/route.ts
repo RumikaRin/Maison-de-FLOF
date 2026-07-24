@@ -1,13 +1,14 @@
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest } from "next/server";
-import { parsePagination, PaginationError } from "@/lib/pagination";
+import { parsePagination } from "@/lib/pagination";
+import { ApiError, apiErrorResponse } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
     const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
-      return Response.json({ error: "Too many requests" }, { status: 429 });
+      throw new ApiError(429, "Too many requests");
     }
 
     const { searchParams } = new URL(request.url);
@@ -91,10 +92,6 @@ export async function GET(request: NextRequest) {
       headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
     });
   } catch (error) {
-    if (error instanceof PaginationError) {
-      return Response.json({ error: error.message }, { status: 400 });
-    }
-    console.error("Failed to fetch products:", error);
-    return Response.json({ error: "Failed to fetch products" }, { status: 500 });
+    return apiErrorResponse(error, request);
   }
 }

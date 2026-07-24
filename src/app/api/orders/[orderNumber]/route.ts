@@ -10,7 +10,7 @@ import { cancelOrderWithRestock } from "@/services/order-lifecycle.service";
 import { EmailDeliveryError } from "@/lib/email-delivery";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ orderNumber: string }> },
 ) {
   try {
@@ -72,7 +72,7 @@ export async function GET(
       createdAt: order.createdAt.toISOString(),
     });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }
 
@@ -196,6 +196,6 @@ export async function PATCH(
     }
     return NextResponse.json({ success: true, status: parsed.data.status });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }

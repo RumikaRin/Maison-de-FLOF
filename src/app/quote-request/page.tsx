@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useLanguageStore } from "@/store/language-store";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 const initialForm = {
   fullName: "",
@@ -41,7 +42,9 @@ export default function QuoteRequestPage() {
         body: JSON.stringify({ ...form, area: form.area ? Number(form.area) : undefined }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể gửi yêu cầu");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể gửi yêu cầu"));
+      }
       setSubmitted(true);
       toast.success(language === "vi" ? "Đã gửi yêu cầu báo giá." : "Quote request submitted.");
     } catch (error) {

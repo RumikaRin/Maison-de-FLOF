@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 export default function ForgotPasswordPage() {
   const { language } = useLanguageStore();
@@ -27,7 +28,12 @@ export default function ForgotPasswordPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || (language === "vi" ? "Gửi yêu cầu thất bại." : "Request failed."));
+        toast.error(
+          getApiErrorMessage(
+            data,
+            language === "vi" ? "Gửi yêu cầu thất bại." : "Request failed.",
+          ),
+        );
         setIsLoading(false);
         return;
       }

@@ -8,6 +8,7 @@ import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 
 export default function RegisterPage() {
@@ -56,7 +57,12 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error || (language === "vi" ? "Đăng ký thất bại." : "Registration failed."));
+        toast.error(
+          getApiErrorMessage(
+            data,
+            language === "vi" ? "Đăng ký thất bại." : "Registration failed.",
+          ),
+        );
         setIsLoading(false);
         return;
       }

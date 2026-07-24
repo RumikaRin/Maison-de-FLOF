@@ -1,0 +1,393 @@
+openapi: 3.1.0
+info:
+  title: Maison de FLOF Critical API
+  version: 1.0.0
+  description: Contract for customer-facing and commerce-critical endpoints.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: /
+security: []
+paths:
+  /api/auth/register:
+    post:
+      operationId: registerCustomer
+      summary: Register a customer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 120 }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "201":
+          description: Customer registered
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, email]
+                properties:
+                  success: { type: boolean, const: true }
+                  email: { type: string, format: email }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/auth/forgot-password:
+    post:
+      operationId: requestPasswordReset
+      summary: Request a password reset without revealing account existence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        "200":
+          description: Generic reset request acknowledgement
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/products:
+    get:
+      operationId: listProducts
+      summary: List active paint products
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Product list or paginated product result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items: { $ref: "#/components/schemas/Product" }
+                  - allOf:
+                      - $ref: "#/components/schemas/Pagination"
+                      - type: object
+                        required: [data]
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Product" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/colors:
+    get:
+      operationId: listColors
+      summary: List paint colors
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Color list
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/coupons/validate:
+    post:
+      operationId: validateCoupon
+      summary: Validate a coupon against a subtotal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, subtotal]
+              properties:
+                code: { type: string }
+                subtotal: { type: number, minimum: 0 }
+      responses:
+        "200":
+          description: Coupon discount
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/orders:
+    get:
+      operationId: listOrders
+      summary: List orders visible to the authenticated user
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - name: email
+          in: query
+          schema: { type: string, format: email }
+      responses:
+        "200":
+          description: Visible orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Order" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    post:
+      operationId: createOrder
+      summary: Create an idempotent checkout order
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 16, maxLength: 128 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Checkout" }
+      responses:
+        "200": { description: Existing idempotent order }
+        "201": { description: Order created }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/orders/{orderNumber}:
+    parameters:
+      - $ref: "#/components/parameters/OrderNumber"
+    get:
+      operationId: getOrder
+      summary: Get an order visible to the authenticated user
+      security: [{ sessionCookie: [] }]
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    patch:
+      operationId: updateOrderStatus
+      summary: Update an order status with staff permission
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, CONFIRMED, PROCESSING, SHIPPING, COMPLETED, CANCELLED]
+      responses:
+        "200": { description: Order status updated }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/profile:
+    get:
+      operationId: getProfile
+      summary: Get the authenticated user profile
+      security: [{ sessionCookie: [] }]
+      responses:
+        "200": { description: User profile }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalError" }
+    patch:
+      operationId: updateProfile
+      summary: Update the authenticated user profile
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 120 }
+                phone: { type: string, maxLength: 20 }
+      responses:
+        "200": { description: Updated user profile }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/quote-request:
+    post:
+      operationId: createQuoteRequest
+      summary: Submit a quote request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, phone, email, message]
+              properties:
+                fullName: { type: string, minLength: 2, maxLength: 120 }
+                phone: { type: string, minLength: 8, maxLength: 30 }
+                email: { type: string, format: email }
+                companyName: { type: string, maxLength: 180 }
+                projectName: { type: string, maxLength: 180 }
+                projectType: { type: string, maxLength: 100 }
+                area: { type: number, exclusiveMinimum: 0, maximum: 10000000 }
+                paintType: { type: string, maxLength: 180 }
+                message: { type: string, minLength: 5, maxLength: 5000 }
+      responses:
+        "201": { description: Quote request created }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/InternalError" }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: authjs.session-token
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1 }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100 }
+    OrderNumber:
+      name: orderNumber
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    Forbidden:
+      description: Permission denied
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    Conflict:
+      description: Resource state conflict
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    TooManyRequests:
+      description: Request rate limit exceeded
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+  schemas:
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum:
+                - BAD_REQUEST
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - NOT_FOUND
+                - CONFLICT
+                - TOO_MANY_REQUESTS
+                - INTERNAL_ERROR
+            message: { type: string }
+            requestId: { type: string }
+    Pagination:
+      type: object
+      required: [total, page, limit, totalPages]
+      properties:
+        total: { type: integer, minimum: 0 }
+        page: { type: integer, minimum: 1 }
+        limit: { type: integer, minimum: 1, maximum: 100 }
+        totalPages: { type: integer, minimum: 0 }
+    Product:
+      type: object
+      required: [id, sku, name, slug, price, stock]
+      properties:
+        id: { type: string }
+        sku: { type: string }
+        name: { type: string }
+        nameEn: { type: string }
+        slug: { type: string }
+        price: { type: number }
+        discountPercent: { type: integer }
+        stock: { type: integer }
+        images:
+          type: array
+          items: { type: string }
+    Order:
+      type: object
+      required: [id, total, status]
+      properties:
+        id: { type: string }
+        total: { type: number }
+        status: { type: string }
+        paymentMethod: { type: string }
+        paymentStatus: { type: string }
+        structuredItems:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    Checkout:
+      type: object
+      required: [items, paymentMethod, shipping]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [paintId, quantity]
+            properties:
+              paintId: { type: string }
+              colorId: { type: string }
+              quantity: { type: integer, minimum: 1 }
+        paymentMethod:
+          type: string
+          enum: [COD, TRANSFER, VNPAY]
+        couponCode: { type: string }
+        note: { type: string }
+        shipping:
+          type: object
+          required: [fullName, phone, addressLine1, district, province]
+          properties:
+            fullName: { type: string }
+            phone: { type: string }
+            addressLine1: { type: string }
+            addressLine2: { type: string }
+            district: { type: string }
+            province: { type: string }

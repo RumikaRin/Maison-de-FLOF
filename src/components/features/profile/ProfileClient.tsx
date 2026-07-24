@@ -7,6 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { ProfileSidebar } from "./ProfileSidebar";
 import { OrderHistoryTab } from "./tabs/OrderHistoryTab";
@@ -177,7 +178,9 @@ export function ProfileClient() {
         body: JSON.stringify({ name: profileName, phone: profilePhone }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể cập nhật hồ sơ");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể cập nhật hồ sơ"));
+      }
       setUser(data);
       toast.success(language === "vi" ? "Cập nhật thông tin thành công!" : "Profile updated successfully!");
     } catch (error) {

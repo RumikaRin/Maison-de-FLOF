@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { apiErrorResponse, requireUser } from "@/lib/api-auth";
+import { ApiError, apiErrorResponse, requireUser } from "@/lib/api-auth";
 import { checkoutSchema } from "@/lib/order-validation";
 import { processCheckout } from "@/services/checkout.service";
 import { getClientIp } from "@/lib/ip";
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(await serializeOrders(await getOrders(where)));
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }
 
@@ -119,10 +119,7 @@ export async function POST(request: NextRequest) {
     const sessionUser = await requireUser();
     const parsed = checkoutSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Dữ liệu đặt hàng không hợp lệ", details: parsed.error.flatten() },
-        { status: 400 },
-      );
+      throw new ApiError(400, "Dữ liệu đặt hàng không hợp lệ");
     }
 
     const input = parsed.data;
@@ -143,6 +140,6 @@ export async function POST(request: NextRequest) {
       paymentUrl: result.paymentUrl 
     }, { status: result.existingOrderId ? 200 : 201 });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }

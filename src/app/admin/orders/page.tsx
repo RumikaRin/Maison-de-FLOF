@@ -9,6 +9,7 @@ import { CheckCircle, Clock, Search, XCircle, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 import { InvoiceModal } from "@/components/admin/InvoiceModal";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 export default function AdminOrdersPage() {
   const { language } = useLanguageStore();
@@ -32,7 +33,9 @@ export default function AdminOrdersPage() {
     fetch("/api/orders")
       .then(async (response) => {
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Không thể tải đơn hàng");
+        if (!response.ok) {
+          throw new Error(getApiErrorMessage(data, "Không thể tải đơn hàng"));
+        }
         setOrders(data);
       })
       .catch((error) => toast.error(error.message))
@@ -49,7 +52,9 @@ export default function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể cập nhật đơn hàng");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể cập nhật đơn hàng"));
+      }
 
       setOrders((current) =>
         current.map((order) =>
@@ -78,7 +83,9 @@ export default function AdminOrdersPage() {
         body: JSON.stringify({ paymentId: order.paymentId, transactionCode }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể xác nhận thanh toán");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể xác nhận thanh toán"));
+      }
       setOrders((current) =>
         current.map((item) =>
           item.id === order.id
@@ -108,7 +115,9 @@ export default function AdminOrdersPage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể ghi nhận hoàn tiền");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể ghi nhận hoàn tiền"));
+      }
       setOrders((current) =>
         current.map((item) =>
           item.id === order.id ? { ...item, paymentStatus: "REFUNDED" } : item,

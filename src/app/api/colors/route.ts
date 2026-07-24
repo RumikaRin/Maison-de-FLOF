@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { parsePagination, PaginationError } from "@/lib/pagination";
+import { parsePagination } from "@/lib/pagination";
+import { apiErrorResponse } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,10 +47,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (error instanceof PaginationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    console.error("Failed to fetch colors:", error);
-    return NextResponse.json({ error: "Failed to fetch colors" }, { status: 500 });
+    return apiErrorResponse(error, request);
   }
 }

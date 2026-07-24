@@ -11,6 +11,7 @@ import { useCartStore } from "@/store/cart-store";
 import { formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ChevronLeft, Minus, Plus, Trash2, Tag, ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
 
 export default function CartPage() {
@@ -58,7 +59,7 @@ export default function CartPage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Invalid coupon");
+        throw new Error(getApiErrorMessage(data, "Invalid coupon"));
       }
 
       setCouponCode(data.code);
