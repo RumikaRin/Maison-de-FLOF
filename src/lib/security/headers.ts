@@ -2,9 +2,13 @@ type RuntimeEnvironment = "development" | "production" | "test";
 
 export function buildContentSecurityPolicy(
   environment: RuntimeEnvironment,
+  nonce?: string,
 ) {
-  const scriptSources = ["'self'", "'unsafe-inline'"];
-  if (environment !== "production") scriptSources.push("'unsafe-eval'");
+  const scriptSources = ["'self'"];
+  if (nonce) scriptSources.push(`'nonce-${nonce}'`, "'strict-dynamic'");
+  if (environment !== "production") {
+    scriptSources.push("'unsafe-inline'", "'unsafe-eval'");
+  }
 
   return [
     "default-src 'self'",

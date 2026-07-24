@@ -17,6 +17,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { shouldEnableVercelTelemetry } from "@/lib/vercel-runtime";
 import "./globals.css";
 
+// A strict per-request CSP nonce requires dynamic rendering so Next.js can
+// attach the nonce to every framework and application script.
+export const dynamic = "force-dynamic";
+
 const noto = Noto_Sans({
   subsets: ["vietnamese"],
   weight: ["300", "400", "500", "600", "700"],
