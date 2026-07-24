@@ -1,6 +1,6 @@
 # Báo cáo audit dự án Maison de FLOF
 
-Ngày audit: 24/07/2026
+Ngày audit: 25/07/2026
 Phạm vi: toàn bộ repository `D:\ProjectZ\FLOF`
 Chế độ audit ban đầu: an toàn, không seed/reset database, không chạy migration, không hiển thị secret
 Trạng thái tài liệu: đã cập nhật sau đợt remediation được người dùng phê duyệt; tích hợp VNPay giả lập được loại khỏi phạm vi sửa
@@ -9,7 +9,7 @@ Trạng thái tài liệu: đã cập nhật sau đợt remediation được ng�
 
 **Mức hoàn thiện hiện tại ước tính: 89% cho phạm vi demo không tính VNPay** (mức audit ban đầu: 65%).
 
-Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 77 unit test, 7 PostgreSQL integration test, 9 Playwright E2E/axe test, OpenAPI contract validation và Lighthouse CI. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 89% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
+Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 77 unit test, 7 PostgreSQL integration test, 11 Playwright E2E/axe test, OpenAPI contract validation và Lighthouse CI. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 89% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
 
 ### Điểm theo nhóm
 
@@ -19,10 +19,10 @@ Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Pri
 | Kiến trúc | 10% | 85% | Modular monolith phù hợp; checkout/outbox đã có service boundary và DB test |
 | Database & ORM | 12% | 94% | 8 migration trong repo; 17/17 CHECK constraint validated trên Neon, test DB có migration parity |
 | API & nghiệp vụ | 18% | 88% | Critical error envelope, OpenAPI 9 path, checkout/order/outbox integration pass |
-| Authentication & authorization | 12% | 88% | Credentials customer/admin chạy xuyên session + middleware; RBAC guard vẫn có role-cache SLA |
+| Authentication & authorization | 12% | 90% | Register, reset password và credentials customer/admin chạy xuyên UI/API/DB/session; RBAC guard vẫn có role-cache SLA |
 | Bảo mật | 15% | 91% | Nonce CSP, fail-closed auth limiter, audit sanitizer/persistence và audit runtime sạch |
-| Frontend & accessibility | 10% | 88% | 9 browser test pass; axe không có critical/serious trên 8 màn hình; Lighthouse accessibility 92–100 |
-| Testing | 8% | 92% | 77 unit + 7 DB integration + 9 E2E/axe, OpenAPI và Lighthouse pass; chưa có coverage threshold |
+| Frontend & accessibility | 10% | 89% | 11 browser test pass; form auth có label programmatic; Lighthouse performance local còn dao động |
+| Testing | 8% | 93% | 77 unit + 7 DB integration + 11 E2E/axe, OpenAPI và Lighthouse pass; chưa có coverage threshold |
 | Deployment & vận hành | 5% | 88% | CI đã cấu hình PostgreSQL/Playwright/OpenAPI/Lighthouse; external manual evidence còn thiếu |
 | **Tổng** | **100%** | **89%** | **Đạt release-quality cho demo không tính VNPay; chưa đủ bằng chứng production external** |
 
@@ -44,22 +44,22 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 
 ## 3. Bằng chứng kiểm tra động
 
-| Kiểm tra | Kết quả ngày 24/07/2026 | Ghi chú |
+| Kiểm tra | Kết quả ngày 25/07/2026 | Ghi chú |
 |---|---|---|
 | `npm run lint` | PASS, exit 0 | Không có lint error |
-| `npm run build` | PASS, exit 0 | Sinh 81 route/page; Neon có một lỗi kết nối P1001 tạm thời khi prerender colors và fallback tĩnh hoạt động; `db:status` sau đó vẫn PASS |
+| `npm run build` | PASS, exit 0 | Production build và kiểm tra type tích hợp hoàn tất |
 | `npm run typecheck` | PASS, exit 0 | Chạy sau build mới, `tsc --noEmit` |
 | `npm test` | PASS | 77 test, 77 pass, 0 fail |
 | `npm run test:integration` | PASS | 7 test PostgreSQL: checkout atomic/idempotency/rollback, order ownership, audit persistence, outbox failure/retry |
-| `npm run test:e2e` | PASS | 9 Playwright Chromium: 8 axe scans + COD order/customer profile/admin confirmation |
+| `npm run test:e2e` | PASS | 11 Playwright Chromium: 8 axe scans + register/login + reset-password/login + COD/customer/admin |
 | `npm run test:openapi` | PASS | OpenAPI 3.1 Redocly lint + critical source method coverage |
-| `npm run test:lighthouse` | PASS | Home 77/99/93/92; products 78/92/93/92; login 80/100/93/91 (Performance/Accessibility/Best Practices/SEO) |
+| `npm run test:lighthouse` | PASS có warning | Hai lượt liên tiếp: performance 51–80 và CLS đôi lúc 0.786; Accessibility 92–100, Best Practices 93, SEO 91–92 |
 | `npx prisma validate` | PASS | Schema Prisma hợp lệ |
 | Test DB migration deploy | PASS | 8 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
 | Production CSP smoke | PASS | nonce header khớp 33 script tag; script-src không có `unsafe-inline`/`unsafe-eval` |
-| Vercel Preview | PASS | Code SHA `776df00`, deployment `dpl_2KEypzwLjGgoZwLndPePerrTsa4P` READY; connector root 200; không có runtime error cluster |
-| GitHub Actions | PASS | Run `30108750967`, job quality xanh đủ PostgreSQL/unit/integration/build/E2E/OpenAPI/Lighthouse/audit |
+| Vercel Preview | PASS | Baseline SHA `77ef264`, deployment `dpl_4F8Dxe55ioFoBqprxgjhHwFMHAtj` READY; runtime error scan sạch |
+| GitHub Actions | PASS | Baseline run `30109577643`, job quality xanh đủ PostgreSQL/unit/integration/build/E2E/OpenAPI/Lighthouse/audit |
 | Neon invariant postflight | PASS | 17/17 constraint installed + validated; tổng số row vi phạm = 0 |
 
 Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ liệu. Sau khi Vercel Preview pass và người dùng phê duyệt rõ ràng, chỉ `prisma migrate deploy` được chạy để áp dụng migration additive `20260724150000_add_data_invariant_checks`; không seed/reset/db push và không thử callback thanh toán. Nội dung `.env` không được đọc/hiển thị; `.env` không được Git theo dõi và đã có rule ignore. VNPay source/test không được thay đổi trong đợt remediation.
@@ -73,7 +73,7 @@ Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ li
 | H-01 email/outbox báo SENT giả | **Đã sửa** | `email-delivery.ts`, `email-outbox.ts`, cron chỉ SENT sau delivery thành công |
 | H-02 audit thiếu coverage/sanitization | **Đã sửa phần source** | Mọi admin route có mutation gọi audit; sanitizer trung tâm loại dữ liệu nhạy cảm |
 | H-03 rate limit fallback serverless | **Đã sửa** | Auth limiter production dùng deny/fail-closed khi backend phân tán không sẵn sàng |
-| H-04 thiếu integration/E2E | **Đã sửa critical path** | 7 DB integration + 9 Playwright E2E/axe; auth session, checkout COD, ownership, audit và outbox có bằng chứng |
+| H-04 thiếu integration/E2E | **Đã sửa critical path** | 7 DB integration + 11 Playwright E2E/axe; register/reset/session, checkout COD, ownership, audit và outbox có bằng chứng |
 | H-05 ERD stale | **Đã bổ sung** | `docs/erd.md` phản ánh 32 model; PNG cũ được đánh dấu stale |
 | M-01 CSP | **Đã sửa cho script** | Nonce per-request trong middleware; production script-src không còn `unsafe-inline`/`unsafe-eval` |
 | M-02 pagination | **Đã sửa** | Parser dùng chung: page >= 1, 1 <= limit <= 100, input sai trả 400 |
@@ -154,9 +154,9 @@ Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ li
 
 - `docker-compose.test.yml` cung cấp PostgreSQL 18 cô lập và fixture script từ chối database production-like.
 - 7 integration test chứng minh checkout COD atomic/idempotent/rollback, order ownership, audit persistence và outbox failure/retry.
-- 9 Playwright test chạy production build, đăng nhập customer/admin, đặt COD, kiểm tra profile, cập nhật admin order và axe scan 8 màn hình.
+- 11 Playwright test chạy production build, đăng ký customer, consume reset token, đăng nhập customer/admin, đặt COD, kiểm tra profile, cập nhật admin order và axe scan 8 màn hình.
 
-**Khoảng trống còn lại:** chưa có integration cho phần lớn admin CRUD, OAuth/Google, reset-password browser flow, concurrency/load và VNPay bị loại khỏi phạm vi.
+**Khoảng trống còn lại:** chưa có integration cho phần lớn admin CRUD, OAuth/Google, concurrency/load và VNPay bị loại khỏi phạm vi.
 
 #### H-05 — ERD và tài liệu thiết kế không phản ánh schema hiện tại — **đã bổ sung ERD chuẩn**
 
@@ -250,31 +250,31 @@ Có 52 route, guard nhìn chung đúng và mutation chính dùng Zod. Checkout c
 
 ### Authentication và Authorization
 
-Credentials dùng bcrypt cost 12, Google OAuth mặc định không link email nguy hiểm, password reset token random 32 byte và lưu SHA-256. API admin dùng guard server-side, không chỉ ẩn UI. Playwright đã chứng minh session cookie + middleware cho customer/admin và sửa edge session role mapping. Điểm chưa đủ: không có email verification/MFA/session revocation UI, OAuth production chưa xác minh và role demotion có SLA tối đa 5 phút.
+Credentials dùng bcrypt cost 12, Google OAuth mặc định không link email nguy hiểm, password reset token random 32 byte và lưu SHA-256. API admin dùng guard server-side, không chỉ ẩn UI. Playwright đã chứng minh đăng ký tạo đúng Customer/role, token reset chỉ dùng một lần, mật khẩu mới đăng nhập được, cùng session cookie + middleware cho customer/admin. Điểm chưa đủ: không có email verification/MFA/session revocation UI, OAuth và email provider production chưa xác minh, role demotion có SLA tối đa 5 phút.
 
 ### Frontend
 
-Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên 8 màn hình và Lighthouse đạt accessibility 92–100, performance 77–80. Tuy nhiên Color Visualizer vẫn dùng `MOCK_ROOMS`; blog related posts đang để rỗng; nhiều page client-side và chưa có responsive browser/device matrix, screen-reader thủ công hoặc real-user performance.
+Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên 8 màn hình và Lighthouse đạt accessibility 92–100. Hai lần Lighthouse liên tiếp cho performance dao động 51–80; mỗi lần có một route public ghi nhận CLS 0.786 làm performance xuống dưới ngưỡng warning 70, trong khi lần còn lại của route đó CLS bằng 0. Đây là bằng chứng gate performance chưa ổn định, cần chạy nhiều mẫu và điều tra layout shift trước khi nâng thành error threshold. Color Visualizer vẫn dùng `MOCK_ROOMS`; blog related posts đang để rỗng; nhiều page client-side và chưa có responsive browser/device matrix, screen-reader thủ công hoặc real-user performance.
 
 ### Testing
 
-77 unit test, 7 PostgreSQL integration test và 9 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage, Lighthouse và production dependency audit. Critical path COD/auth/order/audit/outbox đã có bằng chứng xuyên tầng; vẫn thiếu coverage threshold, admin CRUD breadth, OAuth/reset-password E2E, load/race và cross-browser.
+77 unit test, 7 PostgreSQL integration test và 11 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage, Lighthouse và production dependency audit. Critical path COD/register/reset/auth/order/audit/outbox đã có bằng chứng xuyên tầng; vẫn thiếu coverage threshold, admin CRUD breadth, OAuth, load/race và cross-browser.
 
 ### Deployment
 
-Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và đã có deployment runbook. Workflow mới cấu hình PostgreSQL 18, migration/fixture, unit/integration, Playwright, OpenAPI, Lighthouse và audit; GitHub Actions đã xanh trên code SHA `776df00`. Vercel Git Preview cùng SHA READY và runtime error scan sạch. Vẫn chưa có bằng chứng cron production execution, external-provider delivery, backup/PITR, alerting và rollback drill.
+Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và đã có deployment runbook. Workflow cấu hình PostgreSQL 18, migration/fixture, unit/integration, Playwright, OpenAPI, Lighthouse và audit; baseline GitHub Actions đã xanh trên code SHA `77ef264`. Vercel Git Preview cùng SHA READY và runtime error scan sạch. Vẫn chưa có bằng chứng cron production execution, external-provider delivery, backup/PITR, alerting và rollback drill.
 
 ## 6. Ba rủi ro lớn nhất
 
 1. **Vận hành production còn thiếu bằng chứng trực tiếp:** Neon backup/PITR restore, cron execution, Upstash, Resend, monitoring/alert routing và rollback drill.
-2. **Phạm vi integration chưa phủ hết 52 API:** admin CRUD, OAuth, reset password, review, quote/chat và concurrency/load vẫn có thể lỗi xuyên tầng.
+2. **Phạm vi integration chưa phủ hết 52 API:** admin CRUD, OAuth, review, quote/chat và concurrency/load vẫn có thể lỗi xuyên tầng.
 3. **Các tích hợp/feature chưa sẵn sàng production:** VNPay bị loại khỏi scope, Cloudinary/Google OAuth chưa live-verify, visualizer vẫn dùng room mock và style CSP còn `unsafe-inline`.
 
 ## 7. Năm việc phải sửa đầu tiên
 
 1. Review và merge Draft PR #2 chỉ khi branch protection vẫn giữ GitHub Actions/Vercel xanh; không promote production tự động.
 2. Thực hiện và lưu bằng chứng manual cho Neon backup/PITR restore, cron, Upstash, Resend, monitoring và alert routing theo runbook.
-3. Mở rộng integration/API test cho admin CRUD, reset password/OAuth, review, quote/chat và các race/concurrency quan trọng.
+3. Mở rộng integration/API test cho admin CRUD, OAuth, review, quote/chat và các race/concurrency quan trọng.
 4. Mở rộng OpenAPI/error envelope từ 9 critical path ra toàn bộ public/customer/admin API, sau đó mới sinh client nếu cần.
 5. Thêm coverage threshold, Firefox/WebKit/mobile matrix, screen-reader thủ công và tối ưu JS/performance; tiếp tục loại `style-src 'unsafe-inline'` khi khả thi.
 
@@ -283,7 +283,7 @@ Build production pass, dependency audit High sạch, Node 24 được khóa tron
 - File được yêu cầu `codex_project_audit_pack/CODEX_PROJECT_AUDIT_PROMPT.md` không tồn tại trong repository hoặc `D:\ProjectZ`; audit dùng 10 yêu cầu trong lời nhắn làm baseline.
 - Không có PRD/SRS, acceptance criteria đã ký, KPI/SLA/SLO hoặc biên bản UAT.
 - Không đọc nội dung row-level/PII hoặc production traffic; chỉ chạy aggregate invariant count và metadata constraint/migration.
-- Đã xác minh GitHub Actions và Vercel Preview trên code SHA `776df00`, cùng Neon invariant migration trực tiếp. Chưa xác nhận Neon backup/PITR restore, Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
+- Đã xác minh GitHub Actions và Vercel Preview trên baseline SHA `77ef264`, cùng Neon invariant migration trực tiếp. Chưa xác nhận Neon backup/PITR restore, Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
 - Lighthouse và axe local đã có; chưa có Firefox/WebKit/mobile matrix, screen-reader thủ công, penetration test, load test hoặc real-user metrics.
 - Không xác minh DNS/TLS/custom domain, webhook delivery từ VNPay thật, email deliverability, cron schedule, alerting và disaster recovery.
 

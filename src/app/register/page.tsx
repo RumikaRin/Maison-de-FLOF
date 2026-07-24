@@ -91,11 +91,13 @@ export default function RegisterPage() {
 
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
+            <label htmlFor="register-name" className="text-[10px] font-bold uppercase text-warm-450">
               {language === "vi" ? "Họ và tên" : "Full Name"}
             </label>
             <input
+              id="register-name"
               type="text"
+              autoComplete="name"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -105,9 +107,11 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">Email</label>
+            <label htmlFor="register-email" className="text-[10px] font-bold uppercase text-warm-450">Email</label>
             <input
+              id="register-email"
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -117,12 +121,14 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
+            <label htmlFor="register-password" className="text-[10px] font-bold uppercase text-warm-450">
               {language === "vi" ? "Mật khẩu" : "Password"}
             </label>
             <div className="relative">
               <input
+                id="register-password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 required
                 minLength={8}
                 value={password}
@@ -141,11 +147,13 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
+            <label htmlFor="register-confirm-password" className="text-[10px] font-bold uppercase text-warm-450">
               {language === "vi" ? "Xác nhận mật khẩu" : "Confirm Password"}
             </label>
             <input
+              id="register-confirm-password"
               type="password"
+              autoComplete="new-password"
               required
               minLength={8}
               value={confirmPassword}

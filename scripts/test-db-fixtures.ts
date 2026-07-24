@@ -5,6 +5,7 @@ import { isMainModule } from "./is-main-module.ts";
 
 export const TEST_FIXTURES = {
   customerEmail: "customer.integration@flof.test",
+  resetEmail: "reset.integration@flof.test",
   adminEmail: "admin.integration@flof.test",
   password: "Flof-Test-2026!",
   productSku: "FLOF-INTEGRATION-5L",
@@ -31,7 +32,7 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
       }),
     ]);
 
-    const [customerUser, adminUser] = await Promise.all([
+    const [customerUser, resetUser, adminUser] = await Promise.all([
       database.user.upsert({
         where: { email: TEST_FIXTURES.customerEmail },
         update: {
@@ -43,6 +44,20 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
           email: TEST_FIXTURES.customerEmail,
           password,
           name: "Integration Customer",
+          roleId: customerRole.id,
+        },
+      }),
+      database.user.upsert({
+        where: { email: TEST_FIXTURES.resetEmail },
+        update: {
+          password,
+          name: "Reset Integration Customer",
+          roleId: customerRole.id,
+        },
+        create: {
+          email: TEST_FIXTURES.resetEmail,
+          password,
+          name: "Reset Integration Customer",
           roleId: customerRole.id,
         },
       }),
@@ -62,11 +77,18 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
       }),
     ]);
 
-    await database.customer.upsert({
-      where: { userId: customerUser.id },
-      update: {},
-      create: { userId: customerUser.id },
-    });
+    await Promise.all([
+      database.customer.upsert({
+        where: { userId: customerUser.id },
+        update: {},
+        create: { userId: customerUser.id },
+      }),
+      database.customer.upsert({
+        where: { userId: resetUser.id },
+        update: {},
+        create: { userId: resetUser.id },
+      }),
+    ]);
 
     const category = await database.category.upsert({
       where: { slug: "integration-paints" },
@@ -149,6 +171,7 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
 
     return {
       customerUser,
+      resetUser,
       adminUser,
       paint,
     };

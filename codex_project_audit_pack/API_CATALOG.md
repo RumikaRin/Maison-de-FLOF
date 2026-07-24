@@ -1,6 +1,6 @@
 # API Catalog — Maison de FLOF
 
-Ngày cập nhật: 24/07/2026
+Ngày cập nhật: 25/07/2026
 Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 
 ## Quy ước quyền
@@ -111,5 +111,5 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 3. Critical path đã dùng error envelope thống nhất; các route ngoài scope vẫn còn payload legacy hoặc redirect.
 4. Nhiều list admin chưa có cursor/pagination; có hard cap 100/200 hoặc trả toàn bộ.
 5. Audit call bao phủ source của admin mutation và sanitizer đã được chứng minh khi persist; chưa chứng minh tính atomic ở mọi mutation.
-6. Ownership order, checkout transaction và auth middleware đã có integration/E2E; phần lớn catalog/admin CRUD vẫn chưa có API integration test.
+6. Register, reset-password token consumption, auth middleware, ownership order và checkout transaction đã có integration/E2E; phần lớn catalog/admin CRUD vẫn chưa có API integration test.
 7. Cron dùng GET cho side effect; nên cân nhắc POST và bổ sung lease chống concurrent worker/replay.

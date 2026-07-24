@@ -73,9 +73,11 @@ function ResetPasswordForm() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold uppercase text-warm-450">Email</label>
+          <label htmlFor="reset-email" className="text-[10px] font-bold uppercase text-warm-450">Email</label>
           <input
+            id="reset-email"
             type="email"
+            autoComplete="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -83,11 +85,13 @@ function ResetPasswordForm() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold uppercase text-warm-450">
+          <label htmlFor="reset-token" className="text-[10px] font-bold uppercase text-warm-450">
             {language === "vi" ? "Mã token" : "Token"}
           </label>
           <input
+            id="reset-token"
             type="text"
+            autoComplete="off"
             required
             value={token}
             onChange={(e) => setToken(e.target.value)}
@@ -95,11 +99,13 @@ function ResetPasswordForm() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold uppercase text-warm-450">
+          <label htmlFor="reset-password" className="text-[10px] font-bold uppercase text-warm-450">
             {language === "vi" ? "Mật khẩu mới" : "New password"}
           </label>
           <input
+            id="reset-password"
             type="password"
+            autoComplete="new-password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -107,11 +113,13 @@ function ResetPasswordForm() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold uppercase text-warm-450">
+          <label htmlFor="reset-confirm-password" className="text-[10px] font-bold uppercase text-warm-450">
             {language === "vi" ? "Xác nhận mật khẩu" : "Confirm password"}
           </label>
           <input
+            id="reset-confirm-password"
             type="password"
+            autoComplete="new-password"
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

@@ -1,6 +1,6 @@
 # Requirements Traceability — Maison de FLOF
 
-Ngày cập nhật: 24/07/2026
+Ngày cập nhật: 25/07/2026
 Nguồn yêu cầu khả dụng: `README.md`, `PROJECT_ROADMAP_VI.md`, source code, Prisma schema và diagram trong `public/`.
 
 > `CODEX_PROJECT_AUDIT_PROMPT.md` không có trong repository tại thời điểm audit. Trạng thái dưới đây phản ánh source thực tế, không coi roadmap cũ là bằng chứng hoàn thành.
@@ -16,10 +16,10 @@ Nguồn yêu cầu khả dụng: `README.md`, `PROJECT_ROADMAP_VI.md`, source co
 
 | ID | Yêu cầu / Use Case | Actor | Giao diện | API / service | Bảng dữ liệu | Test | Trạng thái | Khoảng trống chính |
 |---|---|---|---|---|---|---|---|---|
-| AUTH-01 | Đăng ký tài khoản | Guest | `/register` | `POST /api/auth/register` | Role, User, Customer | password policy unit | Một phần | Không email verification/E2E |
+| AUTH-01 | Đăng ký tài khoản | Guest | `/register` | `POST /api/auth/register` | Role, User, Customer | password policy unit + register/login E2E | Đạt có giới hạn | UI/API/DB/session đã chứng minh; chưa email verification |
 | AUTH-02 | Đăng nhập Credentials | User | `/login` | Auth.js credentials callback | User, Role | Playwright login customer/admin + rate-limit unit | Đạt có giới hạn | Cookie/session và redirect role đã chạy xuyên middleware; chưa có MFA |
 | AUTH-03 | Đăng nhập Google | User | `/login` | Auth.js Google provider | User, Account, Customer, Role | VNPay/auth config không bao phủ OAuth | Một phần | Chưa xác minh OAuth production |
-| AUTH-04 | Quên/đặt lại mật khẩu | User | `/forgot-password`, `/reset-password` | `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` | User, VerificationToken | password + email delivery unit | Một phần | Email failure có contract/retry; chưa E2E/provider live |
+| AUTH-04 | Quên/đặt lại mật khẩu | User | `/forgot-password`, `/reset-password` | `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` | User, VerificationToken | password/email unit + reset/login E2E | Đạt có giới hạn | Token consume và mật khẩu mới đã chứng minh; chưa provider live |
 | AUTH-05 | Phân quyền admin/staff/customer | All roles | `/admin`, `/profile` | middleware, `requirePermission` | User, Role | permissions unit + customer/admin E2E | Đạt có giới hạn | Middleware đã test bằng session thật; role cache tối đa 5 phút |
 | CAT-01 | Xem/tìm/lọc sản phẩm | Guest | `/products` | `GET /api/products` | Paint, Category, Supplier, PaintColorLink | fallback/pagination unit + axe/Lighthouse | Đạt có giới hạn | Fallback được gắn provenance và khóa commerce; chưa API integration |
 | CAT-02 | Xem chi tiết sản phẩm | Guest | `/products/[slug]` | `GET /api/products/[slug]` | Paint, Review, PaintColorLink | Không có route/UI integration test | Một phần | Chưa E2E/SEO validation |
@@ -55,16 +55,16 @@ Nguồn yêu cầu khả dụng: `README.md`, `PROJECT_ROADMAP_VI.md`, source co
 | SEO-01 | Metadata/robots/sitemap | Search engine | public pages | `robots.ts`, `sitemap.ts` | Blog, Paint | Build + Lighthouse SEO 91–92 | Đạt có giới hạn | Local production đạt gate; chưa Search Console/RUM |
 | SEC-01 | Security headers/CSP | All | N/A | nonce middleware + security header builder | N/A | CSP unit + production nonce smoke + build | Đạt có giới hạn | Script không còn unsafe-inline/eval; style inline vẫn được phép |
 | SEC-02 | Rate limit | All/API clients | N/A | middleware + UnifiedRateLimiter | Upstash production | fail-closed + memory-mode unit | Một phần | Auth production fail-closed; chưa health-check Upstash live |
-| TEST-01 | Automated quality gate | Developer | N/A | GitHub Actions | PostgreSQL 18 test service | 77 unit + 7 DB integration + 9 E2E/axe + OpenAPI + Lighthouse | Đạt có giới hạn | Gate đầy đủ đã chạy local; chưa có coverage threshold |
-| DEPLOY-01 | Deploy production có rollback/monitoring | Operator | N/A | GitHub Actions + deployment runbook | Neon + external services | Full local release gate + previous Preview smoke | Chưa xác minh | Workflow mới cần chạy trên GitHub; backup/alerts/provider proof còn manual |
+| TEST-01 | Automated quality gate | Developer | N/A | GitHub Actions | PostgreSQL 18 test service | 77 unit + 7 DB integration + 11 E2E/axe + OpenAPI + Lighthouse | Đạt có giới hạn | Gate đầy đủ đã chạy local; chưa có coverage threshold |
+| DEPLOY-01 | Deploy production có rollback/monitoring | Operator | N/A | GitHub Actions + deployment runbook | Neon + external services | Full local release gate + GitHub/Vercel Preview smoke | Đạt có giới hạn | Baseline CI/Preview xanh; backup/alerts/provider proof còn manual |
 
 ## Tổng hợp traceability
 
 | Trạng thái | Số requirement |
 |---|---:|
-| Đạt có giới hạn | 13 |
-| Một phần | 24 |
+| Đạt có giới hạn | 16 |
+| Một phần | 22 |
 | Chưa đạt | 1 |
-| Chưa xác minh | 2 |
+| Chưa xác minh | 1 |
 
-`CHECK-02` vẫn chưa đạt nhưng đã được người dùng loại khỏi phạm vi vì VNPay chỉ là giả lập. Với phạm vi còn lại, checkout COD, ownership, outbox, audit persistence, session middleware, accessibility và performance đã có bằng chứng tự động. Khoảng trống lớn nhất còn lại là các feature phụ chưa có integration test và bằng chứng hạ tầng/provider production trực tiếp.
+`CHECK-02` vẫn chưa đạt nhưng đã được người dùng loại khỏi phạm vi vì VNPay chỉ là giả lập. Với phạm vi còn lại, register/reset, checkout COD, ownership, outbox, audit persistence, session middleware, accessibility và performance đã có bằng chứng tự động. Khoảng trống lớn nhất còn lại là các feature phụ chưa có integration test và bằng chứng hạ tầng/provider production trực tiếp.
