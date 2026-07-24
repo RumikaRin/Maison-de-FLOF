@@ -8,13 +8,15 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - Database: PostgreSQL, schema `public`.
 - ORM: Prisma 6.
 - Khóa chính: tất cả model nghiệp vụ dùng `String @id @default(cuid())`, ngoại trừ `VerificationToken` dùng composite key.
-- Schema hiện có: **32 model**, **11 enum**, **7 migration đã áp dụng**.
+- Schema hiện có: **32 model**, **11 enum**, **8 migration trong repository**.
 - `npx prisma validate`: pass.
 - `prisma migrate status`: database schema up to date.
 - Neon production: 17/17 CHECK constraint từ migration invariant đã installed + validated; hậu kiểm có 0 row vi phạm.
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
+- PostgreSQL test cô lập đã áp dụng đủ 8 migration; 7 DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence và outbox retry.
+- Migration reconciliation thứ 8 là idempotent; các object mục tiêu đã tồn tại trên Neon production, nhưng migration này chưa được ghi vào migration history production vì chưa có phê duyệt áp dụng mới.
 
 ## Enums
 
@@ -83,6 +85,9 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | Chỉ người mua đơn completed được review | API query Order/Item | reviews route |
 | Coupon usage không vượt limit khi checkout | Conditional update trong transaction | checkout service |
 | Stock, giá, số lượng, total, payment, coupon, rating và inventory hợp lệ | DB CHECK constraint | migration `20260724150000_add_data_invariant_checks`; 17/17 validated |
+| Checkout COD ghi order/stock/inventory/payment/outbox atomically | DB transaction + integration test | `tests/integration/checkout.integration.test.ts` |
+| Replay idempotency không tạo duplicate | DB unique + integration test | `tests/integration/checkout.integration.test.ts` |
+| Outbox lỗi giữ trạng thái retryable và retry thành công | DB transition + integration test | `tests/integration/outbox.integration.test.ts` |
 
 ## Khoảng trống dữ liệu
 
@@ -104,3 +109,4 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | `20260610040000_add_chat_messages` | ChatMessage và indexes |
 | `20260611180000_payment_idempotency_audit` | Payment, idempotency, audit, outbox và constraint liên quan |
 | `20260724150000_add_data_invariant_checks` | CHECK constraint additive cho catalog, order, payment, coupon, review và inventory; **đã áp dụng, 17/17 validated** |
+| `20260724170000_reconcile_missing_schema_objects` | Tạo idempotent enum `REVIEW` và các bảng/index `EmailOutbox`, `Conversation`, `Message` nếu thiếu; đã áp dụng trên test DB, production đang chờ approval ghi migration history |

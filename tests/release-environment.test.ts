@@ -21,8 +21,9 @@ test("reports only missing production variable names", () => {
     "RESEND_API_KEY",
     "EMAIL_FROM",
   ]);
-  assert.equal(missing.includes(environment.DATABASE_URL), false);
-  assert.equal(missing.includes(environment.AUTH_SECRET), false);
+  const output = missing.join(",");
+  assert.equal(output.includes(environment.DATABASE_URL), false);
+  assert.equal(output.includes(environment.AUTH_SECRET), false);
 });
 
 test("accepts a complete synthetic production environment", () => {

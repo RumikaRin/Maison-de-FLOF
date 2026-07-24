@@ -14,6 +14,8 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 - **Pagination chuẩn:** `page >= 1`, `1 <= limit <= 100`; input sai trả `400`.
 - **Authentication status:** thiếu session trả `401`; có session nhưng thiếu role/permission trả `403`.
 - **Admin mutation:** tất cả route mutation hiện gọi audit helper; dữ liệu audit đi qua sanitizer loại password/token/secret/credential.
+- **Critical error contract:** các route được tài liệu hóa trả envelope `{ error: { code, message, details? }, requestId }`; client parser vẫn đọc được legacy payload trong giai đoạn chuyển đổi.
+- **OpenAPI:** `docs/openapi.yaml` (OpenAPI 3.1) bao phủ 9 critical path; Redocly lint và script đối chiếu method với source là CI gate.
 
 ## Public/Auth API
 
@@ -105,9 +107,9 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 ## Contract và security gaps
 
 1. VNPay IPN/return không kiểm tra `isVerified`; xem `AUDIT_REPORT.md` C-01.
-2. Không có OpenAPI/versioning/generated client.
-3. Error shape chưa thống nhất hoàn toàn (`error`, `details`, mảng rỗng fallback, redirect).
+2. OpenAPI 3.1 mới bao phủ 9 critical path, chưa bao phủ toàn bộ 52 route và chưa có generated client/versioning.
+3. Critical path đã dùng error envelope thống nhất; các route ngoài scope vẫn còn payload legacy hoặc redirect.
 4. Nhiều list admin chưa có cursor/pagination; có hard cap 100/200 hoặc trả toàn bộ.
-5. Audit call đã bao phủ source của admin mutation nhưng chưa có integration test chứng minh ghi log atomically ở mọi nhánh.
-6. Không có integration test xác minh guard/ownership/transaction cho catalog này.
+5. Audit call bao phủ source của admin mutation và sanitizer đã được chứng minh khi persist; chưa chứng minh tính atomic ở mọi mutation.
+6. Ownership order, checkout transaction và auth middleware đã có integration/E2E; phần lớn catalog/admin CRUD vẫn chưa có API integration test.
 7. Cron dùng GET cho side effect; nên cân nhắc POST và bổ sung lease chống concurrent worker/replay.
