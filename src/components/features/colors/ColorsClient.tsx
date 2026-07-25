@@ -231,6 +231,7 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
         >
           {filteredColors.map((color) => {
             const isFav = favorites.includes(color.code);
+            const colorName = language === "vi" ? color.name : (color.nameEn || color.name);
             return (
               <motion.div
                 key={color.code}
@@ -247,6 +248,16 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
                   style={{ backgroundColor: color.hex }}
                 >
                   <button
+                    type="button"
+                    aria-label={
+                      isFav
+                        ? language === "vi"
+                          ? `Bỏ màu ${colorName} khỏi yêu thích`
+                          : `Remove ${colorName} from favorites`
+                        : language === "vi"
+                          ? `Lưu màu ${colorName} vào yêu thích`
+                          : `Save ${colorName} to favorites`
+                    }
                     onClick={(e) => {
                       e.stopPropagation();
                       handleToggleFavorite(color.code);
@@ -259,7 +270,7 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
                 <div className="text-left">
                   <span className="text-[9px] font-bold text-warm-400 font-mono tracking-wider block">MÃ: {color.code}</span>
                   <h4 className="font-bold text-xs text-warm-900 group-hover:text-[#88734C] transition-colors truncate mt-0.5">
-                    {language === "vi" ? color.name : (color.nameEn || color.name)}
+                    {colorName}
                   </h4>
                   <div className="w-6 h-0.5 bg-transparent mt-2 group-hover:bg-[#88734C] group-hover:w-12 transition-all duration-300" />
                 </div>
