@@ -10,6 +10,8 @@ const articleSchema = z.object({
   titleEn: z.string().trim().max(250).optional(),
   summary: z.string().trim().min(3).max(2000),
   summaryEn: z.string().trim().max(2000).optional(),
+  category: z.string().trim().min(2).max(120),
+  categoryEn: z.string().trim().min(2).max(120),
   image: z.string().trim().url().optional().or(z.literal("")),
 });
 
@@ -31,6 +33,8 @@ function serializeArticle(article: {
   content: string;
   contentEn: string | null;
   image: string | null;
+  category: string;
+  categoryEn: string;
   createdAt: Date;
   author: { name: string | null };
 }) {
@@ -44,8 +48,8 @@ function serializeArticle(article: {
     content: article.content,
     contentEn: article.contentEn || article.content,
     image: article.image || "",
-    category: "Xu hướng màu sắc",
-    categoryEn: "Color Trends",
+    category: article.category,
+    categoryEn: article.categoryEn,
     author: article.author.name || "FLOF Editor",
     readTime: "5 phút",
     createdAt: article.createdAt.toISOString().split("T")[0],
@@ -79,6 +83,8 @@ export async function POST(request: NextRequest) {
         slug: `${slugify(parsed.data.title)}-${Date.now().toString(36)}`,
         summary: parsed.data.summary,
         summaryEn: parsed.data.summaryEn,
+        category: parsed.data.category,
+        categoryEn: parsed.data.categoryEn,
         content: parsed.data.summary,
         contentEn: parsed.data.summaryEn || parsed.data.summary,
         image: parsed.data.image || null,
@@ -113,6 +119,8 @@ export async function PATCH(request: NextRequest) {
         titleEn: parsed.data.titleEn,
         summary: parsed.data.summary,
         summaryEn: parsed.data.summaryEn,
+        category: parsed.data.category,
+        categoryEn: parsed.data.categoryEn,
         image: parsed.data.image || null,
       },
       include: { author: true },

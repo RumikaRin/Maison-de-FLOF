@@ -615,6 +615,8 @@ model Blog {
   content   String   @db.Text
   contentEn String?  @db.Text
   image     String?
+  category   String   @default("Xu Hướng Thiết Kế")
+  categoryEn String   @default("Design Trends")
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
   isActive  Boolean  @default(true)
@@ -622,6 +624,7 @@ model Blog {
   updatedAt DateTime @updatedAt
 
   @@index([authorId])
+  @@index([isActive, category, createdAt])
 }
 
 model InventoryTransaction {

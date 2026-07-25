@@ -12,10 +12,11 @@ import {
   Sparkles,
   ArrowRight
 } from "lucide-react";
+import type { PublicBlog } from "@/services/blog.service";
 
 interface BlogClientProps {
-  initialBlog: any;
-  initialRelatedBlogs: any[];
+  initialBlog: PublicBlog | null;
+  initialRelatedBlogs: PublicBlog[];
 }
 
 export function BlogClient({ initialBlog, initialRelatedBlogs }: BlogClientProps) {

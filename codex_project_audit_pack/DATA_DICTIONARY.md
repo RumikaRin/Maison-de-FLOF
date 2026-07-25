@@ -8,14 +8,14 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - Database: PostgreSQL, schema `public`.
 - ORM: Prisma 6.
 - Khóa chính: tất cả model nghiệp vụ dùng `String @id @default(cuid())`, ngoại trừ `VerificationToken` dùng composite key.
-- Schema hiện có: **36 model**, **12 enum**, **12 migration trong repository**.
+- Schema hiện có: **36 model**, **12 enum**, **13 migration trong repository**.
 - `npx prisma validate`: pass.
 - `prisma migrate status`: database schema up to date.
 - Neon production: 17/17 CHECK constraint từ migration invariant đã installed + validated; hậu kiểm có 0 row vi phạm.
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
-- PostgreSQL test cô lập đã áp dụng đủ 12 migration; các DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow, commerce concurrency, privacy lifecycle và ownership của thiết kế phối màu.
+- PostgreSQL test cô lập đã áp dụng đủ 13 migration; các DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow, commerce concurrency, privacy lifecycle và ownership của thiết kế phối màu.
 - Migration reconciliation thứ 8 là idempotent. Bằng chứng P0 ghi nhận migration history production đã được reconcile; P1 không thay đổi schema và không mutate Neon.
 
 ## Enums
@@ -65,7 +65,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | Wishlist | customerId/paintId/date | Customer; Paint | unique pair; indexes; cascade | Sản phẩm yêu thích |
 | WishlistColor | customerId/colorId/date | Customer; PaintColor | unique pair; indexes; cascade | Màu yêu thích |
 | Notification | userId/type/title/message/isRead/date | User | index userId; cascade | Thông báo cá nhân admin/staff |
-| Blog | title/slug/summary/content/image/author/isActive | User author | slug unique; index author | Bài viết song ngữ |
+| Blog | title/slug/summary/content/image/category/categoryEn/author/isActive | User author | slug unique; indexes author và active+category+date | Bài viết song ngữ có chuyên mục để xếp hạng bài liên quan |
 | InventoryTransaction | paintId/type/quantity/reason/referenceType/referenceId/date | Paint | indexes paint và referenceType+referenceId; cascade | Sổ giao dịch kho có discriminator nguồn |
 | AuditLog | actorId/email/action/entity/id/before/after/date | Không FK | indexes actor/entity/date | Nhật ký quản trị |
 | EmailOutbox | type/payload/status/error/retry/nextRetry/date | Không FK | index status+nextRetry | Hàng đợi email |
@@ -123,3 +123,4 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | `20260726140000_admin_mfa` | TOTP MFA credential, ciphertext và recovery hashes |
 | `20260726150000_privacy_and_inventory_reference` | Consent/deletion timestamps, guest consent, inventory reference discriminator và backfill additive |
 | `20260726160000_visualizer_projects` | Phòng phối màu được seed idempotent và thiết kế phối màu có ownership theo user |
+| `20260726170000_blog_categories` | Chuyên mục song ngữ cho Blog và index truy vấn bài liên quan |

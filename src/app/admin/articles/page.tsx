@@ -108,6 +108,8 @@ export default function AdminArticlesPage() {
         titleEn,
         summary,
         summaryEn,
+        category,
+        categoryEn,
         image,
       }),
     });
