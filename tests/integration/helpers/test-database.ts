@@ -70,6 +70,69 @@ export async function resetAdminCatalogFixtures(database: PrismaClient) {
   ]);
 }
 
+export async function resetCustomerWorkflowFixtures(database: PrismaClient) {
+  const [quotes, reviews, messages, orders, testUsers] = await Promise.all([
+    database.quoteRequest.findMany({
+      where: { email: { startsWith: "integration-workflow-" } },
+      select: { id: true },
+    }),
+    database.review.findMany({
+      where: { comment: { startsWith: "integration-workflow-" } },
+      select: { id: true },
+    }),
+    database.message.findMany({
+      where: { content: { startsWith: "integration-workflow-" } },
+      select: { conversationId: true },
+    }),
+    database.order.findMany({
+      where: { orderNumber: { startsWith: "INTEGRATION-WORKFLOW-" } },
+      select: { id: true },
+    }),
+    database.user.findMany({
+      where: { email: { endsWith: "@flof.test" } },
+      select: { id: true },
+    }),
+  ]);
+
+  const quoteIds = quotes.map(({ id }) => id);
+  const reviewIds = reviews.map(({ id }) => id);
+  const conversationIds = [
+    ...new Set(messages.map(({ conversationId }) => conversationId)),
+  ];
+  const orderIds = orders.map(({ id }) => id);
+  const userIds = testUsers.map(({ id }) => id);
+  const auditedEntityIds = [...quoteIds, ...reviewIds, ...conversationIds];
+
+  await database.$transaction([
+    database.auditLog.deleteMany({
+      where: { entityId: { in: auditedEntityIds } },
+    }),
+    database.notification.deleteMany({
+      where: {
+        userId: { in: userIds },
+        type: { in: ["REVIEW", "QUOTE", "SYSTEM"] },
+      },
+    }),
+    database.message.deleteMany({
+      where: { conversationId: { in: conversationIds } },
+    }),
+    database.conversation.deleteMany({
+      where: { id: { in: conversationIds } },
+    }),
+    database.review.deleteMany({ where: { id: { in: reviewIds } } }),
+    database.quoteRequest.deleteMany({ where: { id: { in: quoteIds } } }),
+    database.orderStatusHistory.deleteMany({
+      where: { orderId: { in: orderIds } },
+    }),
+    database.orderItem.deleteMany({ where: { orderId: { in: orderIds } } }),
+    database.payment.deleteMany({ where: { orderId: { in: orderIds } } }),
+    database.checkoutIdempotency.deleteMany({
+      where: { orderId: { in: orderIds } },
+    }),
+    database.order.deleteMany({ where: { id: { in: orderIds } } }),
+  ]);
+}
+
 export async function resetCommerceFixtures(database: PrismaClient) {
   await database.orderStatusHistory.deleteMany();
   await database.inventoryTransaction.deleteMany();
