@@ -41,6 +41,14 @@ for (const path of publicPages) {
   });
 }
 
+test("products mobile controls and cards have no serious accessibility violations", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/products");
+  await expectNoBlockingViolations(page);
+});
+
 test("profile has no serious accessibility violations", async ({ page }) => {
   await loginAsCustomer(page);
   await page.goto("/profile");

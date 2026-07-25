@@ -278,7 +278,11 @@ export function ProductsClient({
           {/* Sort dropdown */}
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="px-3 py-2.5 h-auto bg-white border-warm-200 text-warm-900 rounded-xl text-xs font-bold flex items-center gap-1 whitespace-nowrap">
+              <Button
+                variant="outline"
+                aria-label={language === "vi" ? "Sắp xếp sản phẩm" : "Sort products"}
+                className="px-3 py-2.5 h-auto bg-white border-warm-200 text-warm-900 rounded-xl text-xs font-bold flex items-center gap-1 whitespace-nowrap"
+              >
                 <ArrowUpDown className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
@@ -446,15 +450,15 @@ export function ProductsClient({
                             </span>
                           </div>
 
-                          <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-warm-900 group-hover:text-jotun-teal transition-colors duration-300">
+                          <h2 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-warm-900 group-hover:text-jotun-teal transition-colors duration-300">
                             {language === "vi" ? p.name : p.nameEn}
-                          </h3>
+                          </h2>
 
                           <div className="mt-auto pt-2 border-t border-black/5 flex items-center justify-between">
                             <span className="text-[9px] text-warm-400 font-mono hidden sm:block">{p.sku}</span>
                             {p.discountPercent && p.discountPercent > 0 ? (
                               <div className="flex flex-col items-end">
-                                <span className="text-sm font-mono font-bold text-red-500">
+                                <span className="text-sm font-mono font-bold text-red-600">
                                   {formatPrice(p.price * (1 - p.discountPercent / 100))}
                                 </span>
                                 <span className="text-[9px] font-mono text-warm-400 line-through">

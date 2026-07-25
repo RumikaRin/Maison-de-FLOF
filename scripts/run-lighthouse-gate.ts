@@ -27,12 +27,13 @@ function runLhciAutorun(url: string) {
   const cliPath = fileURLToPath(
     new URL("../node_modules/@lhci/cli/src/cli.js", import.meta.url),
   );
-  const shimPath = fileURLToPath(
-    new URL("./lighthouse-windows-fs-shim.cjs", import.meta.url),
-  );
+  const shimUrl = new URL(
+    "./lighthouse-windows-fs-shim.mjs",
+    import.meta.url,
+  ).href;
   const nodeOptions = [
     process.env.NODE_OPTIONS,
-    `--require=${JSON.stringify(shimPath)}`,
+    `--import=${JSON.stringify(shimUrl)}`,
   ]
     .filter(Boolean)
     .join(" ");

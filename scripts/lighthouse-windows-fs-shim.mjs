@@ -1,8 +1,8 @@
-"use strict";
+import fs from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
+import path from "node:path";
 
-const path = require("node:path");
-
-function isRecoverableLighthouseCleanupError(
+export function isRecoverableLighthouseCleanupError(
   error,
   targetPath,
   options,
@@ -33,7 +33,7 @@ function isRecoverableLighthouseCleanupError(
   );
 }
 
-function installLighthouseCleanupShim(
+export function installLighthouseCleanupShim(
   fsModule,
   platform = process.platform,
   tempDirectory = process.env.TEMP,
@@ -66,13 +66,7 @@ function installLighthouseCleanupShim(
   };
 }
 
-module.exports = {
-  installLighthouseCleanupShim,
-  isRecoverableLighthouseCleanupError,
-};
-
 if (process.env.FLOF_LIGHTHOUSE_WINDOWS_FS_SHIM === "1") {
-  const fs = require("node:fs");
   installLighthouseCleanupShim(fs);
-  require("node:module").syncBuiltinESMExports();
+  syncBuiltinESMExports();
 }

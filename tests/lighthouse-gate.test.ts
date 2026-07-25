@@ -1,29 +1,13 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
 import test from "node:test";
+import {
+  installLighthouseCleanupShim,
+  isRecoverableLighthouseCleanupError,
+} from "../scripts/lighthouse-windows-fs-shim.mjs";
 import {
   lighthouseGateUrls,
   runLighthouseGate,
 } from "../scripts/run-lighthouse-gate.ts";
-
-const require = createRequire(import.meta.url);
-const {
-  installLighthouseCleanupShim,
-  isRecoverableLighthouseCleanupError,
-} = require("../scripts/lighthouse-windows-fs-shim.cjs") as {
-  installLighthouseCleanupShim: (
-    fsModule: { rmSync: (path: string, options?: object) => void },
-    platform: string,
-    tempDirectory: string,
-  ) => void;
-  isRecoverableLighthouseCleanupError: (
-    error: unknown,
-    path: string,
-    options: object,
-    platform: string,
-    tempDirectory: string,
-  ) => boolean;
-};
 
 test("runs every configured Lighthouse URL in order", () => {
   const visited: string[] = [];
