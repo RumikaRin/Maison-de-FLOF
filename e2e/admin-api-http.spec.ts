@@ -3,11 +3,16 @@ import {
   createTestDatabase,
   resetHttpApiFixtures,
 } from "../tests/integration/helpers/test-database.ts";
-import { loginAsAdmin, loginAsCustomer } from "./helpers/auth.ts";
+import { TEST_FIXTURES } from "../scripts/test-db-fixtures.ts";
+import { login, loginAsAdmin, loginAsCustomer } from "./helpers/auth.ts";
 
 const database = createTestDatabase();
 
 test.beforeEach(async () => {
+  await resetHttpApiFixtures(database);
+});
+
+test.afterEach(async () => {
   await resetHttpApiFixtures(database);
 });
 
@@ -118,4 +123,78 @@ test("CUSTOMER is denied admin catalog mutations", async ({ page }) => {
   await expect(
     database.category.findUnique({ where: { slug } }),
   ).resolves.toBeNull();
+});
+
+test("a customer without a completed purchase cannot submit a review", async ({
+  page,
+}) => {
+  const paint = await database.paint.findUniqueOrThrow({
+    where: { sku: TEST_FIXTURES.productSku },
+    select: { id: true },
+  });
+  const comment = `integration-http-review-${Date.now()}`;
+
+  await login(page, TEST_FIXTURES.resetEmail, /\/profile$/);
+  const response = await page.request.post("/api/reviews", {
+    data: {
+      paintId: paint.id,
+      rating: 5,
+      comment,
+    },
+  });
+
+  expect(response.status()).toBe(403);
+  await expect(
+    database.review.findFirst({ where: { comment } }),
+  ).resolves.toBeNull();
+});
+
+test("a public quote can be created and advanced by ADMIN", async ({ page }) => {
+  const email = `integration-http-quote-${Date.now()}@flof.test`;
+  const createdResponse = await page.request.post("/api/quote-request", {
+    data: {
+      fullName: "HTTP Quote Customer",
+      phone: "0900000000",
+      email,
+      companyName: "FLOF HTTP Test",
+      projectName: "Contract verification",
+      projectType: "Residential",
+      area: 120,
+      paintType: "Interior",
+      message: "integration-http-quote created through public HTTP",
+    },
+  });
+  expect(createdResponse.status()).toBe(201);
+  const created = (await createdResponse.json()) as {
+    data: { id: string };
+  };
+
+  await loginAsAdmin(page);
+  const updatedResponse = await page.request.patch("/api/admin/quotes", {
+    data: {
+      id: created.data.id,
+      status: "CONTACTED",
+      adminNote: "Verified by HTTP E2E",
+    },
+  });
+  expect(updatedResponse.status()).toBe(200);
+
+  await expect(
+    database.quoteRequest.findUnique({
+      where: { id: created.data.id },
+      select: { status: true, adminNote: true },
+    }),
+  ).resolves.toEqual({
+    status: "CONTACTED",
+    adminNote: "Verified by HTTP E2E",
+  });
+  await expect(
+    database.auditLog.count({
+      where: {
+        entityType: "QuoteRequest",
+        entityId: created.data.id,
+        action: "QUOTE_STATUS_CHANGED",
+      },
+    }),
+  ).resolves.toBe(1);
 });
