@@ -9,7 +9,7 @@ Trạng thái tài liệu: đã cập nhật sau đợt remediation được ng�
 
 **Mức hoàn thiện hiện tại ước tính: 92% cho phạm vi demo không tính VNPay** (mức audit ban đầu: 65%).
 
-Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 83 unit test, 15 PostgreSQL integration test, 19 Playwright E2E/axe test, OpenAPI 99/99 operation và Lighthouse CI. Toàn bộ 59 method dưới `/api/admin` đã được đối chiếu với policy quyền, audit decision và chiến lược xác minh; category/review/quote/chat đã có direct HTTP evidence bằng session thật. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 92% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
+Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 100 unit test, 15 PostgreSQL integration test, 20 Playwright E2E/axe test, OpenAPI 99/99 operation và Lighthouse CI. Toàn bộ 59 method dưới `/api/admin` đã được đối chiếu với policy quyền, audit decision và chiến lược xác minh; category/review/quote/chat đã có direct HTTP evidence bằng session thật. Production demo đã có branch protection, Neon restore/migration, cron authorization và Vercel rollback drill trực tiếp. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 92% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
 
 ### Điểm theo nhóm
 
@@ -21,9 +21,9 @@ Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Pri
 | API & nghiệp vụ | 18% | 96% | OpenAPI đủ 52 route/99 operation, 59 admin method có policy và catalog/review/quote/chat có DB + HTTP evidence |
 | Authentication & authorization | 12% | 92% | Register/reset/credentials chạy xuyên tầng; mọi admin method có guard-policy test, RBAC vẫn có role-cache SLA |
 | Bảo mật | 15% | 91% | Nonce CSP, fail-closed auth limiter, audit sanitizer/persistence và audit runtime sạch |
-| Frontend & accessibility | 10% | 91% | 19 browser test pass; homepage/products render SSR và có CLS regression gate <= 0.1 |
-| Testing | 8% | 99% | 83 unit + 15 DB integration + 19 E2E/axe, OpenAPI 99/99 và Lighthouse pass; chưa có coverage threshold |
-| Deployment & vận hành | 5% | 90% | CI dùng official actions v5, PostgreSQL/Playwright/OpenAPI/Lighthouse; external manual evidence còn thiếu |
+| Frontend & accessibility | 10% | 92% | 20 browser test pass, gồm axe mobile products; homepage/products render SSR và có CLS regression gate <= 0.1 |
+| Testing | 8% | 99% | 100 unit + 15 DB integration + 20 E2E/axe, OpenAPI 99/99 và Lighthouse pass; chưa có coverage threshold |
+| Deployment & vận hành | 5% | 92% | Production/CI/restore/cron/rollback đã live-verify; Upstash, Resend, Cloudinary và alert delivery còn thiếu |
 | **Tổng** | **100%** | **92%** | **Đạt release-quality cho demo không tính VNPay; chưa đủ bằng chứng production external** |
 
 ## 2. Stack và kiến trúc thực tế
@@ -49,20 +49,21 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | `npm run lint` | PASS, exit 0 | Không có lint error |
 | `npm run build` | PASS, exit 0 | Production build và kiểm tra type tích hợp hoàn tất |
 | `npm run typecheck` | PASS, exit 0 | Chạy sau build mới, `tsc --noEmit` |
-| `npm test` | PASS | 83 test, 83 pass, 0 fail; gồm API inventory 99 operation, CI workflow contract và guard cho toàn bộ 59 admin method |
+| `npm test` | PASS | 100 test, 100 pass, 0 fail; gồm API inventory 99 operation, CI workflow contract, release/provider/smoke gates và guard cho toàn bộ 59 admin method |
 | `npm run test:integration` | PASS | 15 test PostgreSQL: checkout/order/audit/outbox + catalog transaction + review/quote/authenticated-chat lifecycle |
-| `npm run test:e2e` | PASS | 19 Playwright Chromium: 8 axe scans + register/reset/COD + 6 direct HTTP API + CLS gate cho home/products |
+| `npm run test:e2e` | PASS | 20 Playwright Chromium: 9 axe scans gồm mobile products + register/reset/COD + 6 direct HTTP API + CLS gate cho home/products |
 | `npm run test:openapi` | PASS | OpenAPI 3.1 Redocly lint sạch + source ↔ contract coverage 99/99 operation |
 | `npm run test:lighthouse` | PASS, 1 warning | Home 68/99/93/92 (performance warning dưới ngưỡng cảnh báo 70), products 76/92/93/92, login 80/100/93/91; CLS bằng 0 trên cả ba route |
 | `npx prisma validate` | PASS | Schema Prisma hợp lệ |
 | Test DB migration deploy | PASS | 8 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
 | Production CSP smoke | PASS | nonce header khớp 33 script tag; script-src không có `unsafe-inline`/`unsafe-eval` |
-| Vercel Preview | PASS | Implementation SHA `1863ccc`, deployment `dpl_8GH4CbvvCBskmzBTdjLRwWSpQ8ft` READY; `/`, `/products`, `/api/categories` trả 200 qua protection bypass, error/fatal log scan sạch |
-| GitHub Actions | PASS | Run `30157088995` xanh đủ PostgreSQL/unit/integration/build/E2E/OpenAPI/Lighthouse/audit; checkout/setup-node v5 và không còn Node 20 warning |
-| Neon invariant postflight | PASS | 17/17 constraint installed + validated; tổng số row vi phạm = 0 |
+| Vercel Production | PASS | Deployment `dpl_AbNLezfjPij3eiZ92xNBSNtVMGQ9` READY tại SHA `eb62b66`; 3 alias HTTPS 200, smoke 10/10, error/fatal scan 1 giờ sạch |
+| GitHub Actions | PASS | Run `30160092343` xanh đủ PostgreSQL/unit/integration/build/E2E/OpenAPI/Lighthouse/audit; `main` bắt buộc strict `quality` + `Vercel` |
+| Neon recovery/migration | PASS | Restore branch TTL đọc aggregate 3 bảng; reconcile migration additive được deploy; schema up-to-date và metadata mục tiêu tồn tại |
+| Cron và rollback | PASS | Cron không token 401, authorized in-memory 200; Vercel promote known-good rồi restore current, cả hai lần smoke 10/10 |
 
-Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ liệu. Sau khi Vercel Preview pass và người dùng phê duyệt rõ ràng, chỉ `prisma migrate deploy` được chạy để áp dụng migration additive `20260724150000_add_data_invariant_checks`; không seed/reset/db push và không thử callback thanh toán. Nội dung `.env` không được đọc/hiển thị; `.env` không được Git theo dõi và đã có rule ignore. VNPay source/test không được thay đổi trong đợt remediation.
+Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ liệu. Sau khi người dùng phê duyệt rõ ràng, chỉ `prisma migrate deploy` được chạy cho các migration additive đã review, gồm `20260724150000_add_data_invariant_checks` và `20260724170000_reconcile_missing_schema_objects`; không seed/reset/db push và không thử callback thanh toán. Neon restore dùng branch TTL riêng; cron check chỉ xử lý outbox hợp lệ. Secret không được hiển thị hoặc lưu trong báo cáo. VNPay source/test không được thay đổi trong đợt remediation.
 
 ### Trạng thái remediation
 
@@ -73,11 +74,11 @@ Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ li
 | H-01 email/outbox báo SENT giả | **Đã sửa** | `email-delivery.ts`, `email-outbox.ts`, cron chỉ SENT sau delivery thành công |
 | H-02 audit thiếu coverage/sanitization | **Đã sửa và có policy gate** | 59 admin method có audit decision; mutation catalog/workflow đưa audit vào transaction; sanitizer loại dữ liệu nhạy cảm |
 | H-03 rate limit fallback serverless | **Đã sửa** | Auth limiter production dùng deny/fail-closed khi backend phân tán không sẵn sàng |
-| H-04 thiếu integration/E2E | **Đã mở rộng** | 15 DB integration + 19 Playwright E2E/axe; thêm category HTTP lifecycle/403, review denial, quote và authenticated chat qua route thật |
+| H-04 thiếu integration/E2E | **Đã mở rộng** | 15 DB integration + 20 Playwright E2E/axe; thêm mobile products, category HTTP lifecycle/403, review denial, quote và authenticated chat qua route thật |
 | H-05 ERD stale | **Đã bổ sung** | `docs/erd.md` phản ánh 32 model; PNG cũ được đánh dấu stale |
 | M-01 CSP | **Đã sửa cho script** | Nonce per-request trong middleware; production script-src không còn `unsafe-inline`/`unsafe-eval` |
 | M-02 pagination | **Đã sửa** | Parser dùng chung: page >= 1, 1 <= limit <= 100, input sai trả 400 |
-| M-07 operations | **Đã bổ sung và xác minh Preview** | Runbook, Node 24, `vercel.json`, structured logs, Analytics/Speed Insights; Vercel READY |
+| M-07 operations | **Đã live-verify phần lõi** | Production SHA, branch protection, Neon restore/migration, cron auth, HTTPS aliases và rollback drill pass; provider/alert delivery còn blocked |
 | L-01/L-02/L-04 | **Đã sửa** | 401/403 tách đúng, README/API count cập nhật, Node engine được khai báo |
 
 ## 4. Phát hiện theo mức độ
@@ -196,9 +197,9 @@ Form login/checkout/quote đã có label, interactive nesting trong Color Explor
 
 `src/auth.ts:9-10,23-51` cache role trong JWT và refresh mỗi 5 phút. API helper có đọc user/role lại từ DB nên mutation chính được bảo vệ tốt hơn, nhưng middleware/UI có thể tiếp tục coi role cũ hợp lệ trong cửa sổ này. Cần document revocation SLA.
 
-#### M-07 — Deploy/operations chưa đủ tái lập — **đã bổ sung runbook và xác minh Vercel Preview**
+#### M-07 — Deploy/operations chưa đủ tái lập — **đã live-verify phần lõi, còn provider/alert**
 
-Đã có CI, `vercel.json`, cron outbox, Node 24 contract, runbook, structured log, Analytics/Speed Insights và Preview deployment tự động từ GitHub. Vẫn thiếu bằng chứng backup/restore, alerting, Resend/Upstash production và rollback drill.
+Đã có CI, `vercel.json`, cron outbox, Node 24 contract, runbook, structured log, Analytics/Speed Insights, production deployment đúng SHA, strict branch protection, Neon restore/migration, authorized cron và rollback drill hai chiều. Vercel default error/critical alert rule tự subscribe owner/admin nhưng chưa có test-alert delivery; Upstash bị chặn bởi bước chấp nhận Marketplace terms, còn credential Resend/Cloudinary remote bị provider từ chối.
 
 #### M-08 — Seed dùng credential cố định, có công tắc cho phép production
 
@@ -235,14 +236,14 @@ README là nguồn yêu cầu chính, nhưng không có PRD/acceptance criteria 
 - 32 model, 11 enum, quan hệ và index khá đầy đủ.
 - Order có snapshot shipping/product; Payment tách 1-1; idempotency có unique key.
 - Prisma schema validate pass; 17 CHECK constraint invariant đã validated trên Neon.
-- PostgreSQL 18 test DB áp dụng đủ 8 migration và chạy 15 integration test. Migration reconciliation mới idempotent nhưng chưa được ghi vào production migration history vì chưa có approval mới.
+- PostgreSQL 18 test DB áp dụng đủ 8 migration và chạy 15 integration test. Migration reconciliation idempotent đã được ghi vào production migration history và hậu kiểm metadata pass.
 
 Khoảng trống:
 
-- ERD stale nghiêm trọng.
+- ERD Markdown đã phản ánh 32 model; ảnh PNG cũ vẫn được đánh dấu stale.
 - `AuditLog.actorId` không có foreign key; đây có thể là lựa chọn giữ lịch sử sau khi xóa user nhưng cần document.
 - `InventoryTransaction.referenceId` là chuỗi tự do, không có FK.
-- Không có migration checksum/backup restore evidence ngoài Prisma status.
+- Đã có restore-branch/readability evidence; vẫn thiếu kiểm định checksum migration độc lập và RPO/RTO theo một sự cố đầy đủ.
 
 ### API
 
@@ -254,38 +255,38 @@ Credentials dùng bcrypt cost 12, Google OAuth mặc định không link email n
 
 ### Frontend
 
-Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên 8 màn hình và Lighthouse đạt accessibility 92–100. Nguyên nhân CLS được truy về `HomeClient`/`ProductsClient` trả `null` trước hydration rồi chèn toàn bộ nội dung phía trên footer; mount-gate đã được bỏ. Regression test dùng Layout Instability API đo home/products dưới ngưỡng tốt 0.1, còn Lighthouse hoàn chỉnh sau sửa ghi CLS bằng 0 và performance 75/76/80. Hai lần chạy Lighthouse bổ sung trên Windows gặp `EPERM` khi Chrome Launcher dọn thư mục temp; đây là flake của runner local, không phải assertion hoặc runtime app. Color Visualizer vẫn dùng `MOCK_ROOMS`; blog related posts đang để rỗng; nhiều page client-side và chưa có responsive browser/device matrix, screen-reader thủ công hoặc real-user performance.
+Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên 9 màn hình, gồm viewport mobile products, và Lighthouse đạt accessibility từ 90 trở lên. Nút sort mobile đã có accessible name, giá khuyến mãi đủ contrast và product heading đúng thứ tự. Regression test dùng Layout Instability API đo home/products dưới ngưỡng tốt 0.1. Lỗi `EPERM` của Chrome Launcher trên Windows đã được cô lập bằng shim chỉ bỏ qua đúng temp-cleanup signature sau khi report sinh xong; assertion thật vẫn làm gate fail. Color Visualizer vẫn dùng `MOCK_ROOMS`; blog related posts đang để rỗng; chưa có Firefox/WebKit, screen-reader thủ công hoặc real-user performance.
 
 ### Testing
 
-83 unit test, 15 PostgreSQL integration test và 19 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage 99/99, Lighthouse và production dependency audit. Critical path COD/register/reset/auth/order/audit/outbox, category/review/quote/chat cùng layout stability đã có bằng chứng; vẫn thiếu coverage threshold, direct HTTP breadth cho CRUD tương đồng, OAuth, load/race và cross-browser.
+100 unit test, 15 PostgreSQL integration test và 20 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage 99/99, Lighthouse và production dependency audit. Critical path COD/register/reset/auth/order/audit/outbox, category/review/quote/chat, mobile accessibility cùng layout stability đã có bằng chứng; vẫn thiếu coverage threshold, direct HTTP breadth cho CRUD tương đồng, OAuth, load/race và cross-browser.
 
 ### Deployment
 
-Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` đã nâng lên v5. Run `30157088995` của implementation SHA `1863ccc` xanh toàn bộ; Git-triggered Vercel deployment `dpl_8GH4CbvvCBskmzBTdjLRwWSpQ8ft` READY, smoke 3 route 200 và log scan sạch. Vẫn chưa có bằng chứng cron production execution, external-provider delivery, backup/PITR, alerting và rollback drill.
+Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` dùng v5. Run `30160092343` xanh toàn bộ; `main` yêu cầu strict `quality` + `Vercel`, linear history và resolved conversations. Production `dpl_AbNLezfjPij3eiZ92xNBSNtVMGQ9` READY tại SHA `eb62b66`, 3 alias HTTPS 200, smoke 10/10 và log error/fatal một giờ sạch. Neon restore/migration, cron 401/200 và rollback drill hai chiều đã pass. Còn thiếu Upstash resource, credential thật cho Resend/Cloudinary và bằng chứng alert delivery.
 
 ## 6. Ba rủi ro lớn nhất
 
-1. **Vận hành production còn thiếu bằng chứng trực tiếp:** Neon backup/PITR restore, cron execution, Upstash, Resend, monitoring/alert routing và rollback drill.
+1. **External-provider và cảnh báo chưa sẵn sàng:** Upstash cần chấp nhận Marketplace terms; Resend/Cloudinary đang dùng credential remote bị từ chối; alert delivery chưa có test trực tiếp.
 2. **Phạm vi HTTP integration chưa phủ mọi CRUD:** category/review/quote/chat và policy đã có evidence, nhưng supplier/color/collection/product, OAuth và concurrency/load vẫn có thể lỗi xuyên tầng.
 3. **Các tích hợp/feature chưa sẵn sàng production:** VNPay bị loại khỏi scope, Cloudinary/Google OAuth chưa live-verify, visualizer vẫn dùng room mock và style CSP còn `unsafe-inline`.
 
 ## 7. Năm việc phải sửa đầu tiên
 
-1. Review và merge Draft PR #2 chỉ khi branch protection vẫn giữ GitHub Actions/Vercel xanh; không promote production tự động.
-2. Thực hiện và lưu bằng chứng manual cho Neon backup/PITR restore, cron, Upstash, Resend, monitoring và alert routing theo runbook.
+1. Chấp nhận Vercel/Upstash Marketplace terms, tạo Redis free Singapore và live-verify PING/fail-closed auth.
+2. Thay credential thật cho Resend/Cloudinary rồi chạy acceptance + disposable lifecycle; chứng minh alert tới owner.
 3. Mở rộng direct HTTP/E2E từ category sang supplier/color/collection/product, Google OAuth và các race/concurrency quan trọng.
-4. Chuẩn hóa error envelope cho mọi operation, thêm API versioning rồi mới sinh client từ OpenAPI nếu cần.
-5. Thêm coverage threshold, Firefox/WebKit/mobile matrix, screen-reader thủ công và tối ưu JS/performance; tiếp tục loại `style-src 'unsafe-inline'` khi khả thi.
+4. Chuẩn hóa error envelope cho mọi operation, hoàn thiện email verification/session revocation/role demotion và tiếp tục giảm CSP `style-src 'unsafe-inline'`.
+5. Thêm coverage threshold, Firefox/WebKit, screen-reader thủ công, load test và hoàn thiện visualizer/blog/i18n/notification/performance.
 
 ## 8. Phần chưa đủ dữ liệu để xác minh
 
 - File được yêu cầu `codex_project_audit_pack/CODEX_PROJECT_AUDIT_PROMPT.md` không tồn tại trong repository hoặc `D:\ProjectZ`; audit dùng 10 yêu cầu trong lời nhắn làm baseline.
 - Không có PRD/SRS, acceptance criteria đã ký, KPI/SLA/SLO hoặc biên bản UAT.
 - Không đọc nội dung row-level/PII hoặc production traffic; chỉ chạy aggregate invariant count và metadata constraint/migration.
-- Đã xác minh GitHub Actions và Vercel Preview trên implementation SHA `1863ccc`, cùng Neon invariant migration trực tiếp. Chưa xác nhận Neon backup/PITR restore, Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
+- Đã xác minh GitHub Actions, Vercel Production, Neon restore/migration, cron authorization, HTTPS aliases và rollback drill. Chưa xác nhận Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
 - Lighthouse và axe local đã có; chưa có Firefox/WebKit/mobile matrix, screen-reader thủ công, penetration test, load test hoặc real-user metrics.
-- Không xác minh DNS/TLS/custom domain, webhook delivery từ VNPay thật, email deliverability, cron schedule, alerting và disaster recovery.
+- Đã xác minh TLS trên ba alias Vercel; dự án không gắn custom domain. Chưa xác minh webhook VNPay thật, email deliverability, lần chạy cron theo lịch, alert delivery tới owner hoặc full disaster-recovery RTO/RPO.
 
 ## 9. Quyết định kiến trúc
 

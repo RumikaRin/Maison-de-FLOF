@@ -1,6 +1,6 @@
 # Maison de FLOF Deployment Runbook
 
-Last verified against source: 24/07/2026
+Last verified against source and demo platforms: 25/07/2026
 
 ## Supported runtime
 
@@ -86,6 +86,51 @@ audit and do not use `npm audit fix --force` in a release job.
 name must fail the job. Passing this name-only check proves configuration
 presence, not provider availability or credential validity.
 
+Run `vercel env run` only from a clean checkout that has no `.env` or
+`.env.local`. The CLI loads local files before the remote environment, so a
+same-named local value can otherwise contaminate release evidence.
+
+## Repeatable platform inspection
+
+Inspect the newest production deployment and confirm its Git SHA:
+
+```powershell
+$targetSha = git rev-parse origin/main
+$deployments = npx --yes vercel@latest ls --environment production --format json --limit 20 --cwd . --non-interactive | ConvertFrom-Json
+$deployment = $deployments.deployments |
+  Where-Object { $_.meta.githubCommitSha -eq $targetSha -and $_.state -eq "READY" } |
+  Select-Object -First 1
+if (-not $deployment) { throw "No READY production deployment matches origin/main" }
+npx --yes vercel@latest inspect "https://$($deployment.url)" --format json
+```
+
+Deployment-specific URLs may be protected by Vercel SSO. Run application smoke
+checks against the public production alias:
+
+```powershell
+$env:DEPLOYMENT_BASE_URL = "https://maison-de-flof.vercel.app"
+npm run check:deployment-smoke
+Remove-Item Env:DEPLOYMENT_BASE_URL
+```
+
+Run sanitized provider probes from a clean release checkout:
+
+```powershell
+npx --yes vercel@latest env run -e production -- npm run check:provider:upstash
+npx --yes vercel@latest env run -e production -- npm run check:provider:resend
+npx --yes vercel@latest env run -e production -- npm run check:provider:cloudinary
+```
+
+The probes print only provider, PASS/FAIL, and a stable failure code. The
+Cloudinary probe always attempts to delete its disposable one-pixel asset.
+
+Inspect recent production errors without following a live stream:
+
+```powershell
+npx --yes vercel@latest logs --environment production --level error --since 1h --limit 100 --json --cwd . --non-interactive
+npx --yes vercel@latest alerts rules inspect ar_default --format json --cwd . --non-interactive
+```
+
 ## Manual external evidence gates
 
 The following remain manual release evidence and must not be marked passing
@@ -120,6 +165,42 @@ production promotion when that dependency is release-critical.
 
 Never run `prisma db push`, `prisma migrate reset`, or seed demo users in
 production.
+
+### Neon restore rehearsal
+
+Create a short-lived restore branch rather than modifying or resetting the
+source branch:
+
+```powershell
+$expires = (Get-Date).ToUniversalTime().AddDays(2).ToString("yyyy-MM-ddTHH:mm:ssZ")
+npx --yes neonctl@latest branches create `
+  --project-id icy-forest-83002363 `
+  --parent production `
+  --name p0-restore-20260725 `
+  --expires-at $expires `
+  -o json --no-color
+```
+
+Acquire its connection string only into process memory, run metadata/aggregate
+checks, then clear it:
+
+```powershell
+$restoreUrl = (npx --yes neonctl@latest connection-string p0-restore-20260725 --project-id icy-forest-83002363 --prisma --no-color).Trim()
+$env:DATABASE_URL = $restoreUrl
+npx prisma migrate status
+# Run aggregate-only Prisma reads here; never print row data.
+Remove-Item Env:DATABASE_URL
+$restoreUrl = $null
+```
+
+Review and deploy additive production migrations:
+
+```powershell
+Get-Content -Raw prisma/migrations/20260724170000_reconcile_missing_schema_objects/migration.sql
+npx --yes vercel@latest env run -e production -- npm run db:status
+npx --yes vercel@latest env run -e production -- npm run db:migrate
+npx --yes vercel@latest env run -e production -- npm run db:status
+```
 
 ## Scheduled jobs
 
@@ -172,9 +253,27 @@ Verify without creating destructive data:
 ### Application-only failure
 
 1. Stop traffic promotion.
-2. Redeploy the last known-good application version.
-3. Re-run smoke checks.
-4. Keep the database at the current version if migrations were
+2. Identify a `READY`, smoke-verified deployment with the compatible
+   environment revision.
+3. Promote it without rebuilding and re-run smoke checks:
+
+   ```powershell
+   npx --yes vercel@latest promote <known-good-deployment-url> --yes --timeout 3m --cwd . --non-interactive
+   $env:DEPLOYMENT_BASE_URL = "https://maison-de-flof.vercel.app"
+   npm run check:deployment-smoke
+   Remove-Item Env:DEPLOYMENT_BASE_URL
+   ```
+
+4. When the incident is resolved, promote the verified current deployment with
+   the same command, run smoke again, and confirm the production alias points
+   to that deployment:
+
+   ```powershell
+   npx --yes vercel@latest promote <current-verified-deployment-url> --yes --timeout 3m --cwd . --non-interactive
+   npx --yes vercel@latest inspect https://maison-de-flof.vercel.app --format json
+   ```
+
+5. Keep the database at the current version if migrations were
    backward-compatible.
 
 ### Migration failure
