@@ -39,6 +39,7 @@ function withSecurityHeaders<T extends Response>(response: T, nonce: string) {
     buildContentSecurityPolicy(
       process.env.NODE_ENV === "production" ? "production" : "development",
       nonce,
+      { upgradeInsecureRequests: !isolatedE2eMode },
     ),
   );
   return response;
@@ -63,6 +64,7 @@ export default async function middleware(request: NextRequest, event: any) {
     buildContentSecurityPolicy(
       process.env.NODE_ENV === "production" ? "production" : "development",
       nonce,
+      { upgradeInsecureRequests: !isolatedE2eMode },
     ),
   );
   

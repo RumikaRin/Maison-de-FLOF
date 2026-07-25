@@ -39,7 +39,7 @@ jobs:
       - run: npm run db:generate
       - run: npm run test:db:migrate
       - run: npm run test:db:fixtures
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run lint
       - run: npm test
       - run: npm run test:env
