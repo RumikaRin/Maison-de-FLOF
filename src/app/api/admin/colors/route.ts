@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requirePermission, requireStaff } from "@/lib/api-auth";
 import { createAuditLog } from "@/lib/audit";
+import { deleteColor } from "@/lib/admin/catalog-service";
 
 const colorSchema = z.object({
   id: z.string().optional(),
@@ -110,15 +111,7 @@ export async function DELETE(request: NextRequest) {
     const actor = await requirePermission("CATALOG_MANAGE");
     const id = new URL(request.url).searchParams.get("id");
     if (!id) throw new ApiError(400, "Thiếu mã màu");
-    const linked = await db.paintColorLink.count({ where: { colorId: id } });
-    if (linked > 0) throw new ApiError(409, "Không thể xóa màu đang được gắn với sản phẩm");
-    await db.paintColor.delete({ where: { id } });
-    await createAuditLog(db, {
-      actor,
-      action: "COLOR_DELETED",
-      entityType: "PaintColor",
-      entityId: id,
-    });
+    await deleteColor(db, actor, id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return apiErrorResponse(error);
