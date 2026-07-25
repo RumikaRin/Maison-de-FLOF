@@ -60,8 +60,8 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | Test DB migration deploy | PASS | 8 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
 | Production CSP smoke | PASS | nonce header khớp 33 script tag; script-src không có `unsafe-inline`/`unsafe-eval` |
-| Vercel Production | PASS | Deployment `dpl_AbNLezfjPij3eiZ92xNBSNtVMGQ9` READY tại SHA `eb62b66`; 3 alias HTTPS 200, smoke 10/10, error/fatal scan 1 giờ sạch |
-| GitHub Actions | PASS | Run `30160092343` xanh đủ PostgreSQL/unit/integration/build/E2E/OpenAPI/Lighthouse/audit; `main` bắt buộc strict `quality` + `Vercel` |
+| Vercel Production | PASS | P1 deployment `dpl_7MEFGW5tECnsMeSDRY6TTSD3whBE` READY đúng merge SHA `2cdab5e`; 3 alias, canonical smoke 10/10 và không có log 5xx |
+| GitHub Actions | PASS | PR run `30173488439` và post-merge `main` run `30173685951` xanh đủ PostgreSQL/unit/coverage/integration/build/E2E/load/OpenAPI/Lighthouse/audit |
 | Neon recovery/migration | PASS | Restore branch TTL đọc aggregate 3 bảng; reconcile migration additive được deploy; schema up-to-date và metadata mục tiêu tồn tại |
 | Cron và rollback | PASS | Cron không token 401, authorized in-memory 200; Vercel promote known-good rồi restore current, cả hai lần smoke 10/10 |
 
@@ -265,7 +265,7 @@ Các luồng chính đều có UI và API nối thật. Axe/AX gate đã pass tr
 
 ### Deployment
 
-Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` dùng v5. Run `30160092343` xanh toàn bộ; `main` yêu cầu strict `quality` + `Vercel`, linear history và resolved conversations. Production `dpl_AbNLezfjPij3eiZ92xNBSNtVMGQ9` READY tại SHA `eb62b66`, 3 alias HTTPS 200, smoke 10/10 và log error/fatal một giờ sạch. Neon restore/migration, cron 401/200 và rollback drill hai chiều đã pass. Còn thiếu Upstash resource, credential thật cho Resend/Cloudinary và bằng chứng alert delivery.
+Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` dùng v5. PR run `30173488439` và post-merge `main` run `30173685951` xanh toàn bộ; `main` yêu cầu strict `quality` + `Vercel`, linear history và resolved conversations. Production `dpl_7MEFGW5tECnsMeSDRY6TTSD3whBE` READY đúng SHA `2cdab5e`, 3 alias, canonical smoke 10/10 và không có log 5xx. Log error duy nhất trong lượt smoke là cron 401 có chủ đích để kiểm tra authorization. Neon restore/migration và rollback drill hai chiều từ P0 vẫn pass. Còn thiếu Upstash resource, credential thật cho Resend/Cloudinary và bằng chứng alert delivery.
 
 ## 6. Ba rủi ro lớn nhất
 
