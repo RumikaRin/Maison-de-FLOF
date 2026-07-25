@@ -125,15 +125,5 @@ function describeApiError(error: unknown): ApiErrorDescriptor {
 
 export function apiErrorResponse(error: unknown, request?: Request) {
   const descriptor = describeApiError(error);
-
-  // Routes not yet included in the documented critical contract retain their
-  // legacy string shape until their clients migrate to the shared parser.
-  if (!request) {
-    return Response.json(
-      { error: descriptor.message },
-      { status: descriptor.status },
-    );
-  }
-
   return createApiErrorResponse(descriptor, getApiRequestId(request));
 }

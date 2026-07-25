@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
+import { jsonApiError } from "@/lib/api-error-contract";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
@@ -14,7 +15,7 @@ export async function GET(
     },
   });
   if (!product?.isActive) {
-    return Response.json({ error: "Product not found" }, { status: 404 });
+    return jsonApiError(request, 404, "NOT_FOUND", "Product not found");
   }
 
   const relatedProducts = await db.paint.findMany({

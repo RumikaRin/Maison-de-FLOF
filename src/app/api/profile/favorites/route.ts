@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { apiErrorResponse, requireUser } from "@/lib/api-auth";
+import { jsonApiError } from "@/lib/api-error-contract";
 
 const favoriteSchema = z.object({
   code: z.string().trim().min(1).max(32),
@@ -41,8 +42,17 @@ export async function POST(request: Request) {
       db.paintColor.findUnique({ where: { code } }),
     ]);
 
-    if (!user) return Response.json({ error: "User not found" }, { status: 404 });
-    if (!paintColor) return Response.json({ error: "Paint color not found" }, { status: 404 });
+    if (!user) {
+      return jsonApiError(request, 404, "NOT_FOUND", "User not found");
+    }
+    if (!paintColor) {
+      return jsonApiError(
+        request,
+        404,
+        "NOT_FOUND",
+        "Paint color not found",
+      );
+    }
 
     const customer =
       user.customer ??

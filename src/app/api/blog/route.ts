@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
-import { parsePagination, PaginationError } from "@/lib/pagination";
+import { parsePagination } from "@/lib/pagination";
+import { apiErrorResponse } from "@/lib/api-auth";
+import { jsonApiError } from "@/lib/api-error-contract";
 
 export async function GET(request: NextRequest) {
   try {
     const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return jsonApiError(
+        request,
+        429,
+        "TOO_MANY_REQUESTS",
+        "Too many requests",
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -68,10 +75,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (error instanceof PaginationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    console.error("Failed to fetch blogs:", error);
-    return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 });
+    return apiErrorResponse(error, request);
   }
 }

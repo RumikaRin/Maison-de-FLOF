@@ -9,16 +9,19 @@ export function assertCronAuthorized(request: Request): Response | null {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) {
     console.error("CRON_SECRET is not configured");
-    return Response.json(
-      { error: "Cron endpoint is not configured" },
-      { status: 503 },
+    return jsonApiError(
+      request,
+      503,
+      "INTERNAL_ERROR",
+      "Cron endpoint is not configured",
     );
   }
 
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${secret}`) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return jsonApiError(request, 401, "UNAUTHORIZED", "Unauthorized");
   }
 
   return null;
 }
+import { jsonApiError } from "./api-error-contract.ts";
