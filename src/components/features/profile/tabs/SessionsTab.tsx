@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
+import { AsyncState } from "@/components/ui/AsyncState";
 
 type AuthSessionItem = {
   id: string;
@@ -14,28 +15,34 @@ type AuthSessionItem = {
 
 export function SessionsTab({ language }: { language: string }) {
   const [sessions, setSessions] = useState<AuthSessionItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [revoking, setRevoking] = useState<string | null>(null);
+
+  const loadSessions = useCallback(async (signal?: AbortSignal) => {
+    setStatus("loading");
+    try {
+      const response = await fetch("/api/profile/sessions", { signal });
+      const body = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          getApiErrorMessage(body, "Không thể tải phiên đăng nhập"),
+        );
+      }
+      setSessions(body);
+      setStatus("ready");
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      setStatus("error");
+    }
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
-    void fetch("/api/profile/sessions", { signal: controller.signal })
-      .then(async (response) => {
-        const body = await response.json();
-        if (!response.ok) {
-          throw new Error(getApiErrorMessage(body, "Không thể tải phiên đăng nhập"));
-        }
-        setSessions(body);
-      })
-      .catch((error) => {
-        if (error instanceof Error && error.name === "AbortError") return;
-        toast.error(
-          error instanceof Error ? error.message : "Không thể tải phiên đăng nhập",
-        );
-      })
-      .finally(() => setLoading(false));
+    void loadSessions(controller.signal);
     return () => controller.abort();
-  }, []);
+  }, [loadSessions]);
 
   async function revoke(payload: { id?: string; allOthers?: boolean }) {
     const marker = payload.allOthers ? "all-others" : payload.id || "";
@@ -93,8 +100,30 @@ export function SessionsTab({ language }: { language: string }) {
         </button>
       </div>
 
-      {loading ? (
-        <p className="mt-6 text-sm text-warm-500">Đang tải...</p>
+      {status === "loading" ? (
+        <AsyncState
+          status="loading"
+          title={language === "vi" ? "Đang tải phiên…" : "Loading sessions…"}
+          className="mt-6 min-h-40 border-0 bg-warm-50 shadow-none"
+        />
+      ) : status === "error" ? (
+        <AsyncState
+          status="error"
+          title={
+            language === "vi"
+              ? "Không thể tải phiên đăng nhập"
+              : "Unable to load sessions"
+          }
+          retryLabel={language === "vi" ? "Thử lại" : "Retry"}
+          onRetry={() => void loadSessions()}
+          className="mt-6 min-h-40 border-0 bg-warm-50 shadow-none"
+        />
+      ) : sessions.length === 0 ? (
+        <AsyncState
+          status="empty"
+          title={language === "vi" ? "Không có phiên hoạt động" : "No active sessions"}
+          className="mt-6 min-h-40 border-0 bg-warm-50 shadow-none"
+        />
       ) : (
         <ul className="mt-6 space-y-3">
           {sessions.map((session) => (

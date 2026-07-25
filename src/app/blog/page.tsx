@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import Link from "next/link";
 import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { safeMotion } from "@/components/ui/motion-safe";
+import { AsyncState } from "@/components/ui/AsyncState";
+import type { PublicBlog } from "@/services/blog.service";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -42,19 +44,72 @@ export default function BlogListingPage() {
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [blogs, setBlogs] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<PublicBlog[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
 
-  useEffect(() => { 
-    setMounted(true); 
-    fetch("/api/blog")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setBlogs(data);
-      })
-      .catch((err) => console.error("Error loading blogs from DB API:", err));
+  const loadBlogs = useCallback(async () => {
+    setStatus("loading");
+    try {
+      const response = await fetch("/api/blog");
+      if (!response.ok) throw new Error("BLOG_FETCH_FAILED");
+      const data = (await response.json()) as PublicBlog[];
+      if (!Array.isArray(data)) throw new Error("BLOG_RESPONSE_INVALID");
+      setBlogs(data);
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
   }, []);
 
+  useEffect(() => {
+    setMounted(true);
+    void loadBlogs();
+  }, [loadBlogs]);
+
   if (!mounted) return null;
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="loading"
+          title={language === "vi" ? "Đang tải bài viết" : "Loading articles"}
+        />
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="min-h-screen bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="error"
+          title={
+            language === "vi"
+              ? "Không thể tải bài viết"
+              : "Unable to load articles"
+          }
+          description={
+            language === "vi"
+              ? "Kết nối tạm thời gián đoạn. Vui lòng thử lại."
+              : "The connection was interrupted. Please retry."
+          }
+          retryLabel={language === "vi" ? "Thử lại" : "Retry"}
+          onRetry={() => void loadBlogs()}
+        />
+      </div>
+    );
+  }
+  if (blogs.length === 0) {
+    return (
+      <div className="min-h-screen bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="empty"
+          title={language === "vi" ? "Chưa có bài viết" : "No articles yet"}
+        />
+      </div>
+    );
+  }
 
   const filteredBlogs = blogs.filter((blog) => {
     const matchesSearch =

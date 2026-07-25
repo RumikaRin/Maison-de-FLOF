@@ -6,7 +6,12 @@ const publicPages = [
   "/",
   "/products",
   "/colors",
+  "/blog",
+  "/color-visualizer",
+  "/find-dealer",
   "/login",
+  "/register",
+  "/verify-email",
   "/cart",
   "/quote-request",
 ];
@@ -58,5 +63,16 @@ test("profile has no serious accessibility violations", async ({ page }) => {
 test("admin orders has no serious accessibility violations", async ({ page }) => {
   await loginAsAdmin(page);
   await page.goto("/admin/orders");
+  await expectNoBlockingViolations(page);
+});
+
+test("admin audit and notification surfaces have no serious accessibility violations", async ({
+  page,
+}) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/audit");
+  await page
+    .getByRole("button", { name: /Mở thông báo|Open notifications/i })
+    .click();
   await expectNoBlockingViolations(page);
 });

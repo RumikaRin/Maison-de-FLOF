@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { safeMotion } from "@/components/ui/motion-safe";
 import { useSession, signOut } from "next-auth/react";
@@ -17,6 +17,7 @@ import { AddressBookTab } from "./tabs/AddressBookTab";
 import { SavedColorsTab } from "./tabs/SavedColorsTab";
 import { SessionsTab } from "./tabs/SessionsTab";
 import { PrivacyTab } from "./tabs/PrivacyTab";
+import { AsyncState } from "@/components/ui/AsyncState";
 
 interface UserSession {
   email: string;
@@ -30,6 +31,9 @@ export function ProfileClient() {
 
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
+  const [profileStatus, setProfileStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
   const [activeTab, setActiveTab] = useState<
     "history" | "profile" | "password" | "addresses" | "favorites" | "sessions" | "privacy"
   >("history");
@@ -63,6 +67,24 @@ export function ProfileClient() {
 
   const { data: authSession, status: authStatus } = useSession();
 
+  const loadProfile = useCallback(async () => {
+    setProfileStatus("loading");
+    try {
+      const response = await fetch("/api/profile");
+      if (!response.ok) throw new Error("PROFILE_FETCH_FAILED");
+      const profile = (await response.json()) as UserSession & {
+        phone?: string | null;
+      };
+      setUser(profile);
+      setProfileName(profile.name || "");
+      setProfileEmail(profile.email || "");
+      setProfilePhone(profile.phone || "");
+      setProfileStatus("ready");
+    } catch {
+      setProfileStatus("error");
+    }
+  }, []);
+
   function syncProfileAddressFromDefault(addrs: any[]) {
     const defaultAddress = addrs.find((address: any) => address.isDefault);
     if (defaultAddress) {
@@ -93,15 +115,8 @@ export function ProfileClient() {
       }
     };
 
-    // Fetch primary user profile first to render the page quickly
-    fetchJson("/api/profile").then((profile) => {
-      if (profile) {
-        setUser(profile);
-        setProfileName(profile.name || "");
-        setProfileEmail(profile.email || "");
-        setProfilePhone(profile.phone || "");
-      }
-    });
+    // Fetch primary user profile first to render the page quickly.
+    void loadProfile();
 
     // Fetch other data in parallel without blocking user profile
     Promise.all([
@@ -118,10 +133,35 @@ export function ProfileClient() {
       if (Array.isArray(favorites)) setWishlistColors(favorites);
       if (Array.isArray(favoriteProducts)) setWishlistProducts(favoriteProducts);
     });
-  }, [router, authSession, authStatus]);
+  }, [router, authSession, authStatus, loadProfile]);
 
   if (!mounted) return null;
-  if (!user) return null;
+  if (profileStatus === "loading" || authStatus === "loading") {
+    return (
+      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="loading"
+          title={language === "vi" ? "Đang tải hồ sơ…" : "Loading profile…"}
+        />
+      </div>
+    );
+  }
+  if (profileStatus === "error" || !user) {
+    return (
+      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="error"
+          title={
+            language === "vi"
+              ? "Không thể tải hồ sơ"
+              : "Unable to load profile"
+          }
+          retryLabel={language === "vi" ? "Thử lại" : "Retry"}
+          onRetry={() => void loadProfile()}
+        />
+      </div>
+    );
+  }
 
   const handleToggleFavoriteColor = async (code: string) => {
     const previous = wishlistColors;

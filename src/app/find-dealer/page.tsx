@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { CspImage as Image } from "@/components/ui/csp-image";
 import dynamic from "next/dynamic";
 import { useLanguageStore } from "@/store/language-store";
@@ -15,6 +15,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { safeMotion } from "@/components/ui/motion-safe";
+import { AsyncState } from "@/components/ui/AsyncState";
 
 const DealerMap = dynamic(() => import("@/components/maps/dealer-map"), {
   ssr: false,
@@ -54,6 +55,9 @@ export default function FindDealerPage() {
   const [selectedBrand, setSelectedBrand] = useState("Tất cả / All");
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
 
   const [mapViewport, setMapViewport] = useState({
@@ -63,18 +67,24 @@ export default function FindDealerPage() {
     pitch: 0
   });
 
+  const loadDealers = useCallback(async () => {
+    setStatus("loading");
+    try {
+      const response = await fetch("/api/dealers");
+      if (!response.ok) throw new Error("DEALERS_FETCH_FAILED");
+      const data = (await response.json()) as Dealer[];
+      if (!Array.isArray(data)) throw new Error("DEALERS_RESPONSE_INVALID");
+      setDealers(data);
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
+  }, []);
+
   useEffect(() => {
     setMounted(true);
-
-    fetch("/api/dealers")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setDealers(data);
-        }
-      })
-      .catch((err) => console.error("Error loading dealers from DB API:", err));
-  }, []);
+    void loadDealers();
+  }, [loadDealers]);
 
   const provinces = ["Tất cả / All", ...Array.from(new Set(dealers.map((dealer) => dealer.province)))];
   const brands = ["Tất cả / All", ...Array.from(new Set(dealers.map((dealer) => dealer.brand)))];
@@ -104,6 +114,52 @@ export default function FindDealerPage() {
   });
 
   if (!mounted) return null;
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="loading"
+          title={language === "vi" ? "Đang tải đại lý" : "Loading dealers"}
+        />
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="min-h-screen bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="error"
+          title={
+            language === "vi"
+              ? "Không thể tải danh sách đại lý"
+              : "Unable to load dealers"
+          }
+          description={
+            language === "vi"
+              ? "Kết nối tạm thời gián đoạn. Vui lòng thử lại."
+              : "The connection was interrupted. Please retry."
+          }
+          retryLabel={language === "vi" ? "Thử lại" : "Retry"}
+          onRetry={() => void loadDealers()}
+        />
+      </div>
+    );
+  }
+  if (dealers.length === 0) {
+    return (
+      <div className="min-h-screen bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="empty"
+          title={language === "vi" ? "Chưa có đại lý" : "No dealers yet"}
+          description={
+            language === "vi"
+              ? "Danh sách đại lý sẽ xuất hiện khi dữ liệu được cập nhật."
+              : "Dealers will appear after catalog data is updated."
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-jotun-ivory text-warm-900 transition-colors duration-300">

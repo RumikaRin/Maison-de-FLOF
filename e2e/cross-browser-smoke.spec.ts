@@ -45,6 +45,11 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
   await expect(page.locator("[style]")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Mua ngay|Buy now/i })).toBeVisible();
 
+  await page.goto("/color-visualizer");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page.goto("/find-dealer");
+  await expect(page.getByRole("heading").first()).toBeVisible();
+
   await page.goto("/login");
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByLabel(/Mật khẩu|Password/)).toBeVisible();

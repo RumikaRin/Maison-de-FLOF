@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AsyncState } from "@/components/ui/AsyncState";
 
 type AuditRecord = {
   id: string;
@@ -104,22 +105,27 @@ export function AuditLogTable() {
       </form>
 
       {status === "loading" ? (
-        <p className="p-8 text-sm text-warm-600">Đang tải nhật ký…</p>
+        <AsyncState
+          status="loading"
+          title="Đang tải nhật ký…"
+          className="min-h-56 max-w-none rounded-none border-0 shadow-none"
+        />
       ) : status === "error" ? (
-        <div className="p-8">
-          <p role="alert" className="text-sm font-semibold text-red-700">
-            Không thể tải nhật ký kiểm toán.
-          </p>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="mt-3 rounded-xl border border-warm-200 px-4 py-2 text-xs font-bold"
-          >
-            Thử lại
-          </button>
-        </div>
+        <AsyncState
+          status="error"
+          title="Không thể tải nhật ký kiểm toán"
+          description="Vui lòng kiểm tra kết nối và thử lại."
+          retryLabel="Thử lại"
+          onRetry={() => void load()}
+          className="min-h-56 max-w-none rounded-none border-0 shadow-none"
+        />
       ) : records.length === 0 ? (
-        <p className="p-8 text-sm text-warm-600">Không có dữ liệu phù hợp.</p>
+        <AsyncState
+          status="empty"
+          title="Không có dữ liệu phù hợp"
+          description="Thay đổi bộ lọc để xem thêm sự kiện quản trị."
+          className="min-h-56 max-w-none rounded-none border-0 shadow-none"
+        />
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">

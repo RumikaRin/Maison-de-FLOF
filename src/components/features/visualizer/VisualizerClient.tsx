@@ -12,6 +12,7 @@ import { safeMotion } from "@/components/ui/motion-safe";
 import { ColorSwatch } from "@/components/ui/color-swatch";
 import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
+import { AsyncState } from "@/components/ui/AsyncState";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -232,27 +233,45 @@ export function VisualizerClient() {
   if (!mounted) return null;
   if (roomStatus === "loading") {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center bg-jotun-ivory text-sm font-semibold text-warm-700">
-        {language === "vi" ? "Đang tải không gian phối màu…" : "Loading visualizer rooms…"}
+      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="loading"
+          title={
+            language === "vi"
+              ? "Đang tải không gian phối màu…"
+              : "Loading visualizer rooms…"
+          }
+        />
       </div>
     );
   }
   if (roomStatus === "error") {
     return (
-      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 bg-jotun-ivory px-6 text-center">
-        <p role="alert" className="text-sm font-semibold text-red-700">
-          {language === "vi" ? "Không thể tải không gian phối màu." : "Visualizer rooms could not be loaded."}
-        </p>
-        <button type="button" onClick={() => void loadRooms()} className="rounded-xl bg-warm-900 px-5 py-3 text-xs font-bold text-white">
-          {language === "vi" ? "Thử lại" : "Retry"}
-        </button>
+      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="error"
+          title={
+            language === "vi"
+              ? "Không thể tải không gian phối màu"
+              : "Visualizer rooms could not be loaded"
+          }
+          retryLabel={language === "vi" ? "Thử lại" : "Retry"}
+          onRetry={() => void loadRooms()}
+        />
       </div>
     );
   }
   if (rooms.length === 0) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center bg-jotun-ivory px-6 text-center text-sm text-warm-700">
-        {language === "vi" ? "Chưa có không gian phối màu khả dụng." : "No visualizer rooms are available."}
+      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="empty"
+          title={
+            language === "vi"
+              ? "Chưa có không gian phối màu khả dụng"
+              : "No visualizer rooms are available"
+          }
+        />
       </div>
     );
   }
