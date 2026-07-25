@@ -14,6 +14,7 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 - **Pagination chuẩn:** `page >= 1`, `1 <= limit <= 100`; input sai trả `400`.
 - **Authentication status:** thiếu session trả `401`; có session nhưng thiếu role/permission trả `403`.
 - **Admin mutation:** tất cả route mutation hiện gọi audit helper; dữ liệu audit đi qua sanitizer loại password/token/secret/credential.
+- **Admin policy inventory:** `src/lib/admin/admin-api-policy.ts` khai báo đủ 59 method thực tế; `tests/admin-api-policy.test.ts` đối chiếu route tree, guard, audit decision và role-permission matrix.
 - **Critical error contract:** các route được tài liệu hóa trả envelope `{ error: { code, message, details? }, requestId }`; client parser vẫn đọc được legacy payload trong giai đoạn chuyển đổi.
 - **OpenAPI:** `docs/openapi.yaml` (OpenAPI 3.1) bao phủ 9 critical path; Redocly lint và script đối chiếu method với source là CI gate.
 
@@ -97,6 +98,13 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 | PATCH | `/api/admin/notifications/[id]/read` | Staff | id path | Mark one read có ownership |
 | POST | `/api/admin/notifications/mark-all-read` | Staff | none | Mark all của user hiện tại |
 
+### Bằng chứng Admin API
+
+- `tests/admin-api-policy.test.ts`: đủ 59/59 method, không trùng, đúng `requireStaff`/`requireAdmin`/`requirePermission`.
+- `tests/integration/admin-catalog.integration.test.ts`: category lifecycle, product/color-link transaction, inventory import ban đầu, duplicate SKU/slug, soft deactivate và linked-color delete guard.
+- `tests/integration/customer-workflows.integration.test.ts`: verified review/upsert/staff reply-delete, quote notify/status, authenticated conversation reopen/scope/reply/read.
+- Cloudinary media dùng phân loại `provider-contract`; chưa được coi là live integration khi không có credential/provider evidence.
+
 ## Cron API
 
 | Method | Path | Quyền | Side effect |
@@ -110,6 +118,6 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 2. OpenAPI 3.1 mới bao phủ 9 critical path, chưa bao phủ toàn bộ 52 route và chưa có generated client/versioning.
 3. Critical path đã dùng error envelope thống nhất; các route ngoài scope vẫn còn payload legacy hoặc redirect.
 4. Nhiều list admin chưa có cursor/pagination; có hard cap 100/200 hoặc trả toàn bộ.
-5. Audit call bao phủ source của admin mutation và sanitizer đã được chứng minh khi persist; chưa chứng minh tính atomic ở mọi mutation.
-6. Register, reset-password token consumption, auth middleware, ownership order, checkout transaction và layout stability của catalog public đã có integration/E2E; phần lớn catalog/admin CRUD vẫn chưa có API integration test.
+5. Audit decision bao phủ đủ 59 admin method; catalog/review/quote/chat service mới đặt mutation và audit trong transaction, nhưng chưa chứng minh tính atomic ở mọi mutation cũ.
+6. Register, reset-password token consumption, auth middleware, ownership order, checkout, catalog transaction, review/quote/authenticated-chat và layout stability đã có integration/E2E; chưa có direct HTTP integration cho mọi CRUD tương đồng.
 7. Cron dùng GET cho side effect; nên cân nhắc POST và bổ sung lease chống concurrent worker/replay.

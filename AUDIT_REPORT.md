@@ -7,24 +7,24 @@ Trạng thái tài liệu: đã cập nhật sau đợt remediation được ng�
 
 ## 1. Kết luận điều hành
 
-**Mức hoàn thiện hiện tại ước tính: 89% cho phạm vi demo không tính VNPay** (mức audit ban đầu: 65%).
+**Mức hoàn thiện hiện tại ước tính: 91% cho phạm vi demo không tính VNPay** (mức audit ban đầu: 65%).
 
-Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 77 unit test, 7 PostgreSQL integration test, 13 Playwright E2E/axe test, OpenAPI contract validation và Lighthouse CI. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 89% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
+Hệ thống đã vượt mức prototype: có storefront, admin, PostgreSQL/Prisma, Auth.js, RBAC, checkout transaction/idempotency, inventory, payment và CI. Release gate hiện có 81 unit test, 15 PostgreSQL integration test, 13 Playwright E2E/axe test, OpenAPI contract validation và Lighthouse CI. Toàn bộ 59 method dưới `/api/admin` đã được đối chiếu với policy quyền, audit decision và chiến lược xác minh. Kiến trúc monolith Next.js hiện tại **có thể tiếp tục dùng** cho quy mô hiện tại. Vì VNPay được xác định là giả lập và nằm ngoài phạm vi remediation, kết luận 91% chỉ áp dụng cho demo; không dùng kết luận này để chứng nhận cổng thanh toán production.
 
 ### Điểm theo nhóm
 
 | Nhóm | Trọng số | Điểm | Nhận định |
 |---|---:|---:|---|
 | Yêu cầu & traceability | 10% | 84% | 40 requirement đã nối UI/API/data/test; vẫn thiếu PRD/acceptance criteria chính thức |
-| Kiến trúc | 10% | 85% | Modular monolith phù hợp; checkout/outbox đã có service boundary và DB test |
+| Kiến trúc | 10% | 88% | Modular monolith phù hợp; checkout/outbox/catalog/customer workflow đã có service boundary và DB test |
 | Database & ORM | 12% | 94% | 8 migration trong repo; 17/17 CHECK constraint validated trên Neon, test DB có migration parity |
-| API & nghiệp vụ | 18% | 88% | Critical error envelope, OpenAPI 9 path, checkout/order/outbox integration pass |
-| Authentication & authorization | 12% | 90% | Register, reset password và credentials customer/admin chạy xuyên UI/API/DB/session; RBAC guard vẫn có role-cache SLA |
+| API & nghiệp vụ | 18% | 91% | Critical error envelope, OpenAPI 9 path, 59 admin method có policy và catalog/review/quote/chat integration pass |
+| Authentication & authorization | 12% | 92% | Register/reset/credentials chạy xuyên tầng; mọi admin method có guard-policy test, RBAC vẫn có role-cache SLA |
 | Bảo mật | 15% | 91% | Nonce CSP, fail-closed auth limiter, audit sanitizer/persistence và audit runtime sạch |
 | Frontend & accessibility | 10% | 90% | 13 browser test pass; homepage/products render SSR và có CLS regression gate <= 0.1 |
-| Testing | 8% | 94% | 77 unit + 7 DB integration + 13 E2E/axe, OpenAPI và Lighthouse pass; chưa có coverage threshold |
+| Testing | 8% | 97% | 81 unit + 15 DB integration + 13 E2E/axe, OpenAPI và Lighthouse pass; chưa có coverage threshold |
 | Deployment & vận hành | 5% | 88% | CI đã cấu hình PostgreSQL/Playwright/OpenAPI/Lighthouse; external manual evidence còn thiếu |
-| **Tổng** | **100%** | **89%** | **Đạt release-quality cho demo không tính VNPay; chưa đủ bằng chứng production external** |
+| **Tổng** | **100%** | **91%** | **Đạt release-quality cho demo không tính VNPay; chưa đủ bằng chứng production external** |
 
 ## 2. Stack và kiến trúc thực tế
 
@@ -49,8 +49,8 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | `npm run lint` | PASS, exit 0 | Không có lint error |
 | `npm run build` | PASS, exit 0 | Production build và kiểm tra type tích hợp hoàn tất |
 | `npm run typecheck` | PASS, exit 0 | Chạy sau build mới, `tsc --noEmit` |
-| `npm test` | PASS | 77 test, 77 pass, 0 fail |
-| `npm run test:integration` | PASS | 7 test PostgreSQL: checkout atomic/idempotency/rollback, order ownership, audit persistence, outbox failure/retry |
+| `npm test` | PASS | 81 test, 81 pass, 0 fail; gồm inventory/guard cho toàn bộ 59 admin method |
+| `npm run test:integration` | PASS | 15 test PostgreSQL: checkout/order/audit/outbox + catalog transaction + review/quote/authenticated-chat lifecycle |
 | `npm run test:e2e` | PASS | 13 Playwright Chromium: 8 axe scans + register/reset/COD + CLS gate cho home/products |
 | `npm run test:openapi` | PASS | OpenAPI 3.1 Redocly lint + critical source method coverage |
 | `npm run test:lighthouse` | PASS | Sau sửa CLS: home 75/99/93/92, products 76/92/93/92, login 80/100/93/91; CLS bằng 0 trên cả ba route |
@@ -71,9 +71,9 @@ Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ li
 | C-01 VNPay callback | **Ngoài phạm vi theo yêu cầu** | Không sửa file VNPay; chỉ phù hợp mô phỏng/demo |
 | C-02 dependency Critical/High | **Đã sửa** | Next 15.5.21, Auth.js beta.32, PostCSS 8.5.23/Next override 8.5.22; production audit High = 0 |
 | H-01 email/outbox báo SENT giả | **Đã sửa** | `email-delivery.ts`, `email-outbox.ts`, cron chỉ SENT sau delivery thành công |
-| H-02 audit thiếu coverage/sanitization | **Đã sửa phần source** | Mọi admin route có mutation gọi audit; sanitizer trung tâm loại dữ liệu nhạy cảm |
+| H-02 audit thiếu coverage/sanitization | **Đã sửa và có policy gate** | 59 admin method có audit decision; mutation catalog/workflow đưa audit vào transaction; sanitizer loại dữ liệu nhạy cảm |
 | H-03 rate limit fallback serverless | **Đã sửa** | Auth limiter production dùng deny/fail-closed khi backend phân tán không sẵn sàng |
-| H-04 thiếu integration/E2E | **Đã sửa critical path** | 7 DB integration + 13 Playwright E2E/axe; register/reset/session, checkout COD, ownership, audit, outbox và CLS có bằng chứng |
+| H-04 thiếu integration/E2E | **Đã mở rộng** | 15 DB integration + 13 Playwright E2E/axe; thêm category/product/color, review, quote và authenticated chat lifecycle |
 | H-05 ERD stale | **Đã bổ sung** | `docs/erd.md` phản ánh 32 model; PNG cũ được đánh dấu stale |
 | M-01 CSP | **Đã sửa cho script** | Nonce per-request trong middleware; production script-src không còn `unsafe-inline`/`unsafe-eval` |
 | M-02 pagination | **Đã sửa** | Parser dùng chung: page >= 1, 1 <= limit <= 100, input sai trả 400 |
@@ -146,17 +146,17 @@ Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ li
 
 **Khuyến nghị:** production fail closed hoặc dùng distributed store bắt buộc cho auth/payment/public-write endpoint; health check xác nhận rate-limit backend.
 
-#### H-04 — Không có integration/E2E test cho luồng rủi ro cao — **đã sửa critical path**
+#### H-04 — Không có integration/E2E test cho luồng rủi ro cao — **đã mở rộng**
 
 **Tác động:** unit test pass nhưng không chứng minh auth cookie/middleware, ownership, Prisma transaction, payment callback, email outbox và UI checkout hoạt động xuyên tầng.
 
 **Bằng chứng hiện tại:**
 
 - `docker-compose.test.yml` cung cấp PostgreSQL 18 cô lập và fixture script từ chối database production-like.
-- 7 integration test chứng minh checkout COD atomic/idempotent/rollback, order ownership, audit persistence và outbox failure/retry.
+- 15 integration test chứng minh checkout COD atomic/idempotent/rollback, order ownership, audit persistence, outbox failure/retry, catalog transaction và review/quote/chat lifecycle.
 - 13 Playwright test chạy production build, đăng ký/reset, đăng nhập customer/admin, đặt COD, cập nhật order, axe scan 8 màn hình và đo CLS sau hydration cho home/products.
 
-**Khoảng trống còn lại:** chưa có integration cho phần lớn admin CRUD, OAuth/Google, concurrency/load và VNPay bị loại khỏi phạm vi.
+**Khoảng trống còn lại:** chưa có direct HTTP integration cho mọi CRUD tương đồng, OAuth/Google, concurrency/load và VNPay bị loại khỏi phạm vi.
 
 #### H-05 — ERD và tài liệu thiết kế không phản ánh schema hiện tại — **đã bổ sung ERD chuẩn**
 
@@ -235,7 +235,7 @@ README là nguồn yêu cầu chính, nhưng không có PRD/acceptance criteria 
 - 32 model, 11 enum, quan hệ và index khá đầy đủ.
 - Order có snapshot shipping/product; Payment tách 1-1; idempotency có unique key.
 - Prisma schema validate pass; 17 CHECK constraint invariant đã validated trên Neon.
-- PostgreSQL 18 test DB áp dụng đủ 8 migration và chạy 7 integration test. Migration reconciliation mới idempotent nhưng chưa được ghi vào production migration history vì chưa có approval mới.
+- PostgreSQL 18 test DB áp dụng đủ 8 migration và chạy 15 integration test. Migration reconciliation mới idempotent nhưng chưa được ghi vào production migration history vì chưa có approval mới.
 
 Khoảng trống:
 
@@ -246,7 +246,7 @@ Khoảng trống:
 
 ### API
 
-Có 52 route, guard nhìn chung đúng và mutation chính dùng Zod. Checkout có transaction, conditional update chống oversell và idempotency. Critical route đã có error envelope và OpenAPI 3.1 cho 9 path; checkout/order/outbox có DB integration. Khoảng trống chính là VNPay ngoài phạm vi, contract của 43 route còn lại và admin CRUD integration. Catalog đầy đủ ở `codex_project_audit_pack/API_CATALOG.md`.
+Có 52 route, guard nhìn chung đúng và mutation chính dùng Zod. Checkout có transaction, conditional update chống oversell và idempotency. Critical route đã có error envelope và OpenAPI 3.1 cho 9 path. Manifest `admin-api-policy.ts` cùng test source bảo đảm đủ 59 admin method và đúng guard; catalog/review/quote/chat đã có DB integration ở service được route sử dụng. Khoảng trống chính là VNPay ngoài phạm vi, contract của 43 route còn lại và direct HTTP integration cho các CRUD tương đồng. Catalog đầy đủ ở `codex_project_audit_pack/API_CATALOG.md`.
 
 ### Authentication và Authorization
 
@@ -258,7 +258,7 @@ Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên
 
 ### Testing
 
-77 unit test, 7 PostgreSQL integration test và 13 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage, Lighthouse và production dependency audit. Critical path COD/register/reset/auth/order/audit/outbox cùng layout stability đã có bằng chứng; vẫn thiếu coverage threshold, admin CRUD breadth, OAuth, load/race và cross-browser.
+81 unit test, 15 PostgreSQL integration test và 13 Playwright E2E/axe test đều pass. Gate còn có OpenAPI source coverage, Lighthouse và production dependency audit. Critical path COD/register/reset/auth/order/audit/outbox, catalog transaction, review/quote/chat cùng layout stability đã có bằng chứng; vẫn thiếu coverage threshold, direct HTTP breadth cho CRUD tương đồng, OAuth, load/race và cross-browser.
 
 ### Deployment
 
@@ -267,14 +267,14 @@ Build production pass, dependency audit High sạch, Node 24 được khóa tron
 ## 6. Ba rủi ro lớn nhất
 
 1. **Vận hành production còn thiếu bằng chứng trực tiếp:** Neon backup/PITR restore, cron execution, Upstash, Resend, monitoring/alert routing và rollback drill.
-2. **Phạm vi integration chưa phủ hết 52 API:** admin CRUD, OAuth, review, quote/chat và concurrency/load vẫn có thể lỗi xuyên tầng.
+2. **Phạm vi integration chưa phủ hết 52 API ở tầng HTTP:** policy đã phủ 59 admin method và các workflow chính đã có DB test, nhưng CRUD tương đồng, OAuth và concurrency/load vẫn có thể lỗi xuyên tầng.
 3. **Các tích hợp/feature chưa sẵn sàng production:** VNPay bị loại khỏi scope, Cloudinary/Google OAuth chưa live-verify, visualizer vẫn dùng room mock và style CSP còn `unsafe-inline`.
 
 ## 7. Năm việc phải sửa đầu tiên
 
 1. Review và merge Draft PR #2 chỉ khi branch protection vẫn giữ GitHub Actions/Vercel xanh; không promote production tự động.
 2. Thực hiện và lưu bằng chứng manual cho Neon backup/PITR restore, cron, Upstash, Resend, monitoring và alert routing theo runbook.
-3. Mở rộng integration/API test cho admin CRUD, OAuth, review, quote/chat và các race/concurrency quan trọng.
+3. Bổ sung direct HTTP/E2E cho admin CRUD đại diện, Google OAuth và các race/concurrency quan trọng; review/quote/chat service-level integration đã hoàn tất.
 4. Mở rộng OpenAPI/error envelope từ 9 critical path ra toàn bộ public/customer/admin API, sau đó mới sinh client nếu cần.
 5. Thêm coverage threshold, Firefox/WebKit/mobile matrix, screen-reader thủ công và tối ưu JS/performance; tiếp tục loại `style-src 'unsafe-inline'` khi khả thi.
 

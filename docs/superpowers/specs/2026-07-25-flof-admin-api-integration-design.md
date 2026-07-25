@@ -81,7 +81,7 @@ updates span multiple tables. Colors receive dedicated linked-delete coverage.
 - a signed-in customer may submit one review per product;
 - a verified purchase is required;
 - a repeated submission updates the existing review instead of duplicating it;
-- staff may publish, hide, reply to, or delete a review;
+- staff may reply to or delete a review;
 - staff-facing notifications and audit records are preserved.
 
 ### Quote lifecycle
@@ -94,11 +94,11 @@ updates span multiple tables. Colors receive dedicated linked-delete coverage.
 
 ### Conversation lifecycle
 
-- a visitor conversation is identified by its opaque session identifier;
-- a customer message creates or reopens a conversation;
+- an authenticated customer's conversation is identified by `Conversation.userId`;
+- a customer message creates or reopens that user's conversation;
 - staff receives notifications;
 - staff may list, read, reply, and mark messages as read;
-- a session may not read another session's conversation;
+- a customer may not read another user's conversation;
 - customer and staff message writes remain attached to the same conversation.
 
 The legacy single-message chat endpoint remains documented and covered by the
