@@ -19,8 +19,16 @@ async function cleanup() {
   );
   const orders = await database.order.findMany({
     where: { id: { in: orderIds } },
-    select: { id: true, items: { select: { paintId: true, quantity: true } } },
+    select: {
+      id: true,
+      payment: { select: { id: true } },
+      items: { select: { paintId: true, quantity: true } },
+    },
   });
+  const auditEntityIds = [
+    ...orderIds,
+    ...orders.flatMap(({ payment }) => payment ? [payment.id] : []),
+  ];
   for (const order of orders) {
     for (const item of order.items) {
       await database.paint.update({
@@ -36,7 +44,7 @@ async function cleanup() {
     database.review.deleteMany({
       where: { comment: { startsWith: P1_FIXTURES.namespace } },
     }),
-    database.auditLog.deleteMany({ where: { entityId: { in: orderIds } } }),
+    database.auditLog.deleteMany({ where: { entityId: { in: auditEntityIds } } }),
     database.orderStatusHistory.deleteMany({ where: { orderId: { in: orderIds } } }),
     database.inventoryTransaction.deleteMany({
       where: { referenceId: { in: orderIds } },
@@ -114,7 +122,26 @@ test("bank transfer checkout becomes a verified-purchase review", async ({
     },
   });
   expect(confirmation.status()).toBe(200);
-  for (const status of ["PROCESSING", "SHIPPING", "COMPLETED"]) {
+  const processingRace = await Promise.all([
+    adminPage.request.patch(`/api/orders/${body.order.id}`, {
+      data: { status: "PROCESSING" },
+    }),
+    adminPage.request.patch(`/api/orders/${body.order.id}`, {
+      data: { status: "PROCESSING" },
+    }),
+  ]);
+  expect(
+    processingRace.map((response) => response.status()).sort(),
+  ).toEqual(expect.arrayContaining([200]));
+  expect(
+    processingRace.every((response) => [200, 409].includes(response.status())),
+  ).toBe(true);
+  expect(
+    await database.orderStatusHistory.count({
+      where: { orderId: persisted.id, newStatus: "PROCESSING" },
+    }),
+  ).toBe(1);
+  for (const status of ["SHIPPING", "COMPLETED"]) {
     expect(
       (
         await adminPage.request.patch(`/api/orders/${body.order.id}`, {
@@ -149,6 +176,34 @@ test("bank transfer checkout becomes a verified-purchase review", async ({
       select: { rating: true, comment: true },
     }),
   ).toEqual({ rating: 5, comment: reviewData.comment });
+
+  const refundPayload = {
+    paymentId: body.order.paymentId,
+    transactionCode: `${P1_FIXTURES.namespace}refund`,
+    action: "REFUND",
+  };
+  const refunds = await Promise.all([
+    adminPage.request.patch("/api/admin/payments", { data: refundPayload }),
+    adminPage.request.patch("/api/admin/payments", { data: refundPayload }),
+  ]);
+  expect(refunds.map((response) => response.status()).sort()).toEqual([200, 409]);
+  expect(
+    await database.payment.findUnique({
+      where: { id: body.order.paymentId },
+      select: { status: true, refundCode: true },
+    }),
+  ).toEqual({
+    status: "REFUNDED",
+    refundCode: refundPayload.transactionCode,
+  });
+  expect(
+    await database.auditLog.count({
+      where: {
+        entityId: body.order.paymentId,
+        action: "PAYMENT_REFUNDED",
+      },
+    }),
+  ).toBe(1);
 
   await customerContext.close();
   await otherContext.close();

@@ -115,8 +115,10 @@ export async function processCheckout(
     .toUpperCase()}`;
 
   // 4. Transaction: create order, update stock, save idempotency
-  const txResult = await database.$transaction(async (tx) => {
-    await tx.checkoutIdempotency.create({
+  let txResult: { orderId: string; orderNumber: string; total: number };
+  try {
+    txResult = await database.$transaction(async (tx) => {
+      await tx.checkoutIdempotency.create({
       data: {
         key: idempotencyKey!,
         userId: sessionUser.id,
@@ -255,8 +257,26 @@ export async function processCheckout(
       });
     }
 
-    return { orderId: order.id, orderNumber: order.orderNumber, total: Number(total) };
-  });
+      return { orderId: order.id, orderNumber: order.orderNumber, total: Number(total) };
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const concurrent = await database.checkoutIdempotency.findUnique({
+        where: { key: idempotencyKey! },
+      });
+      if (
+        concurrent?.userId === sessionUser.id &&
+        concurrent.requestHash === requestHash &&
+        concurrent.orderId
+      ) {
+        return { existingOrderId: concurrent.orderId };
+      }
+    }
+    throw error;
+  }
 
   let paymentUrl: string | undefined;
 

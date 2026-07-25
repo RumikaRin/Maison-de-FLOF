@@ -65,26 +65,28 @@ test("admin inventory, user, notification, dashboard, and media guards persist c
     where: { sku: P1_FIXTURES.productSku },
   });
   const beforeStock = paint.stock;
-  const inventory = await page.request.post("/api/admin/inventory", {
-    data: {
-      paintId: paint.id,
-      quantity: 2,
-      costPrice: Number(paint.costPrice),
-      reason: P1_FIXTURES.namespace,
-    },
-  });
-  expect(inventory.status()).toBe(201);
+  const inventoryPayload = {
+    paintId: paint.id,
+    quantity: 2,
+    costPrice: Number(paint.costPrice),
+    reason: P1_FIXTURES.namespace,
+  };
+  const inventory = await Promise.all([
+    page.request.post("/api/admin/inventory", { data: inventoryPayload }),
+    page.request.post("/api/admin/inventory", { data: inventoryPayload }),
+  ]);
+  expect(inventory.map((response) => response.status())).toEqual([201, 201]);
   expect(
     await database.paint.findUnique({
       where: { id: paint.id },
       select: { stock: true },
     }),
-  ).toEqual({ stock: beforeStock + 2 });
+  ).toEqual({ stock: beforeStock + 4 });
   expect(
     await database.inventoryTransaction.count({
       where: { paintId: paint.id, reason: P1_FIXTURES.namespace },
     }),
-  ).toBe(1);
+  ).toBe(2);
 
   const createdResponse = await page.request.post("/api/admin/users", {
     data: {
