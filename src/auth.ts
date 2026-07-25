@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { authConfig } from "@/auth.config";
 import GoogleProvider from "next-auth/providers/google";
 import type { RoleType } from "@prisma/client";
+import { isCredentialEmailVerified } from "@/lib/auth/email-verification";
 
 /** Re-check role from DB at least every 5 minutes so demotions take effect. */
 const ROLE_REFRESH_MS = 5 * 60 * 1000;
@@ -99,7 +100,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           include: { role: true },
         });
 
-        if (!user || !user.password) return null;
+        if (!user || !user.password || !isCredentialEmailVerified(user.emailVerified)) {
+          return null;
+        }
 
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) return null;

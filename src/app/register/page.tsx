@@ -68,9 +68,11 @@ export default function RegisterPage() {
       }
 
       toast.success(
-        language === "vi" ? "Đăng ký tài khoản thành công!" : "Account created successfully!"
+        language === "vi"
+          ? "Tài khoản đã được tạo. Hãy kiểm tra email để xác minh."
+          : "Account created. Check your email to verify it."
       );
-      router.push("/login");
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       toast.error(
         language === "vi" ? "Lỗi kết nối đến máy chủ." : "Connection error."

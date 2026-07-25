@@ -35,6 +35,7 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
 
   try {
     const password = await bcrypt.hash(TEST_FIXTURES.password, 12);
+    const emailVerified = new Date("2026-01-01T00:00:00.000Z");
     const [customerRole, adminRole] = await Promise.all([
       database.role.upsert({
         where: { type: "CUSTOMER" },
@@ -53,12 +54,14 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         where: { email: TEST_FIXTURES.customerEmail },
         update: {
           password,
+          emailVerified,
           name: "Integration Customer",
           roleId: customerRole.id,
         },
         create: {
           email: TEST_FIXTURES.customerEmail,
           password,
+          emailVerified,
           name: "Integration Customer",
           roleId: customerRole.id,
         },
@@ -67,12 +70,14 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         where: { email: TEST_FIXTURES.resetEmail },
         update: {
           password,
+          emailVerified,
           name: "Reset Integration Customer",
           roleId: customerRole.id,
         },
         create: {
           email: TEST_FIXTURES.resetEmail,
           password,
+          emailVerified,
           name: "Reset Integration Customer",
           roleId: customerRole.id,
         },
@@ -81,32 +86,46 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         where: { email: TEST_FIXTURES.adminEmail },
         update: {
           password,
+          emailVerified,
           name: "Integration Admin",
           roleId: adminRole.id,
         },
         create: {
           email: TEST_FIXTURES.adminEmail,
           password,
+          emailVerified,
           name: "Integration Admin",
           roleId: adminRole.id,
         },
       }),
       database.user.upsert({
         where: { email: P1_FIXTURES.customerTwoEmail },
-        update: { password, name: "P1 Customer Two", roleId: customerRole.id },
+        update: {
+          password,
+          emailVerified,
+          name: "P1 Customer Two",
+          roleId: customerRole.id,
+        },
         create: {
           email: P1_FIXTURES.customerTwoEmail,
           password,
+          emailVerified,
           name: "P1 Customer Two",
           roleId: customerRole.id,
         },
       }),
       database.user.upsert({
         where: { email: P1_FIXTURES.loadAccountEmail },
-        update: { password, name: "P1 Load Account", roleId: customerRole.id },
+        update: {
+          password,
+          emailVerified,
+          name: "P1 Load Account",
+          roleId: customerRole.id,
+        },
         create: {
           email: P1_FIXTURES.loadAccountEmail,
           password,
+          emailVerified,
           name: "P1 Load Account",
           roleId: customerRole.id,
         },

@@ -1836,6 +1836,27 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/auth/resend-verification:
+    post:
+      operationId: resendEmailVerification
+      summary: Resend an email verification link without revealing account existence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: Generic verification request acknowledgement
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/auth/reset-password:
     post:
       operationId: postAuthResetPassword
@@ -1865,6 +1886,33 @@ paths:
             schema:
               type: object
               additionalProperties: true
+  /api/auth/verify-email:
+    post:
+      operationId: verifyEmail
+      summary: Verify ownership of a credential account email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - token
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+                  minLength: 32
+      responses:
+        "200":
+          description: Email verified
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/blog:
     get:
       operationId: getBlog
