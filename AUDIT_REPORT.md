@@ -58,8 +58,8 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | Test DB migration deploy | PASS | 8 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
 | Production CSP smoke | PASS | nonce header khớp 33 script tag; script-src không có `unsafe-inline`/`unsafe-eval` |
-| Vercel Preview | PASS | Baseline SHA `77ef264`, deployment `dpl_4F8Dxe55ioFoBqprxgjhHwFMHAtj` READY; runtime error scan sạch |
-| GitHub Actions | PASS | Baseline run `30109577643`, job quality xanh đủ PostgreSQL/unit/integration/build/E2E/OpenAPI/Lighthouse/audit |
+| Vercel Preview | PASS | Implementation SHA `1863ccc`, deployment `dpl_8GH4CbvvCBskmzBTdjLRwWSpQ8ft` READY; `/`, `/products`, `/api/categories` trả 200 qua protection bypass, error/fatal log scan sạch |
+| GitHub Actions | PASS | Run `30157088995` xanh đủ PostgreSQL/unit/integration/build/E2E/OpenAPI/Lighthouse/audit; checkout/setup-node v5 và không còn Node 20 warning |
 | Neon invariant postflight | PASS | 17/17 constraint installed + validated; tổng số row vi phạm = 0 |
 
 Trong lượt audit ban đầu không chạy migration hoặc lệnh ghi dữ liệu. Sau khi Vercel Preview pass và người dùng phê duyệt rõ ràng, chỉ `prisma migrate deploy` được chạy để áp dụng migration additive `20260724150000_add_data_invariant_checks`; không seed/reset/db push và không thử callback thanh toán. Nội dung `.env` không được đọc/hiển thị; `.env` không được Git theo dõi và đã có rule ignore. VNPay source/test không được thay đổi trong đợt remediation.
@@ -262,7 +262,7 @@ Các luồng chính đều có UI và API nối thật. Axe gate đã pass trên
 
 ### Deployment
 
-Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` đã nâng lên v5. Workflow cấu hình PostgreSQL 18, migration/fixture, unit/integration, Playwright, OpenAPI, Lighthouse và audit; deployment runbook đã có. Vẫn chưa có bằng chứng cron production execution, external-provider delivery, backup/PITR, alerting và rollback drill.
+Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` đã nâng lên v5. Run `30157088995` của implementation SHA `1863ccc` xanh toàn bộ; Git-triggered Vercel deployment `dpl_8GH4CbvvCBskmzBTdjLRwWSpQ8ft` READY, smoke 3 route 200 và log scan sạch. Vẫn chưa có bằng chứng cron production execution, external-provider delivery, backup/PITR, alerting và rollback drill.
 
 ## 6. Ba rủi ro lớn nhất
 
@@ -283,7 +283,7 @@ Build production pass, dependency audit High sạch, Node 24 được khóa tron
 - File được yêu cầu `codex_project_audit_pack/CODEX_PROJECT_AUDIT_PROMPT.md` không tồn tại trong repository hoặc `D:\ProjectZ`; audit dùng 10 yêu cầu trong lời nhắn làm baseline.
 - Không có PRD/SRS, acceptance criteria đã ký, KPI/SLA/SLO hoặc biên bản UAT.
 - Không đọc nội dung row-level/PII hoặc production traffic; chỉ chạy aggregate invariant count và metadata constraint/migration.
-- Đã xác minh GitHub Actions và Vercel Preview trên baseline SHA `77ef264`, cùng Neon invariant migration trực tiếp. Chưa xác nhận Neon backup/PITR restore, Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
+- Đã xác minh GitHub Actions và Vercel Preview trên implementation SHA `1863ccc`, cùng Neon invariant migration trực tiếp. Chưa xác nhận Neon backup/PITR restore, Cloudinary, Resend, Upstash, VNPay merchant và Google OAuth production.
 - Lighthouse và axe local đã có; chưa có Firefox/WebKit/mobile matrix, screen-reader thủ công, penetration test, load test hoặc real-user metrics.
 - Không xác minh DNS/TLS/custom domain, webhook delivery từ VNPay thật, email deliverability, cron schedule, alerting và disaster recovery.
 
