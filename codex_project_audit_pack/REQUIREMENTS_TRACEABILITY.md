@@ -58,7 +58,7 @@ Nguồn yêu cầu khả dụng: `README.md`, `PROJECT_ROADMAP_VI.md`, source co
 | SEC-01 | Security headers/CSP | All | N/A | nonce middleware + security header builder | N/A | CSP unit + production nonce + Chromium/Firefox/WebKit/mobile smoke + AX | Đạt có giới hạn | WebKit HTTP test mode đã xử lý upgrade policy; style inline vẫn được phép |
 | SEC-02 | Rate limit | All/API clients | N/A | middleware + UnifiedRateLimiter + public-write policy | Upstash production | fail-closed/memory unit + quote/chat abuse HTTP + bounded rejection load | Đạt có giới hạn | Local policy pass; Upstash live vẫn chưa xác minh |
 | TEST-01 | Automated quality gate | Developer | N/A | GitHub Actions | PostgreSQL 18 test service | 142 unit + 24 DB integration + 72 E2E + coverage/load/OpenAPI 115/115/bundle/Lighthouse | Đạt có giới hạn | Local gate xanh; manual screen reader và production load/RUM chưa có |
-| DEPLOY-01 | Deploy production có migration/rollback/monitoring | Operator | N/A | GitHub Actions + deployment runbook | Neon + external services | local release gate + Neon temp-branch rehearsal + production 13/13 metadata | Đạt có giới hạn | PR/Vercel SHA, providers và alert delivery của release này chờ remote verification |
+| DEPLOY-01 | Deploy production có migration/rollback/monitoring | Operator | N/A | GitHub Actions + deployment runbook | Neon + external services | local gate + Neon 13/13 + PR quality + Vercel exact SHA + smoke/log scan | Đạt có giới hạn | Core release proof đạt; providers, alert delivery và DR RTO/RPO vẫn manual |
 
 ## Tổng hợp traceability
 
