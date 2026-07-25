@@ -42,6 +42,7 @@ jobs:
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run lint
       - run: npm test
+      - run: npm run test:coverage
       - run: npm run test:env
       - run: npm run test:integration
       - run: npm run build
