@@ -104,6 +104,9 @@ for (const scenario of scenarios) {
     });
 
     expect(result.samples).toHaveLength(scenario.totalRequests);
+    console.log(
+      `LOAD_GATE ${scenario.name}: p95Ms=${result.p95Ms} unexpected=${result.unexpectedCount}/${result.samples.length} serverErrors=${result.serverErrorCount}`,
+    );
     expect(result.ok, JSON.stringify(summarize(result))).toBe(true);
   });
 }

@@ -1,6 +1,6 @@
 # Data Dictionary — Maison de FLOF
 
-Ngày cập nhật: 24/07/2026
+Ngày cập nhật: 26/07/2026
 Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 
 ## Tổng quan
@@ -15,8 +15,8 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
-- PostgreSQL test cô lập đã áp dụng đủ 8 migration; 7 DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence và outbox retry.
-- Migration reconciliation thứ 8 là idempotent; các object mục tiêu đã tồn tại trên Neon production, nhưng migration này chưa được ghi vào migration history production vì chưa có phê duyệt áp dụng mới.
+- PostgreSQL test cô lập đã áp dụng đủ 8 migration; 18 DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow và commerce concurrency.
+- Migration reconciliation thứ 8 là idempotent. Bằng chứng P0 ghi nhận migration history production đã được reconcile; P1 không thay đổi schema và không mutate Neon.
 
 ## Enums
 
@@ -88,6 +88,12 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | Checkout COD ghi order/stock/inventory/payment/outbox atomically | DB transaction + integration test | `tests/integration/checkout.integration.test.ts` |
 | Replay idempotency không tạo duplicate | DB unique + integration test | `tests/integration/checkout.integration.test.ts` |
 | Outbox lỗi giữ trạng thái retryable và retry thành công | DB transition + integration test | `tests/integration/outbox.integration.test.ts` |
+| Concurrent idempotency chỉ tạo một order hợp lệ | DB unique + bắt `P2002`, đối chiếu user/hash/order | `tests/integration/commerce-concurrency.integration.test.ts` |
+| Concurrent checkout không làm stock/coupon vượt giới hạn | Conditional update trong transaction | `tests/integration/commerce-concurrency.integration.test.ts` |
+| Profile/address/favorite không rò dữ liệu giữa customer | API ownership theo session/user/customer | `e2e/profile-api-http.spec.ts` |
+| Transfer chỉ review được sau khi payment/order hoàn tất | Payment confirmation + completed-order query | `e2e/bank-transfer-review.spec.ts` |
+| Inventory import/refund/notification giữ đúng scope và chống lặp | Permission, transaction, ownership/idempotent transition | `e2e/admin-operations-api-http.spec.ts` |
+| Load gate không tạo business row | Chỉ GET/rejection path, synthetic IP riêng | `e2e/load-gate.spec.ts` |
 
 ## Khoảng trống dữ liệu
 
@@ -109,4 +115,4 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | `20260610040000_add_chat_messages` | ChatMessage và indexes |
 | `20260611180000_payment_idempotency_audit` | Payment, idempotency, audit, outbox và constraint liên quan |
 | `20260724150000_add_data_invariant_checks` | CHECK constraint additive cho catalog, order, payment, coupon, review và inventory; **đã áp dụng, 17/17 validated** |
-| `20260724170000_reconcile_missing_schema_objects` | Tạo idempotent enum `REVIEW` và các bảng/index `EmailOutbox`, `Conversation`, `Message` nếu thiếu; đã áp dụng trên test DB, production đang chờ approval ghi migration history |
+| `20260724170000_reconcile_missing_schema_objects` | Tạo idempotent enum `REVIEW` và các bảng/index `EmailOutbox`, `Conversation`, `Message` nếu thiếu; đã áp dụng trên test DB, production đã reconcile theo bằng chứng P0 |

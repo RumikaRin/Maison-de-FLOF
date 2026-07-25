@@ -1,11 +1,11 @@
 # API Catalog — Maison de FLOF
 
-Ngày cập nhật: 25/07/2026
+Ngày cập nhật: 26/07/2026
 Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POST, 18 PATCH, 12 DELETE)
 
 ## Quy ước quyền
 
-- **Public:** không yêu cầu session; vẫn đi qua general rate limit của middleware.
+- **Public:** không yêu cầu session; vẫn đi qua general rate limit của middleware. Hai public write route quote/chat có policy riêng 5 request/phút để giới hạn abuse.
 - **User:** `requireUser()` hoặc session authenticated.
 - **Staff:** ADMIN hoặc STAFF.
 - **Admin:** chỉ ADMIN hoặc permission chỉ ADMIN có.
@@ -104,7 +104,18 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 - `tests/integration/admin-catalog.integration.test.ts`: category lifecycle, product/color-link transaction, inventory import ban đầu, duplicate SKU/slug, soft deactivate và linked-color delete guard.
 - `tests/integration/customer-workflows.integration.test.ts`: verified review/upsert/staff reply-delete, quote notify/status, authenticated conversation reopen/scope/reply/read.
 - `e2e/admin-api-http.spec.ts`: session Auth.js thật qua HTTP cho category create/duplicate/update/deactivate + audit, CUSTOMER bị chặn 403, review chưa mua bị chặn, quote public → ADMIN update và customer ↔ ADMIN chat/reply/read.
+- `e2e/admin-catalog-api-http.spec.ts`: lifecycle HTTP + Prisma cho supplier, collection, color, product và promotion, gồm audit và role denial.
+- `e2e/admin-operations-api-http.spec.ts`: dashboard đối chiếu aggregate Prisma; inventory import; transfer confirm/refund chống lặp; user/role/self-demotion; notification ownership; media guard không cần gọi Cloudinary.
 - Cloudinary media dùng phân loại `provider-contract`; chưa được coi là live integration khi không có credential/provider evidence.
+
+### Bằng chứng Public/Customer API
+
+- `e2e/public-catalog-api-http.spec.ts`: public catalog, product detail, suppliers, colors, collections, dealers và blog list/detail được đối chiếu trực tiếp với Prisma.
+- `e2e/profile-api-http.spec.ts`: profile, password, address, favorite color/product và ownership giữa hai customer.
+- `e2e/bank-transfer-review.spec.ts`: checkout chuyển khoản, admin xác nhận payment và verified-purchase review qua browser/API/database.
+- `e2e/public-write-abuse.spec.ts`: quote/chat bị giới hạn bởi public-write policy; unit test kiểm tra đúng policy và failure mode.
+- `tests/integration/commerce-concurrency.integration.test.ts`: idempotency, stock và coupon race trên PostgreSQL.
+- `e2e/load-gate.spec.ts`: bốn scenario bounded/non-mutating; p95 local lần xác minh gần nhất lần lượt 68/21/18/15 ms, không có status ngoài dự kiến hoặc 5xx.
 
 ## Cron API
 
@@ -120,5 +131,5 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 3. Critical path đã dùng error envelope thống nhất; các route còn lại vẫn có payload legacy hoặc redirect dù đã có inventory contract.
 4. Nhiều list admin chưa có cursor/pagination; có hard cap 100/200 hoặc trả toàn bộ.
 5. Audit decision bao phủ đủ 59 admin method; catalog/review/quote/chat service mới đặt mutation và audit trong transaction, nhưng chưa chứng minh tính atomic ở mọi mutation cũ.
-6. Register, reset-password token consumption, auth middleware, ownership order, checkout, category catalog, review denial, quote và authenticated chat đã có HTTP E2E; supplier/color/collection/product CRUD tương đồng vẫn chưa có direct HTTP coverage riêng.
+6. Register, reset-password, auth middleware, ownership, checkout, public catalog/profile và admin catalog/operations đã có direct HTTP evidence; Google OAuth và external provider live vẫn chưa xác minh.
 7. Cron dùng GET cho side effect; nên cân nhắc POST và bổ sung lease chống concurrent worker/replay.
