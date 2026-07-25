@@ -61,8 +61,8 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | Test DB migration deploy | PASS | 13 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
 | Production CSP smoke | PASS | nonce header khớp 33 script tag; script-src không có `unsafe-inline`/`unsafe-eval` |
-| Vercel Production | PASS | P1 deployment `dpl_7MEFGW5tECnsMeSDRY6TTSD3whBE` READY đúng merge SHA `2cdab5e`; 3 alias, canonical smoke 10/10 và không có log 5xx |
-| GitHub Actions | PASS | PR run `30173488439` và post-merge `main` run `30173685951` xanh đủ PostgreSQL/unit/coverage/integration/build/E2E/load/OpenAPI/Lighthouse/audit |
+| Vercel Production | PASS | P2/P3 deployment `dpl_33urHk6oW12foaUEjcSycmfS6Hji` READY đúng merge SHA `35f7026`; canonical smoke 11/11 và không có log 5xx trong cửa sổ kiểm tra |
+| GitHub Actions | PASS | PR run `30178933111` (8m46s) và post-merge run `30179199673` (8m49s) xanh đủ PostgreSQL/unit/coverage/integration/build/bundle/E2E/load/OpenAPI/Lighthouse/audit |
 | Neon recovery/migration | PASS | Branch tạm `br-still-mud-aom52blp` rehearsal 5 migration additive; production 13/13; 4 bảng/3 User field/2 Blog field/4 room đã xác nhận; branch tạm đã xóa |
 | Cron và rollback | PASS | Cron không token 401, authorized in-memory 200; Vercel promote known-good rồi restore current, cả hai lần smoke 10/10 |
 
