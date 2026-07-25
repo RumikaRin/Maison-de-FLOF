@@ -10,6 +10,7 @@ import {
   createRegisteredSession,
   validateRegisteredSession,
 } from "@/lib/auth/session-registry";
+import { verifyMfaForLogin } from "@/services/mfa.service";
 
 function invalidateToken(token: {
   id?: unknown;
@@ -138,6 +139,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        mfaCode: { label: "MFA code", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -156,6 +158,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) return null;
+        if (
+          user.role.type === "ADMIN" &&
+          !(await verifyMfaForLogin(
+            user.id,
+            typeof credentials.mfaCode === "string"
+              ? credentials.mfaCode.trim()
+              : undefined,
+          ))
+        ) {
+          return null;
+        }
 
         return {
           id: user.id,

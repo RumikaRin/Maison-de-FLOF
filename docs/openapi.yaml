@@ -2637,6 +2637,84 @@ paths:
             schema:
               type: object
               additionalProperties: true
+  /api/profile/mfa/disable:
+    post:
+      operationId: disableAdminMfa
+      summary: Disable administrator MFA after password and second-factor verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - code
+              properties:
+                password:
+                  type: string
+                  format: password
+                code:
+                  type: string
+      responses:
+        "200":
+          description: MFA disabled
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/profile/mfa/setup:
+    post:
+      operationId: setupAdminMfa
+      summary: Begin administrator TOTP setup
+      responses:
+        "200":
+          description: One-time base32 secret and otpauth URI
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/profile/mfa/verify:
+    post:
+      operationId: verifyAdminMfaSetup
+      summary: Verify TOTP setup and return one-time recovery codes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        "200":
+          description: MFA enabled and recovery codes returned once
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
   /api/profile/password:
     post:
       operationId: postProfilePassword
