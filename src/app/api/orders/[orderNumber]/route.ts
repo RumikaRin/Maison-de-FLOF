@@ -8,6 +8,7 @@ import { createAuditLog } from "@/lib/audit";
 import { requiresPaidBeforeFulfillment } from "@/lib/payment-policy";
 import { cancelOrderWithRestock } from "@/services/order-lifecycle.service";
 import { EmailDeliveryError } from "@/lib/email-delivery";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 export async function GET(
   request: NextRequest,
@@ -189,10 +190,10 @@ export async function PATCH(
         parsed.data.status,
       );
     } catch (error) {
-      console.error(
-        "Order status email delivery failed:",
-        error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
-      );
+      writeOperationalLog("error", "email.order_status.delivery_failed", {
+        errorCode:
+          error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+      });
     }
     return NextResponse.json({ success: true, status: parsed.data.status });
   } catch (error) {

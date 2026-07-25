@@ -1,3 +1,5 @@
+import { writeOperationalLog } from "./operations/log.ts";
+
 /**
  * Unified Rate Limiter.
  * Useful for local development (In-Memory) and production deployments (Upstash Redis REST).
@@ -48,8 +50,11 @@ export class UnifiedRateLimiter {
     if (this.useRedis) {
       try {
         return await this.checkRedisLimit(key);
-      } catch (error) {
-        console.error("Distributed rate limiting backend unavailable");
+      } catch {
+        writeOperationalLog("error", "rate_limit.backend_unavailable", {
+          failureMode: this.failureMode,
+          errorCode: "DISTRIBUTED_BACKEND_UNAVAILABLE",
+        });
         if (this.failureMode === "deny") {
           return this.backendUnavailableResult();
         }

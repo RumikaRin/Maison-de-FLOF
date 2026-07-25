@@ -4,6 +4,7 @@ import { consumeEmailVerificationToken } from "@/lib/auth/email-verification";
 import { db } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
 import { EmailDeliveryError } from "@/lib/email-delivery";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 const schema = z.object({
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
@@ -34,10 +35,10 @@ export async function POST(request: Request) {
       try {
         await sendWelcomeEmail(user.email, user.name || "Khách hàng");
       } catch (error) {
-        console.error(
-          "Welcome email delivery failed:",
-          error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
-        );
+        writeOperationalLog("error", "email.welcome.delivery_failed", {
+          errorCode:
+            error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+        });
       }
     }
 

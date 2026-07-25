@@ -24,6 +24,7 @@ import {
   PackageOpen,
   Palette,
   ReceiptText,
+  ScrollText,
   ShoppingBag,
   Star,
   Store,
@@ -66,9 +67,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
-    document.body.style.overflow = "hidden";
+    document.body.classList.add("overflow-hidden");
     return () => {
-      document.body.style.overflow = "";
+      document.body.classList.remove("overflow-hidden");
     };
   }, [isMobileMenuOpen]);
 
@@ -111,6 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         items: [
           { name: language === "vi" ? "Chi nhánh" : "Branches", href: "/admin/dealers", icon: Store, adminOnly: true },
           { name: language === "vi" ? "Tài khoản" : "Accounts", href: "/admin/accounts", icon: Users, adminOnly: true },
+          { name: language === "vi" ? "Nhật ký kiểm toán" : "Audit history", href: "/admin/audit", icon: ScrollText, adminOnly: true },
         ],
       },
     ],

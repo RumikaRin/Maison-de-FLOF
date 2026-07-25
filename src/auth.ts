@@ -10,6 +10,7 @@ import {
   createRegisteredSession,
   validateRegisteredSession,
 } from "@/lib/auth/session-registry";
+import { writeOperationalLog } from "@/lib/operations/log";
 import { verifyMfaForLogin } from "@/services/mfa.service";
 
 function invalidateToken(token: {
@@ -107,7 +108,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = state.role;
         token.sessionVersion = state.sessionVersion;
       } catch (error) {
-        console.error("JWT session registry validation failed", {
+        writeOperationalLog("error", "auth.session_registry.validation_failed", {
           name: error instanceof Error ? error.name : typeof error,
         });
         invalidateToken(token);

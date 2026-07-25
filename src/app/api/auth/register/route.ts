@@ -6,6 +6,7 @@ import { sendEmailVerificationEmail } from "@/lib/email";
 import { passwordSchema } from "@/lib/password-policy";
 import { EmailDeliveryError } from "@/lib/email-delivery";
 import { createEmailVerificationToken } from "@/lib/auth/email-verification";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -60,10 +61,10 @@ export async function POST(request: Request) {
         verifyUrl.toString(),
       );
     } catch (error) {
-      console.error(
-        "Email verification delivery failed:",
-        error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
-      );
+      writeOperationalLog("error", "email.verification.delivery_failed", {
+        errorCode:
+          error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+      });
     }
     return Response.json({ success: true, email: user.email }, { status: 201 });
   } catch (error) {

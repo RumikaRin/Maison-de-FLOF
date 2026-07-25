@@ -10,6 +10,7 @@ import {
   type ApiErrorCode,
   type ApiErrorDescriptor,
 } from "@/lib/api-error-contract";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 export class ApiError extends Error {
   constructor(
@@ -114,7 +115,7 @@ function describeApiError(error: unknown): ApiErrorDescriptor {
     }
   }
 
-  console.error("Unhandled API error", {
+  writeOperationalLog("error", "api.unhandled_error", {
     name: error instanceof Error ? error.name : typeof error,
   });
   return {

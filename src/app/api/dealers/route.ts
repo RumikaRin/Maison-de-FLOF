@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { parsePagination, PaginationError } from "@/lib/pagination";
 import { jsonApiError } from "@/lib/api-error-contract";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 export async function GET(request: NextRequest) {
   try {
@@ -77,7 +78,9 @@ export async function GET(request: NextRequest) {
         error.message,
       );
     }
-    console.error("Failed to fetch dealers:", error);
+    writeOperationalLog("warn", "dealers.database_fallback", {
+      fallback: "empty",
+    });
     return NextResponse.json([]);
   }
 }

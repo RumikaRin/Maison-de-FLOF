@@ -4,6 +4,7 @@ import { createEmailVerificationToken } from "@/lib/auth/email-verification";
 import { db } from "@/lib/db";
 import { sendEmailVerificationEmail } from "@/lib/email";
 import { EmailDeliveryError } from "@/lib/email-delivery";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 const schema = z.object({
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
@@ -45,10 +46,10 @@ export async function POST(request: Request) {
           verifyUrl.toString(),
         );
       } catch (error) {
-        console.error(
-          "Email verification delivery failed:",
-          error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
-        );
+        writeOperationalLog("error", "email.verification.delivery_failed", {
+          errorCode:
+            error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+        });
       }
     }
 

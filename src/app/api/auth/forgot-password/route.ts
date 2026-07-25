@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { createPasswordResetToken } from "@/lib/password-reset";
 import { EmailDeliveryError } from "@/lib/email-delivery";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 const schema = z.object({
   email: z.string().trim().email().transform((v) => v.toLowerCase()),
@@ -41,10 +42,10 @@ export async function POST(request: Request) {
           resetUrl.toString(),
         );
       } catch (error) {
-        console.error(
-          "Password reset email delivery failed:",
-          error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
-        );
+        writeOperationalLog("error", "email.password_reset.delivery_failed", {
+          errorCode:
+            error instanceof EmailDeliveryError ? error.code : "UNKNOWN_ERROR",
+        });
       }
     }
 

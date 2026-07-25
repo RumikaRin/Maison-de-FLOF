@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 export const dynamic = "force-dynamic";
@@ -40,8 +41,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       })),
     ];
-  } catch (error) {
-    console.error("Sitemap database query failed:", error);
+  } catch {
+    writeOperationalLog("warn", "sitemap.database_fallback", {
+      fallback: "static",
+    });
     return staticPages;
   }
 }

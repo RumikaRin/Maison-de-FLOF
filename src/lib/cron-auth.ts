@@ -1,3 +1,5 @@
+import { writeOperationalLog } from "./operations/log.ts";
+
 /**
  * Validates Bearer cron secret. Fails closed when CRON_SECRET is missing/empty
  * so "Bearer undefined" cannot authorize requests.
@@ -8,7 +10,9 @@
 export function assertCronAuthorized(request: Request): Response | null {
   const secret = process.env.CRON_SECRET?.trim();
   if (!secret) {
-    console.error("CRON_SECRET is not configured");
+    writeOperationalLog("error", "cron.configuration_missing", {
+      errorCode: "CRON_SECRET_MISSING",
+    });
     return jsonApiError(
       request,
       503,

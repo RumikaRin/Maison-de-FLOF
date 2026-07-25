@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildOperationalLog } from "../src/lib/operational-log.ts";
+import { buildOperationalLog } from "../src/lib/operations/log.ts";
 
 test("operational logs preserve safe release diagnostics", () => {
-  const record = buildOperationalLog("cron.outbox.completed", {
+  const record = buildOperationalLog("info", "cron.outbox.completed", {
     route: "/api/cron/process-outbox",
     correlationId: "iad1::request-id",
     durationMs: 42,
@@ -14,6 +14,7 @@ test("operational logs preserve safe release diagnostics", () => {
   });
 
   assert.equal(record.event, "cron.outbox.completed");
+  assert.equal(record.severity, "info");
   assert.equal(record.route, "/api/cron/process-outbox");
   assert.equal(record.correlationId, "iad1::request-id");
   assert.equal(record.durationMs, 42);
@@ -23,7 +24,7 @@ test("operational logs preserve safe release diagnostics", () => {
 });
 
 test("operational logs remove sensitive and raw error fields recursively", () => {
-  const record = buildOperationalLog("cron.outbox.failed", {
+  const record = buildOperationalLog("error", "cron.outbox.failed", {
     authorization: "Bearer secret-value",
     email: "user@example.com",
     payload: { orderNumber: "FLOF-1" },

@@ -4,6 +4,7 @@ import {
   getFallbackProducts,
   getFallbackSuppliers,
 } from "./catalog-fallback-data.ts";
+import { writeOperationalLog } from "./operations/log.ts";
 
 type ProductsPageDatabase = {
   paint: {
@@ -23,9 +24,12 @@ type ColorsPageDatabase = {
   };
 };
 
-function logCatalogFallback(page: string, error: unknown) {
+function logCatalogFallback(page: string, _error: unknown) {
   if (process.env.NODE_ENV === "production") {
-    console.error(`Failed to load ${page} page data; using static fallback.`, error);
+    writeOperationalLog("warn", "catalog.database_fallback", {
+      page,
+      fallback: "static",
+    });
   }
 }
 
