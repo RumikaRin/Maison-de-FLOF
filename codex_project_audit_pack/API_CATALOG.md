@@ -1,7 +1,7 @@
 # API Catalog — Maison de FLOF
 
 Ngày cập nhật: 25/07/2026
-Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
+Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POST, 18 PATCH, 12 DELETE)
 
 ## Quy ước quyền
 
@@ -10,13 +10,13 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 - **Staff:** ADMIN hoặc STAFF.
 - **Admin:** chỉ ADMIN hoặc permission chỉ ADMIN có.
 - **Cron:** Bearer `CRON_SECRET`.
-- **VNPay callback:** public callback, phải xác minh checksum; hiện có lỗi Critical vì chưa dùng `isVerified`.
+- **VNPay callback:** tích hợp giả lập, được người dùng loại khỏi phạm vi production/remediation; không dùng làm bằng chứng sẵn sàng thanh toán thật.
 - **Pagination chuẩn:** `page >= 1`, `1 <= limit <= 100`; input sai trả `400`.
 - **Authentication status:** thiếu session trả `401`; có session nhưng thiếu role/permission trả `403`.
 - **Admin mutation:** tất cả route mutation hiện gọi audit helper; dữ liệu audit đi qua sanitizer loại password/token/secret/credential.
 - **Admin policy inventory:** `src/lib/admin/admin-api-policy.ts` khai báo đủ 59 method thực tế; `tests/admin-api-policy.test.ts` đối chiếu route tree, guard, audit decision và role-permission matrix.
-- **Critical error contract:** các route được tài liệu hóa trả envelope `{ error: { code, message, details? }, requestId }`; client parser vẫn đọc được legacy payload trong giai đoạn chuyển đổi.
-- **OpenAPI:** `docs/openapi.yaml` (OpenAPI 3.1) bao phủ 9 critical path; Redocly lint và script đối chiếu method với source là CI gate.
+- **Error contract:** critical route trả envelope `{ error: { code, message, details? }, requestId }`; client parser vẫn đọc được legacy payload trong giai đoạn chuyển đổi.
+- **OpenAPI:** `docs/openapi.yaml` (OpenAPI 3.1) bao phủ đủ 99/99 operation. `scripts/api-route-inventory.ts` phát hiện cả function export và Auth.js destructured export; validator đối chiếu source ↔ contract hai chiều, kiểm tra `operationId`, response, security và schema dùng chung.
 
 ## Public/Auth API
 
@@ -39,8 +39,8 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 | POST | `/api/quote-request` | Public | contact/project/message | Tạo QuoteRequest + staff notification |
 | POST | `/api/chat` | Public | fullName/contact/message/pageUrl | Tạo ChatMessage legacy |
 | POST | `/api/coupons/validate` | Public | code, subtotal | Validate coupon và trả discount |
-| GET | `/api/vnpay/ipn` | VNPay callback | query VNPay | Xác nhận payment/order; **Critical: thiếu isVerified** |
-| GET | `/api/vnpay/return` | VNPay callback/browser | query VNPay | Xác nhận payment rồi redirect success; **Critical: thiếu isVerified** |
+| GET | `/api/vnpay/ipn` | VNPay giả lập | query VNPay | Demo callback; ngoài phạm vi production-readiness |
+| GET | `/api/vnpay/return` | VNPay giả lập/browser | query VNPay | Demo return/redirect; ngoài phạm vi production-readiness |
 
 ## Customer/User API
 
@@ -103,6 +103,7 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 - `tests/admin-api-policy.test.ts`: đủ 59/59 method, không trùng, đúng `requireStaff`/`requireAdmin`/`requirePermission`.
 - `tests/integration/admin-catalog.integration.test.ts`: category lifecycle, product/color-link transaction, inventory import ban đầu, duplicate SKU/slug, soft deactivate và linked-color delete guard.
 - `tests/integration/customer-workflows.integration.test.ts`: verified review/upsert/staff reply-delete, quote notify/status, authenticated conversation reopen/scope/reply/read.
+- `e2e/admin-api-http.spec.ts`: session Auth.js thật qua HTTP cho category create/duplicate/update/deactivate + audit, CUSTOMER bị chặn 403, review chưa mua bị chặn, quote public → ADMIN update và customer ↔ ADMIN chat/reply/read.
 - Cloudinary media dùng phân loại `provider-contract`; chưa được coi là live integration khi không có credential/provider evidence.
 
 ## Cron API
@@ -114,10 +115,10 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`
 
 ## Contract và security gaps
 
-1. VNPay IPN/return không kiểm tra `isVerified`; xem `AUDIT_REPORT.md` C-01.
-2. OpenAPI 3.1 mới bao phủ 9 critical path, chưa bao phủ toàn bộ 52 route và chưa có generated client/versioning.
-3. Critical path đã dùng error envelope thống nhất; các route ngoài scope vẫn còn payload legacy hoặc redirect.
+1. VNPay là mô phỏng ngoài phạm vi; không được dùng callback hiện tại với merchant production.
+2. OpenAPI đã bao phủ 99/99 operation nhưng chưa có versioning/generated client; các operation `provider` và `simulated` không phải bằng chứng live integration.
+3. Critical path đã dùng error envelope thống nhất; các route còn lại vẫn có payload legacy hoặc redirect dù đã có inventory contract.
 4. Nhiều list admin chưa có cursor/pagination; có hard cap 100/200 hoặc trả toàn bộ.
 5. Audit decision bao phủ đủ 59 admin method; catalog/review/quote/chat service mới đặt mutation và audit trong transaction, nhưng chưa chứng minh tính atomic ở mọi mutation cũ.
-6. Register, reset-password token consumption, auth middleware, ownership order, checkout, catalog transaction, review/quote/authenticated-chat và layout stability đã có integration/E2E; chưa có direct HTTP integration cho mọi CRUD tương đồng.
+6. Register, reset-password token consumption, auth middleware, ownership order, checkout, category catalog, review denial, quote và authenticated chat đã có HTTP E2E; supplier/color/collection/product CRUD tương đồng vẫn chưa có direct HTTP coverage riêng.
 7. Cron dùng GET cho side effect; nên cân nhắc POST và bổ sung lease chống concurrent worker/replay.
