@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import { toast } from "sonner";
+import { CspImage as Image } from "@/components/ui/csp-image";
+import { toast } from "@/components/ui/csp-toast";
 import { useLanguageStore } from "@/store/language-store";
 
 interface Media {
@@ -116,3 +116,4 @@ export default function AdminImagesPage() {
     </div>
   );
 }
+

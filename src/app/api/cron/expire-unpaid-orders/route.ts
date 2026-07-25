@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { assertCronAuthorized } from "@/lib/cron-auth";
 import { getUnpaidOrderTimeoutMinutes } from "@/lib/payment-policy";
 import { expireUnpaidOnlineOrders } from "@/services/order-lifecycle.service";
-import { writeOperationalLog } from "@/lib/operational-log";
+import { writeOperationalLog } from "@/lib/operations/log";
+import { jsonApiError } from "@/lib/api-error-contract";
 
 /**
  * Cancels stale unpaid VNPay demo orders and restocks inventory.
@@ -46,6 +47,11 @@ export async function GET(request: Request) {
       durationMs: Date.now() - startedAt,
       errorCode: "UNEXPECTED_ERROR",
     });
-    return NextResponse.json({ error: "Failed to expire unpaid orders" }, { status: 500 });
+    return jsonApiError(
+      request,
+      500,
+      "INTERNAL_ERROR",
+      "Failed to expire unpaid orders",
+    );
   }
 }

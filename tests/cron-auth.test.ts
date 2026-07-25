@@ -8,23 +8,34 @@ function mockRequest(authHeader?: string): Request {
   return { headers } as unknown as Request;
 }
 
-test("cron auth fails closed when CRON_SECRET is missing", () => {
+test("cron auth fails closed with the stable API error envelope", async () => {
   const previous = process.env.CRON_SECRET;
   delete process.env.CRON_SECRET;
 
   const res = assertCronAuthorized(mockRequest("Bearer undefined"));
   assert.ok(res);
   assert.equal(res!.status, 503);
+  const payload = await res!.json();
+  assert.deepEqual(payload.error, {
+    code: "INTERNAL_ERROR",
+    message: "Cron endpoint is not configured",
+  });
+  assert.equal(typeof payload.requestId, "string");
 
   if (previous === undefined) delete process.env.CRON_SECRET;
   else process.env.CRON_SECRET = previous;
 });
 
-test("cron auth rejects wrong or missing bearer token", () => {
+test("cron auth rejects wrong or missing bearer token", async () => {
   const previous = process.env.CRON_SECRET;
   process.env.CRON_SECRET = "test-cron-secret-value";
 
-  assert.equal(assertCronAuthorized(mockRequest())!.status, 401);
+  const missing = assertCronAuthorized(mockRequest())!;
+  assert.equal(missing.status, 401);
+  assert.deepEqual((await missing.json()).error, {
+    code: "UNAUTHORIZED",
+    message: "Unauthorized",
+  });
   assert.equal(assertCronAuthorized(mockRequest("Bearer wrong"))!.status, 401);
   assert.equal(assertCronAuthorized(mockRequest("Bearer test-cron-secret-value")), null);
 

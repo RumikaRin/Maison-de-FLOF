@@ -1836,6 +1836,29 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/auth/resend-verification:
+    post:
+      operationId: resendEmailVerification
+      summary: Resend an email verification link without revealing account existence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: Generic verification request acknowledgement
+        "429":
+          description: Verification resend rate limit exceeded
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/auth/reset-password:
     post:
       operationId: postAuthResetPassword
@@ -1865,6 +1888,33 @@ paths:
             schema:
               type: object
               additionalProperties: true
+  /api/auth/verify-email:
+    post:
+      operationId: verifyEmail
+      summary: Verify ownership of a credential account email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - token
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+                  minLength: 32
+      responses:
+        "200":
+          description: Email verified
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/blog:
     get:
       operationId: getBlog
@@ -2079,6 +2129,25 @@ paths:
       responses:
         "200":
           description: Coupon discount
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/cron/apply-retention:
+    get:
+      operationId: getCronApplyRetention
+      summary: GET /api/cron/apply-retention
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -2471,6 +2540,54 @@ paths:
           $ref: "#/components/responses/InternalError"
       security:
         - sessionCookie: []
+  /api/profile/data-export:
+    get:
+      operationId: getProfileDataExport
+      summary: GET /api/profile/data-export
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/profile/delete-account:
+    delete:
+      operationId: deleteProfileDeleteAccount
+      summary: DELETE /api/profile/delete-account
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
   /api/profile/favorite-products:
     get:
       operationId: getProfileFavoriteProducts
@@ -2589,6 +2706,84 @@ paths:
             schema:
               type: object
               additionalProperties: true
+  /api/profile/mfa/disable:
+    post:
+      operationId: disableAdminMfa
+      summary: Disable administrator MFA after password and second-factor verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+                - code
+              properties:
+                password:
+                  type: string
+                  format: password
+                code:
+                  type: string
+      responses:
+        "200":
+          description: MFA disabled
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/profile/mfa/setup:
+    post:
+      operationId: setupAdminMfa
+      summary: Begin administrator TOTP setup
+      responses:
+        "200":
+          description: One-time base32 secret and otpauth URI
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/profile/mfa/verify:
+    post:
+      operationId: verifyAdminMfaSetup
+      summary: Verify TOTP setup and return one-time recovery codes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  pattern: ^\d{6}$
+      responses:
+        "200":
+          description: MFA enabled and recovery codes returned once
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
   /api/profile/password:
     post:
       operationId: postProfilePassword
@@ -2624,6 +2819,80 @@ paths:
             schema:
               type: object
               additionalProperties: true
+  /api/profile/sessions:
+    get:
+      operationId: listProfileSessions
+      summary: List active authenticated sessions owned by the current user
+      responses:
+        "200":
+          description: Sanitized active session metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - createdAt
+                    - lastSeenAt
+                    - expiresAt
+                    - current
+                  properties:
+                    id:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    lastSeenAt:
+                      type: string
+                      format: date-time
+                    expiresAt:
+                      type: string
+                      format: date-time
+                    current:
+                      type: boolean
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    delete:
+      operationId: revokeProfileSessions
+      summary: Revoke one owned session or every session except the current one
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required:
+                    - id
+                  properties:
+                    id:
+                      type: string
+                - type: object
+                  required:
+                    - allOthers
+                  properties:
+                    allOthers:
+                      type: boolean
+                      const: true
+      responses:
+        "200":
+          description: Session revocation result
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
   /api/quote-request:
     post:
       operationId: createQuoteRequest
@@ -2754,6 +3023,180 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/visualizer/designs:
+    get:
+      operationId: getVisualizerDesigns
+      summary: GET /api/visualizer/designs
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postVisualizerDesigns
+      summary: POST /api/visualizer/designs
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a23
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a23
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/visualizer/designs/{id}:
+    get:
+      operationId: getVisualizerDesignsById
+      summary: GET /api/visualizer/designs/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+    patch:
+      operationId: patchVisualizerDesignsById
+      summary: PATCH /api/visualizer/designs/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteVisualizerDesignsById
+      summary: DELETE /api/visualizer/designs/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+  /api/visualizer/rooms:
+    get:
+      operationId: getVisualizerRooms
+      summary: GET /api/visualizer/rooms
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/vnpay/ipn:
     get:
       operationId: getVnpayIpn
@@ -2868,13 +3311,13 @@ components:
       type: object
       required:
         - error
+        - requestId
       properties:
         error:
           type: object
           required:
             - code
             - message
-            - requestId
           properties:
             code:
               type: string
@@ -2885,11 +3328,14 @@ components:
                 - NOT_FOUND
                 - CONFLICT
                 - TOO_MANY_REQUESTS
+                - RATE_LIMITED
+                - SERVICE_UNAVAILABLE
                 - INTERNAL_ERROR
             message:
               type: string
-            requestId:
-              type: string
+            details: {}
+        requestId:
+          type: string
     Pagination:
       type: object
       required:

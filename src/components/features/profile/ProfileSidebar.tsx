@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { cn } from "@/lib/utils";
+import type { ProfileTab } from "./types";
 
 interface ProfileSidebarProps {
   user: {
@@ -10,8 +11,8 @@ interface ProfileSidebarProps {
     email: string;
     role: string;
   };
-  activeTab: string;
-  setActiveTab: (tab: any) => void;
+  activeTab: ProfileTab;
+  setActiveTab: (tab: ProfileTab) => void;
   language: string;
   handleLogout: () => void;
 }
@@ -24,7 +25,7 @@ export function ProfileSidebar({
   handleLogout,
 }: ProfileSidebarProps) {
   return (
-    <motion.aside
+    <safeMotion.aside
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -112,12 +113,39 @@ export function ProfileSidebar({
         </button>
 
         <button
+          onClick={() => setActiveTab("sessions")}
+          className={cn(
+            "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-2 lg:col-span-1",
+            activeTab === "sessions"
+              ? "bg-warm-900 text-white shadow-sm"
+              : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
+          )}
+        >
+          <span>{language === "vi" ? "Phiên đăng nhập" : "Signed-in Sessions"}</span>
+        </button>
+
+        {user.role === "CUSTOMER" && (
+          <button
+            onClick={() => setActiveTab("privacy")}
+            className={cn(
+              "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-2 lg:col-span-1",
+              activeTab === "privacy"
+                ? "bg-warm-900 text-white shadow-sm"
+                : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
+            )}
+          >
+            <span>{language === "vi" ? "Dữ liệu & quyền riêng tư" : "Data & Privacy"}</span>
+          </button>
+        )}
+
+        <button
           onClick={handleLogout}
           className="hidden lg:flex items-center gap-2 px-3.5 py-2.5 lg:p-3 rounded-xl text-red-600 hover:bg-red-500/10 text-left transition-colors duration-200 lg:mt-4 border border-red-500/10 bg-red-500/[0.02] shrink-0 whitespace-nowrap focus:outline-none"
         >
           <span>{language === "vi" ? "Đăng xuất" : "Log Out"}</span>
         </button>
       </div>
-    </motion.aside>
+    </safeMotion.aside>
   );
 }
+

@@ -78,7 +78,21 @@ test("public catalog APIs match persisted P1 records", async ({ request }) => {
     `/api/blog/${P1_FIXTURES.articleSlug}`,
   );
   expect(blogDetail.status()).toBe(200);
-  expect(await blogDetail.json()).toEqual(
+  const blogPayload = (await blogDetail.json()) as {
+    slug: string;
+    relatedBlogs: Array<{ slug: string; category: string }>;
+  };
+  expect(blogPayload).toEqual(
+    expect.objectContaining({ slug: P1_FIXTURES.articleSlug }),
+  );
+  expect(blogPayload.relatedBlogs.length).toBeLessThanOrEqual(3);
+  expect(blogPayload.relatedBlogs[0]).toEqual(
+    expect.objectContaining({
+      slug: P1_FIXTURES.relatedArticleSlugs[0],
+      category: "Integration Color",
+    }),
+  );
+  expect(blogPayload.relatedBlogs).not.toContainEqual(
     expect.objectContaining({ slug: P1_FIXTURES.articleSlug }),
   );
   expect((await request.get("/api/blog/integration-p1-missing")).status()).toBe(

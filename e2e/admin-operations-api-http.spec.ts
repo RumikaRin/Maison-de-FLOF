@@ -132,6 +132,10 @@ test("admin inventory, user, notification, dashboard, and media guards persist c
   });
   const notifications = await page.request.get("/api/admin/notifications");
   expect(notifications.status()).toBe(200);
+  expect(notifications.headers()["cache-control"]).toBe("private, no-store");
+  const notificationEtag = notifications.headers().etag;
+  expect(notificationEtag).toMatch(/^"notifications-/);
+  if (!notificationEtag) throw new Error("Notification ETag is required");
   expect(await notifications.json()).toEqual(
     expect.objectContaining({
       notifications: expect.arrayContaining([
@@ -139,6 +143,17 @@ test("admin inventory, user, notification, dashboard, and media guards persist c
       ]),
     }),
   );
+  const unchangedNotifications = await page.request.get(
+    "/api/admin/notifications",
+    { headers: { "If-None-Match": notificationEtag } },
+  );
+  expect(unchangedNotifications.status()).toBe(304);
+  expect(await unchangedNotifications.body()).toHaveLength(0);
+  expect(
+    (
+      await page.request.get("/api/admin/notifications?type=INVALID")
+    ).status(),
+  ).toBe(400);
   expect(
     (
       await page.request.patch(
@@ -152,6 +167,12 @@ test("admin inventory, user, notification, dashboard, and media guards persist c
       select: { isRead: true },
     }),
   ).toEqual({ isRead: true });
+  const changedNotifications = await page.request.get(
+    "/api/admin/notifications",
+    { headers: { "If-None-Match": notificationEtag } },
+  );
+  expect(changedNotifications.status()).toBe(200);
+  expect(changedNotifications.headers().etag).not.toBe(notificationEtag);
 
   const dashboard = await page.request.get("/api/admin/dashboard");
   expect(dashboard.status()).toBe(200);
@@ -180,4 +201,46 @@ test("customer is denied admin operations", async ({ page }) => {
   expect(responses.map((response) => response.status())).toEqual([
     403, 403, 403, 403, 403,
   ]);
+});
+
+test("notification polling pauses while the admin tab is hidden", async ({
+  page,
+}) => {
+  let notificationRequests = 0;
+  await page.clock.install();
+  await page.addInitScript(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () =>
+        (window as typeof window & { __notificationHidden?: boolean })
+          .__notificationHidden
+          ? "hidden"
+          : "visible",
+    });
+  });
+  await page.route("**/api/admin/notifications?**", async (route) => {
+    notificationRequests += 1;
+    await route.continue();
+  });
+
+  await loginAsAdmin(page);
+  await expect.poll(() => notificationRequests).toBeGreaterThan(0);
+  const visibleRequestCount = notificationRequests;
+
+  await page.evaluate(() => {
+    (window as typeof window & { __notificationHidden?: boolean })
+      .__notificationHidden = true;
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await page.clock.fastForward(120_000);
+  expect(notificationRequests).toBe(visibleRequestCount);
+
+  await page.evaluate(() => {
+    (window as typeof window & { __notificationHidden?: boolean })
+      .__notificationHidden = false;
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect
+    .poll(() => notificationRequests)
+    .toBeGreaterThan(visibleRequestCount);
 });

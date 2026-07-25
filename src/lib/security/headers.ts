@@ -14,7 +14,12 @@ export function buildContentSecurityPolicy(
   const directives = [
     "default-src 'self'",
     `script-src ${scriptSources.join(" ")}`,
-    "style-src 'self' 'unsafe-inline'",
+    environment === "production"
+      ? "style-src 'self'"
+      : "style-src 'self' 'unsafe-inline'",
+    environment === "production"
+      ? "style-src-attr 'none'"
+      : "style-src-attr 'unsafe-inline'",
     "img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com",
     "font-src 'self' data:",
     "connect-src 'self' https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com",

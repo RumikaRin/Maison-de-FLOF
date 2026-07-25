@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
+import { toast } from "@/components/ui/csp-toast";
 import { Paint, Category } from "@/types";
 import { CustomSelect } from "@/components/ui/custom-select";
 
@@ -72,14 +72,14 @@ export function PaintsPromoModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto text-left"
         >
-          <motion.div
+          <safeMotion.div
             initial={{ scale: 0.95, opacity: 0, y: 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 15 }}
@@ -134,7 +134,7 @@ export function PaintsPromoModal({
 
               <AnimatePresence mode="wait">
                 {promoMethod === "category" ? (
-                  <motion.div
+                  <safeMotion.div
                     key="promo-cat"
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -153,9 +153,9 @@ export function PaintsPromoModal({
                         label: language === "vi" ? c.name : c.nameEn,
                       }))}
                     />
-                  </motion.div>
+                  </safeMotion.div>
                 ) : (
-                  <motion.div
+                  <safeMotion.div
                     key="promo-single"
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -175,7 +175,7 @@ export function PaintsPromoModal({
                         label: `${p.sku} - ${language === "vi" ? p.name : p.nameEn}`,
                       }))}
                     />
-                  </motion.div>
+                  </safeMotion.div>
                 )}
               </AnimatePresence>
 
@@ -196,9 +196,10 @@ export function PaintsPromoModal({
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
+          </safeMotion.div>
+        </safeMotion.div>
       )}
     </AnimatePresence>
   );
 }
+

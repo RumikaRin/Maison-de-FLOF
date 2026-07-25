@@ -29,6 +29,13 @@ enum InventoryType {
   AUDIT
 }
 
+enum InventoryReferenceType {
+  ORDER
+  IMPORT
+  MANUAL
+  UNKNOWN
+}
+
 enum CouponType {
   PERCENTAGE
   FIXED
@@ -98,25 +105,31 @@ model Role {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  emailVerified DateTime?
-  password      String?
-  name          String?
-  phone         String?
-  image         String?
-  roleId        String
-  role          Role           @relation(fields: [roleId], references: [id])
-  customer      Customer?
-  addresses     Address[]
-  reviews       Review[]
-  notifications Notification[]
-  blogs         Blog[]
-  accounts      Account[]
-  sessions      Session[]
-  conversation  Conversation?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                  String             @id @default(cuid())
+  email               String             @unique
+  emailVerified       DateTime?
+  sessionVersion      Int                @default(0)
+  password            String?
+  name                String?
+  phone               String?
+  image               String?
+  privacyConsentAt    DateTime?
+  deletionRequestedAt DateTime?
+  roleId              String
+  role                Role               @relation(fields: [roleId], references: [id])
+  customer            Customer?
+  addresses           Address[]
+  reviews             Review[]
+  notifications       Notification[]
+  blogs               Blog[]
+  accounts            Account[]
+  sessions            Session[]
+  authSessions        AuthSession[]
+  mfaCredential       MfaCredential?
+  conversation        Conversation?
+  visualizerDesigns   VisualizerDesign[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   @@index([roleId])
 }
@@ -149,6 +162,32 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model AuthSession {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  lastSeenAt    DateTime  @default(now())
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  userAgentHash String?
+  ipHash        String?
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model MfaCredential {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  secretCiphertext   String
+  enabledAt          DateTime?
+  recoveryCodeHashes Json      @default("[]")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model VerificationToken {
@@ -382,6 +421,7 @@ model ChatMessage {
   pageUrl   String?
   status    ChatStatus @default(NEW)
   adminNote String?    @db.Text
+  consentAt DateTime
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -575,6 +615,8 @@ model Blog {
   content   String   @db.Text
   contentEn String?  @db.Text
   image     String?
+  category   String   @default("Xu Hướng Thiết Kế")
+  categoryEn String   @default("Design Trends")
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
   isActive  Boolean  @default(true)
@@ -582,19 +624,22 @@ model Blog {
   updatedAt DateTime @updatedAt
 
   @@index([authorId])
+  @@index([isActive, category, createdAt])
 }
 
 model InventoryTransaction {
-  id          String        @id @default(cuid())
-  paintId     String
-  paint       Paint         @relation(fields: [paintId], references: [id], onDelete: Cascade)
-  type        InventoryType
-  quantity    Int
-  reason      String?
-  referenceId String? // Order ID or Purchase Order ID
-  createdAt   DateTime      @default(now())
+  id            String                 @id @default(cuid())
+  paintId       String
+  paint         Paint                  @relation(fields: [paintId], references: [id], onDelete: Cascade)
+  type          InventoryType
+  quantity      Int
+  reason        String?
+  referenceId   String? // Order ID or Purchase Order ID
+  referenceType InventoryReferenceType @default(UNKNOWN)
+  createdAt     DateTime               @default(now())
 
   @@index([paintId])
+  @@index([referenceType, referenceId])
 }
 
 model AuditLog {
@@ -614,15 +659,15 @@ model AuditLog {
 }
 
 model EmailOutbox {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   type        String
   payload     Json
-  status      String   @default("PENDING") // PENDING, SENT, FAILED
-  error       String?  @db.Text
-  retryCount  Int      @default(0)
+  status      String    @default("PENDING") // PENDING, SENT, FAILED
+  error       String?   @db.Text
+  retryCount  Int       @default(0)
   nextRetryAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([status, nextRetryAt])
 }
@@ -651,4 +696,34 @@ model Message {
 
   @@index([conversationId])
   @@index([createdAt])
+}
+
+model VisualizerRoom {
+  id        String             @id @default(cuid())
+  slug      String             @unique
+  name      String
+  nameEn    String
+  baseImage String
+  isActive  Boolean            @default(true)
+  sortOrder Int                @default(0)
+  designs   VisualizerDesign[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model VisualizerDesign {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roomId    String
+  room      VisualizerRoom @relation(fields: [roomId], references: [id])
+  name      String
+  palette   Json
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId, updatedAt])
+  @@index([roomId])
 }

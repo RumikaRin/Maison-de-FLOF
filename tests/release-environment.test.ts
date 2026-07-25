@@ -16,6 +16,7 @@ test("reports only missing production variable names", () => {
 
   assert.deepEqual(missing, [
     "AUTH_URL",
+    "AUTH_MFA_ENCRYPTION_KEY",
     "NEXT_PUBLIC_APP_URL",
     "CRON_SECRET",
     "UPSTASH_REDIS_REST_URL",
@@ -44,6 +45,7 @@ test("requires all P0 provider and public URL variable names", () => {
     "DATABASE_URL",
     "AUTH_SECRET",
     "AUTH_URL",
+    "AUTH_MFA_ENCRYPTION_KEY",
     "NEXT_PUBLIC_APP_URL",
     "CRON_SECRET",
     "UPSTASH_REDIS_REST_URL",

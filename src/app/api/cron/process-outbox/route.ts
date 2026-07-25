@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { assertCronAuthorized } from "@/lib/cron-auth";
 import { processEmailOutboxRecord } from "@/lib/process-email-outbox";
-import { writeOperationalLog } from "@/lib/operational-log";
+import { writeOperationalLog } from "@/lib/operations/log";
+import { jsonApiError } from "@/lib/api-error-contract";
 
 export async function GET(request: Request) {
   const startedAt = Date.now();
@@ -73,6 +74,11 @@ export async function GET(request: Request) {
       durationMs: Date.now() - startedAt,
       errorCode: "UNEXPECTED_ERROR",
     });
-    return NextResponse.json({ error: "Failed to process outbox" }, { status: 500 });
+    return jsonApiError(
+      request,
+      500,
+      "INTERNAL_ERROR",
+      "Failed to process outbox",
+    );
   }
 }

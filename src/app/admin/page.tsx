@@ -5,7 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { ArrowRight, Boxes, MessageSquareQuote, PackagePlus, ShoppingBag } from "lucide-react";
 
 const AdminRevenueChart = dynamic(
@@ -136,7 +136,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="flex flex-col gap-6 text-left">
       {/* Title with subtle spring reveal */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
             ? "Theo dõi nhanh doanh số bán hàng, số liệu đơn hàng và các hoạt động báo giá dự án."
             : "Quick analytics monitoring of sales, order statistics, and project quotes."}
         </p>
-      </motion.div>
+      </safeMotion.div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Grid of stats with staggered spring-up and interactive scale on hover */}
-      <motion.div 
+      <safeMotion.div 
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -184,7 +184,7 @@ export default function AdminDashboardPage() {
       >
         {stats.map((stat, index) => {
           return (
-            <motion.div
+            <safeMotion.div
               variants={itemVariants}
               key={index}
               className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
@@ -200,13 +200,13 @@ export default function AdminDashboardPage() {
                   {language === "vi" ? "Cập nhật từ dữ liệu hệ thống" : "Live system data"}
                 </span>
               </div>
-            </motion.div>
+            </safeMotion.div>
           );
         })}
-      </motion.div>
+      </safeMotion.div>
 
       {/* Main Stats Chart Row with slide-up reveal */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, type: "spring", stiffness: 200, damping: 25 }}
@@ -219,10 +219,10 @@ export default function AdminDashboardPage() {
         <div className="h-[320px] w-full">
           <AdminRevenueChart language={language} dailyLabels={dailyLabels} dailyRevenue={dailyRevenue} />
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Recent Orders and Best Selling Products Row */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, type: "spring", stiffness: 200, damping: 25 }}
@@ -293,7 +293,8 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </div>
-      </motion.div>
+      </safeMotion.div>
     </div>
   );
 }
+

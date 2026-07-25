@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
 
@@ -94,3 +94,4 @@ export function CheckoutOrderSummary({
     </div>
   );
 }
+

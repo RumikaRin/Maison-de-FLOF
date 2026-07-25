@@ -19,6 +19,7 @@ test("CI uses Node 24 actions and preserves the release gate order", async () =>
     "npm run test:env",
     "npm run test:integration",
     "npm run build",
+    "npm run test:bundle",
     "npm run typecheck",
     "npm run test:e2e",
     "npm run test:openapi",

@@ -23,6 +23,10 @@ export const P1_FIXTURES = {
   productSku: "INTEGRATION-P1-PAINT-5L",
   productSlug: "integration-p1-paint-5l",
   articleSlug: "integration-p1-article",
+  relatedArticleSlugs: [
+    "integration-p1-related-color",
+    "integration-p1-related-technical",
+  ],
   orderNumberPrefix: "INTEGRATION-P1-",
   idempotencyPrefix: "integration-p1-",
   addressLabel: "integration-p1-address",
@@ -35,6 +39,7 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
 
   try {
     const password = await bcrypt.hash(TEST_FIXTURES.password, 12);
+    const emailVerified = new Date("2026-01-01T00:00:00.000Z");
     const [customerRole, adminRole] = await Promise.all([
       database.role.upsert({
         where: { type: "CUSTOMER" },
@@ -53,12 +58,14 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         where: { email: TEST_FIXTURES.customerEmail },
         update: {
           password,
+          emailVerified,
           name: "Integration Customer",
           roleId: customerRole.id,
         },
         create: {
           email: TEST_FIXTURES.customerEmail,
           password,
+          emailVerified,
           name: "Integration Customer",
           roleId: customerRole.id,
         },
@@ -67,12 +74,14 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         where: { email: TEST_FIXTURES.resetEmail },
         update: {
           password,
+          emailVerified,
           name: "Reset Integration Customer",
           roleId: customerRole.id,
         },
         create: {
           email: TEST_FIXTURES.resetEmail,
           password,
+          emailVerified,
           name: "Reset Integration Customer",
           roleId: customerRole.id,
         },
@@ -81,32 +90,46 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         where: { email: TEST_FIXTURES.adminEmail },
         update: {
           password,
+          emailVerified,
           name: "Integration Admin",
           roleId: adminRole.id,
         },
         create: {
           email: TEST_FIXTURES.adminEmail,
           password,
+          emailVerified,
           name: "Integration Admin",
           roleId: adminRole.id,
         },
       }),
       database.user.upsert({
         where: { email: P1_FIXTURES.customerTwoEmail },
-        update: { password, name: "P1 Customer Two", roleId: customerRole.id },
+        update: {
+          password,
+          emailVerified,
+          name: "P1 Customer Two",
+          roleId: customerRole.id,
+        },
         create: {
           email: P1_FIXTURES.customerTwoEmail,
           password,
+          emailVerified,
           name: "P1 Customer Two",
           roleId: customerRole.id,
         },
       }),
       database.user.upsert({
         where: { email: P1_FIXTURES.loadAccountEmail },
-        update: { password, name: "P1 Load Account", roleId: customerRole.id },
+        update: {
+          password,
+          emailVerified,
+          name: "P1 Load Account",
+          roleId: customerRole.id,
+        },
         create: {
           email: P1_FIXTURES.loadAccountEmail,
           password,
+          emailVerified,
           name: "P1 Load Account",
           roleId: customerRole.id,
         },
@@ -306,6 +329,8 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         title: "P1 Integration Article",
         summary: "P1 integration summary",
         content: "P1 integration content",
+        category: "Integration Color",
+        categoryEn: "Integration Color",
         authorId: adminUser.id,
         isActive: true,
       },
@@ -314,10 +339,54 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         slug: P1_FIXTURES.articleSlug,
         summary: "P1 integration summary",
         content: "P1 integration content",
+        category: "Integration Color",
+        categoryEn: "Integration Color",
         authorId: adminUser.id,
         isActive: true,
       },
     });
+    await Promise.all([
+      database.blog.upsert({
+        where: { slug: P1_FIXTURES.relatedArticleSlugs[0] },
+        update: {
+          title: "P1 Related Color Article",
+          category: "Integration Color",
+          categoryEn: "Integration Color",
+          isActive: true,
+        },
+        create: {
+          title: "P1 Related Color Article",
+          slug: P1_FIXTURES.relatedArticleSlugs[0],
+          summary: "Related color summary",
+          content: "Related color content",
+          category: "Integration Color",
+          categoryEn: "Integration Color",
+          authorId: adminUser.id,
+          isActive: true,
+          createdAt: new Date("2026-06-02T00:00:00.000Z"),
+        },
+      }),
+      database.blog.upsert({
+        where: { slug: P1_FIXTURES.relatedArticleSlugs[1] },
+        update: {
+          title: "P1 Related Technical Article",
+          category: "Integration Technical",
+          categoryEn: "Integration Technical",
+          isActive: true,
+        },
+        create: {
+          title: "P1 Related Technical Article",
+          slug: P1_FIXTURES.relatedArticleSlugs[1],
+          summary: "Related technical summary",
+          content: "Related technical content",
+          category: "Integration Technical",
+          categoryEn: "Integration Technical",
+          authorId: adminUser.id,
+          isActive: true,
+          createdAt: new Date("2026-07-02T00:00:00.000Z"),
+        },
+      }),
+    ]);
 
     return {
       customerUser,

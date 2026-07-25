@@ -18,6 +18,7 @@ test("covers public, metadata, API, admin, and cron paths", () => {
     "/api/products?limit=1",
     "/admin",
     "/api/cron/process-outbox",
+    "/api/cron/apply-retention",
   ]);
 });
 
@@ -56,7 +57,7 @@ test("accepts expected production statuses without following the admin redirect"
         headers: { location: "/login" },
       });
     }
-    if (url.pathname === "/api/cron/process-outbox") {
+    if (url.pathname.startsWith("/api/cron/")) {
       return new Response(null, { status: 401 });
     }
     const headers =
@@ -81,7 +82,7 @@ test("accepts expected production statuses without following the admin redirect"
 test("reports an unexpected cron status without exposing response content", async () => {
   const request = async (input: string | URL | Request) => {
     const url = new URL(String(input));
-    if (url.pathname === "/api/cron/process-outbox") {
+    if (url.pathname.startsWith("/api/cron/")) {
       return new Response("internal provider detail", { status: 503 });
     }
     if (url.pathname === "/admin") {

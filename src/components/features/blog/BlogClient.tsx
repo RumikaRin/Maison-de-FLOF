@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import {
   ArrowLeft,
@@ -12,10 +12,11 @@ import {
   Sparkles,
   ArrowRight
 } from "lucide-react";
+import type { PublicBlog } from "@/services/blog.service";
 
 interface BlogClientProps {
-  initialBlog: any;
-  initialRelatedBlogs: any[];
+  initialBlog: PublicBlog | null;
+  initialRelatedBlogs: PublicBlog[];
 }
 
 export function BlogClient({ initialBlog, initialRelatedBlogs }: BlogClientProps) {
@@ -186,3 +187,4 @@ export function BlogClient({ initialBlog, initialRelatedBlogs }: BlogClientProps
     </div>
   );
 }
+

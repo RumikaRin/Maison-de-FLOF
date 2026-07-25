@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { AlertTriangle, X } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -30,14 +30,14 @@ export function DeleteConfirmModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="fixed inset-0 bg-black/45 backdrop-blur-xs z-[100] flex items-center justify-center p-4 cursor-pointer"
         >
-          <motion.div
+          <safeMotion.div
             initial={{ scale: 0.95, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -89,9 +89,10 @@ export function DeleteConfirmModal({
                 {language === "vi" ? "Xác nhận xóa" : "Confirm Delete"}
               </button>
             </div>
-          </motion.div>
-        </motion.div>
+          </safeMotion.div>
+        </safeMotion.div>
       )}
     </AnimatePresence>
   );
 }
+

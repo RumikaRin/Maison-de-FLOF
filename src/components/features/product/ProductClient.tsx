@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
@@ -10,7 +10,7 @@ import { useCartStore } from "@/store/cart-store";
 import { Paint, PaintColor } from "@/types";
 import { formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import {
   getComplementaryColors,
   getAnalogousColors,
@@ -32,6 +32,7 @@ import {
   Star,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 interface ProductClientProps {
   initialProduct: any;
@@ -244,9 +245,9 @@ export function ProductClient({
             />
             {selectedColor && (
               <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur border border-border p-3 rounded-lg flex items-center gap-3">
-                <div
-                  className="h-10 w-10 rounded-md border border-black/10 shrink-0"
-                  style={{ backgroundColor: selectedColor.hex }}
+                <ColorSwatch
+                  color={selectedColor.hex}
+                  className="h-10 w-10 shrink-0 rounded-md border border-black/10"
                 />
                 <div>
                   <p className="text-xs text-muted-foreground font-semibold">
@@ -322,15 +323,18 @@ export function ProductClient({
                     key={color.code}
                     onClick={() => setSelectedColor(color)}
                     title={`${color.name} (${color.code})`}
-                    className={`h-11 w-11 rounded-md border flex items-center justify-center relative transition-all duration-200 ${
+                    className={`h-11 w-11 rounded-md border flex items-center justify-center relative overflow-hidden transition-all duration-200 ${
                       selectedColor?.code === color.code
                         ? "border-zinc-900 dark:border-white ring-2 ring-jotun-teal scale-105"
                         : "border-black/10 hover:scale-105"
                     }`}
-                    style={{ backgroundColor: color.hex }}
                   >
+                    <ColorSwatch
+                      color={color.hex}
+                      className="absolute inset-0 h-full w-full"
+                    />
                     {selectedColor?.code === color.code && (
-                      <span className="h-5 w-5 bg-white dark:bg-zinc-900 border border-border rounded-full flex items-center justify-center shadow">
+                      <span className="relative h-5 w-5 bg-white dark:bg-zinc-900 border border-border rounded-full flex items-center justify-center shadow">
                         <Check className="h-3 w-3 text-jotun-teal stroke-[3]" />
                       </span>
                     )}
@@ -360,10 +364,7 @@ export function ProductClient({
                               onClick={() => setSelectedColor(col)}
                               className="flex items-center gap-1.5 p-1 bg-white dark:bg-zinc-950 border border-border rounded-md hover:border-jotun-teal transition-all text-left w-full group"
                             >
-                              <div
-                                className="h-6 w-6 rounded border border-black/10 shrink-0"
-                                style={{ backgroundColor: col.hex }}
-                              />
+                              <ColorSwatch color={col.hex} className="h-6 w-6 rounded border border-black/10 shrink-0" />
                               <span className="text-[10px] font-bold line-clamp-1 group-hover:text-jotun-teal">
                                 {language === "vi" ? col.name : col.nameEn}
                               </span>
@@ -386,10 +387,7 @@ export function ProductClient({
                               onClick={() => setSelectedColor(col)}
                               className="flex items-center gap-1.5 p-1 bg-white dark:bg-zinc-950 border border-border rounded-md hover:border-jotun-teal transition-all text-left w-full group"
                             >
-                              <div
-                                className="h-6 w-6 rounded border border-black/10 shrink-0"
-                                style={{ backgroundColor: col.hex }}
-                              />
+                              <ColorSwatch color={col.hex} className="h-6 w-6 rounded border border-black/10 shrink-0" />
                               <span className="text-[10px] font-bold line-clamp-1 group-hover:text-jotun-teal">
                                 {language === "vi" ? col.name : col.nameEn}
                               </span>
@@ -412,10 +410,7 @@ export function ProductClient({
                               onClick={() => setSelectedColor(col)}
                               className="flex items-center gap-1.5 p-1 bg-white dark:bg-zinc-950 border border-border rounded-md hover:border-jotun-teal transition-all text-left w-full group"
                             >
-                              <div
-                                className="h-6 w-6 rounded border border-black/10 shrink-0"
-                                style={{ backgroundColor: col.hex }}
-                              />
+                              <ColorSwatch color={col.hex} className="h-6 w-6 rounded border border-black/10 shrink-0" />
                               <span className="text-[10px] font-bold line-clamp-1 group-hover:text-jotun-teal">
                                 {language === "vi" ? col.name : col.nameEn}
                               </span>
@@ -708,3 +703,4 @@ export function ProductClient({
     </div>
   );
 }
+

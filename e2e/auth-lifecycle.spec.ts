@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
 import { TEST_FIXTURES } from "../scripts/test-db-fixtures.ts";
 import { assertTestDatabaseUrl } from "../scripts/assert-test-database.ts";
+import {
+  createEmailVerificationToken,
+  emailVerificationIdentifier,
+} from "../src/lib/auth/email-verification.ts";
 
 const REGISTER_EMAIL = "register.e2e@flof.test";
 const REGISTER_PASSWORD = "Register-E2E-2026!";
@@ -30,9 +34,40 @@ test("guest registers a customer account and can sign in", async ({ page }) => {
   await page
     .getByLabel(/Xác nhận mật khẩu|Confirm Password/)
     .fill(REGISTER_PASSWORD);
+  await page
+    .getByLabel(/Tôi đồng ý|I consent to FLOF processing/i)
+    .check();
   await page.getByRole("button", { name: /Đăng ký tài khoản|Sign Up/i }).click();
 
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/verify-email\?email=/);
+
+  const tokenDatabase = createTestDatabase();
+  let verificationToken = "";
+  try {
+    const unverifiedUser = await tokenDatabase.user.findUnique({
+      where: { email: REGISTER_EMAIL },
+      select: { emailVerified: true },
+    });
+    expect(unverifiedUser?.emailVerified).toBeNull();
+    const verification = await createEmailVerificationToken(
+      tokenDatabase,
+      REGISTER_EMAIL,
+    );
+    verificationToken = verification.token;
+  } finally {
+    await tokenDatabase.$disconnect();
+  }
+
+  await page.goto(
+    `/verify-email?email=${encodeURIComponent(REGISTER_EMAIL)}&token=${encodeURIComponent(verificationToken)}`,
+  );
+  await expect(
+    page.getByText(/Email đã được xác minh|email has been verified/i),
+  ).toBeVisible();
+  await page
+    .locator("main")
+    .getByRole("link", { name: /Đăng nhập|Login/i })
+    .click();
   await page.getByLabel("Email").fill(REGISTER_EMAIL);
   await page.getByLabel(/Mật khẩu|Password/).fill(REGISTER_PASSWORD);
   await page.getByRole("button", { name: /Đăng nhập|Login/i }).click();
@@ -46,6 +81,12 @@ test("guest registers a customer account and can sign in", async ({ page }) => {
     });
     expect(user?.role.type).toBe("CUSTOMER");
     expect(user?.customer).not.toBeNull();
+    expect(user?.emailVerified).not.toBeNull();
+    await expect(
+      verificationDatabase.verificationToken.findFirst({
+        where: { identifier: emailVerificationIdentifier(REGISTER_EMAIL) },
+      }),
+    ).resolves.toBeNull();
   } finally {
     await verificationDatabase.$disconnect();
   }

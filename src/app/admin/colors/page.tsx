@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -202,7 +203,7 @@ export default function AdminColorsPage() {
   return (
     <div className="flex flex-col gap-8 text-left">
       {/* Header and Add CTA with spring reveal */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -224,10 +225,10 @@ export default function AdminColorsPage() {
         >
           {language === "vi" ? "Thêm Mã Màu Mới" : "Add New Color"}
         </button>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Filter and Search Bar */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.35 }}
@@ -296,10 +297,10 @@ export default function AdminColorsPage() {
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Table grid of colors with exit/entry animations */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.4 }}
@@ -324,11 +325,9 @@ export default function AdminColorsPage() {
                   className="hover:bg-warm-50/30 transition-colors"
                 >
                   <td className="py-3.5 px-6">
-                    <motion.div
-                      whileHover={{ scale: 1.15 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                      className="h-7 w-12 rounded-lg border border-black/10 shadow-sm cursor-pointer"
-                      style={{ backgroundColor: color.hex }}
+                    <ColorSwatch
+                      color={color.hex}
+                      className="h-7 w-12 cursor-pointer rounded-lg border border-black/10 shadow-sm"
                     />
                   </td>
                   <td className="py-3.5 px-4 font-mono font-bold text-warm-900">{color.code}</td>
@@ -374,19 +373,19 @@ export default function AdminColorsPage() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       {/* CRUD Add/Edit Modal overlay with premium spring reveal */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsModalOpen(false)}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 text-left"
           >
-            <motion.div
+            <safeMotion.div
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
@@ -565,8 +564,8 @@ export default function AdminColorsPage() {
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </motion.div>
+            </safeMotion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
 
@@ -587,3 +586,4 @@ export default function AdminColorsPage() {
     </div>
   );
 }
+

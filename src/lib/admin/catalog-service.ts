@@ -221,6 +221,7 @@ export function createProduct(
           type: "IMPORT",
           quantity: input.stock,
           reason: "Tồn kho ban đầu khi tạo sản phẩm",
+          referenceType: "IMPORT",
         },
       });
     }

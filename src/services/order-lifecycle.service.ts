@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { ApiError } from "@/lib/api-auth";
 import { canTransitionOrderStatus, type OrderStatusValue } from "@/lib/commerce";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 type Tx = Prisma.TransactionClient;
 
@@ -62,6 +63,7 @@ export async function cancelOrderWithRestock(
       quantity: item.quantity,
       reason: `Hoàn kho do hủy đơn ${order.orderNumber}`,
       referenceId: order.id,
+      referenceType: "ORDER" as const,
     })),
   });
 
@@ -284,8 +286,11 @@ export async function expireUnpaidOnlineOrders(options?: {
         orderNumber: order.orderNumber,
         status: "CANCELLED",
       });
-    } catch (error) {
-      console.error(`Failed to expire order ${order.orderNumber}:`, error);
+    } catch {
+      writeOperationalLog("error", "order.expiry.failed", {
+        orderId: order.id,
+        errorCode: "ORDER_EXPIRY_FAILED",
+      });
       results.push({
         orderId: order.id,
         orderNumber: order.orderNumber,

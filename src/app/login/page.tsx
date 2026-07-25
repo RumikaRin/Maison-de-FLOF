@@ -6,7 +6,7 @@ import { signIn, getSession } from "next-auth/react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 
 
 
@@ -18,6 +18,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [showMfaChallenge, setShowMfaChallenge] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -35,10 +37,12 @@ export default function LoginPage() {
     const result = await signIn("credentials", {
       email,
       password,
+      mfaCode: mfaCode || undefined,
       redirect: false,
     });
 
-    if (!result?.ok) {
+    if (!result?.ok || result.error) {
+      setShowMfaChallenge(true);
       toast.error(
         language === "vi" ? "Email hoặc mật khẩu không chính xác." : "Incorrect email or password."
       );
@@ -128,6 +132,27 @@ export default function LoginPage() {
               {language === "vi" ? "Quên mật khẩu?" : "Forgot password?"}
             </Link>
           </div>
+
+          {showMfaChallenge && (
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="login-mfa-code"
+                className="text-[10px] font-bold uppercase text-warm-450"
+              >
+                {language === "vi"
+                  ? "Mã xác thực (nếu đã bật)"
+                  : "Authentication code (if enabled)"}
+              </label>
+              <input
+                id="login-mfa-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={mfaCode}
+                onChange={(event) => setMfaCode(event.target.value)}
+                className="rounded-xl border border-warm-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-warm-800 focus:border-jotun-teal focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30"
+              />
+            </div>
+          )}
 
           <button
             type="submit"

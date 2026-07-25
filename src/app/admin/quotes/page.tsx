@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { useLanguageStore } from "@/store/language-store";
 import { CustomSelect } from "@/components/ui/custom-select";
 

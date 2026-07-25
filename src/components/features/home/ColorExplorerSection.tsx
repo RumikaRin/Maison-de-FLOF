@@ -1,15 +1,16 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
 import { Check, Heart, ArrowRight, ShoppingBag } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 import { cn, formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { COLOR_FAMILIES, COLOR_SWATCHES, FAMILY_METADATA } from "@/lib/constants/home-data";
 import { Paint, PaintColor } from "@/types";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 function hexToRgb(hex: string): string {
   const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -123,7 +124,7 @@ export function ColorExplorerSection({
             <div className="relative p-1.5 rounded-[1.5rem] bg-warm-100 border border-warm-200">
               <div className="relative aspect-[4/3] sm:aspect-video lg:aspect-[16/11] w-full overflow-hidden rounded-[1.2rem] bg-warm-50">
                 <AnimatePresence mode="wait">
-                  <motion.div
+                  <safeMotion.div
                     key={`${selectedFamily}-${visWallMainColor}`}
                     initial={reduceMotion ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -138,12 +139,12 @@ export function ColorExplorerSection({
                       sizes="(min-width: 1024px) 55vw, 100vw"
                       className="object-cover"
                     />
-                    <div
-                      className="absolute inset-0 mix-blend-multiply pointer-events-none transition-[background-color] duration-500"
-                      style={{ backgroundColor: visWallMainColor, opacity: 0.28 }}
-                      aria-hidden
+                    <ColorSwatch
+                      color={visWallMainColor}
+                      opacity={0.28}
+                      className="absolute inset-0 h-full w-full mix-blend-multiply pointer-events-none"
                     />
-                  </motion.div>
+                  </safeMotion.div>
                 </AnimatePresence>
 
                 <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-xs rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 text-white px-4 py-3">
@@ -165,7 +166,7 @@ export function ColorExplorerSection({
             {/* Specs */}
             <div className="mt-4 rounded-[1.35rem] border border-warm-200 bg-jotun-ivory-50 p-5 sm:p-6">
               <AnimatePresence mode="wait">
-                <motion.div
+                <safeMotion.div
                   key={currentSwatch.code}
                   initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -182,10 +183,7 @@ export function ColorExplorerSection({
                       </h3>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <span
-                        className="w-9 h-9 rounded-full border border-black/10 shadow-inner"
-                        style={{ backgroundColor: currentSwatch.hex }}
-                      />
+                      <ColorSwatch color={currentSwatch.hex} className="w-9 h-9 rounded-full border border-black/10 shadow-inner" />
                       <span className="text-xs font-mono font-bold text-warm-700 bg-white border border-warm-200 px-2.5 py-1 rounded-lg">
                         #{currentSwatch.code}
                       </span>
@@ -235,7 +233,7 @@ export function ColorExplorerSection({
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </safeMotion.div>
               </AnimatePresence>
             </div>
           </div>
@@ -266,10 +264,7 @@ export function ColorExplorerSection({
                       )}
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="w-4 h-4 rounded-full border border-black/10 shrink-0"
-                          style={{ backgroundColor: family.hex }}
-                        />
+                        <ColorSwatch color={family.hex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" />
                         <span className="text-xs font-bold truncate flex-grow">
                           {language === "vi" ? family.name : family.nameEn}
                         </span>
@@ -296,7 +291,7 @@ export function ColorExplorerSection({
                   : `Shades · ${familyMeta?.nameEn || ""}`}
               </h3>
               <AnimatePresence mode="wait">
-                <motion.div
+                <safeMotion.div
                   key={selectedFamily}
                   initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -335,10 +330,7 @@ export function ColorExplorerSection({
                                 : `Select ${swatch.nameEn || swatch.name}`
                             }
                           >
-                            <span
-                              className="h-11 w-full rounded-lg border border-black/5 shadow-inner"
-                              style={{ backgroundColor: swatch.hex }}
-                            />
+                            <ColorSwatch color={swatch.hex} className="h-11 w-full rounded-lg border border-black/5 shadow-inner" />
                             <span className="text-[8px] font-mono font-bold text-warm-400 truncate">
                               #{swatch.code}
                             </span>
@@ -367,7 +359,7 @@ export function ColorExplorerSection({
                       );
                     },
                   )}
-                </motion.div>
+                </safeMotion.div>
               </AnimatePresence>
             </div>
           </div>
@@ -477,3 +469,5 @@ export function ColorExplorerSection({
     </section>
   );
 }
+
+

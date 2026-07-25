@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { BlogClient } from "@/components/features/blog/BlogClient";
 import { Metadata } from "next";
+import { findPublishedBlogWithRelated } from "@/services/blog.service";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -28,41 +29,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const blog = await db.blog.findUnique({
-    where: { slug },
-    include: { author: true },
-  });
+  const result = await findPublishedBlogWithRelated(db, slug);
 
-  if (!blog || !blog.isActive) {
+  if (!result) {
     return <BlogClient initialBlog={null} initialRelatedBlogs={[]} />;
   }
 
-  const mappedBlog = {
-    id: blog.id,
-    title: blog.title,
-    titleEn: blog.titleEn || blog.title,
-    slug: blog.slug,
-    summary: blog.summary,
-    summaryEn: blog.summaryEn || blog.summary,
-    content: blog.content,
-    contentEn: blog.contentEn || blog.content,
-    image: blog.image || "/room_inspiration.webp",
-    category: "Xu Hướng Thiết Kế",
-    categoryEn: "Design Trends",
-    author: blog.author?.name || "Maison de FLOF",
-    readTime: "5 phút đọc / 5 min read",
-    createdAt: blog.createdAt.toISOString().split("T")[0],
-  };
-
-  // We can fetch related blogs here. For now just passing empty array since old code didn't actually fetch them.
-  const relatedBlogs: any[] = [];
+  const mappedBlog = result.blog;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "headline": mappedBlog.title,
     "image": mappedBlog.image ? [mappedBlog.image] : [],
-    "datePublished": blog.createdAt.toISOString(),
+    "datePublished": result.publishedAt.toISOString(),
     "description": mappedBlog.summary || "",
     "author": [{
       "@type": "Person",
@@ -78,7 +58,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       />
       <BlogClient
         initialBlog={mappedBlog}
-        initialRelatedBlogs={relatedBlogs}
+        initialRelatedBlogs={result.relatedBlogs}
       />
     </>
   );

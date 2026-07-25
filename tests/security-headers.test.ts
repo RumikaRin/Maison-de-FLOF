@@ -15,6 +15,9 @@ test("production CSP excludes unsafe-eval and keeps defensive directives", () =>
   assert.equal(policy.includes("object-src 'none'"), true);
   assert.equal(policy.includes("base-uri 'self'"), true);
   assert.equal(policy.includes("frame-ancestors 'none'"), true);
+  assert.equal(policy.includes("style-src 'self'"), true);
+  assert.equal(policy.includes("style-src 'self' 'unsafe-inline'"), false);
+  assert.equal(policy.includes("style-src-attr 'none'"), true);
 });
 
 test("development CSP permits eval for the Next.js development runtime", () => {

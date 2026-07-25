@@ -10,6 +10,7 @@ import {
   type ApiErrorCode,
   type ApiErrorDescriptor,
 } from "@/lib/api-error-contract";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 export class ApiError extends Error {
   constructor(
@@ -36,6 +37,7 @@ export async function requireUser() {
     id: user.id,
     email: user.email,
     role: user.role.type,
+    sessionId: session.user.sessionId,
   };
 }
 
@@ -113,7 +115,7 @@ function describeApiError(error: unknown): ApiErrorDescriptor {
     }
   }
 
-  console.error("Unhandled API error", {
+  writeOperationalLog("error", "api.unhandled_error", {
     name: error instanceof Error ? error.name : typeof error,
   });
   return {
@@ -125,15 +127,5 @@ function describeApiError(error: unknown): ApiErrorDescriptor {
 
 export function apiErrorResponse(error: unknown, request?: Request) {
   const descriptor = describeApiError(error);
-
-  // Routes not yet included in the documented critical contract retain their
-  // legacy string shape until their clients migrate to the shared parser.
-  if (!request) {
-    return Response.json(
-      { error: descriptor.message },
-      { status: descriptor.status },
-    );
-  }
-
   return createApiErrorResponse(descriptor, getApiRequestId(request));
 }

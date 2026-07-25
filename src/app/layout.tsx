@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Noto_Sans, Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -7,7 +8,7 @@ import { SessionProvider } from "@/providers/session-provider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
-import { Toaster } from "sonner";
+import { CspToaster } from "@/components/ui/csp-toast";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
 import { LazyChatBubble } from "@/components/layout/LazyChatBubble";
@@ -15,6 +16,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { shouldEnableVercelTelemetry } from "@/lib/vercel-runtime";
+import { resolveLocale } from "@/lib/locale";
 import "./globals.css";
 
 // A strict per-request CSP nonce requires dynamic rendering so Next.js can
@@ -50,17 +52,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+  const locale = resolveLocale({
+    pathname: "/",
+    cookie: requestHeaders.get("x-locale"),
+  });
   const enableVercelTelemetry = shouldEnableVercelTelemetry({
     VERCEL: process.env.VERCEL,
   });
 
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-jotun-ivory grain-overlay`}
@@ -70,42 +78,15 @@ export default function RootLayout({
             <ThemeProvider
               attribute="class"
               defaultTheme="light"
-              disableTransitionOnChange
+              enableColorScheme={false}
+              nonce={nonce}
             >
               <Header />
               <MainLayoutWrapper>
                 {children}
               </MainLayoutWrapper>
               <Footer />
-              <Toaster
-                position="top-right"
-                offset={{ top: 96, right: 20 }}
-                expand={false}
-                gap={10}
-                toastOptions={{
-                  duration: 3500,
-                  classNames: {
-                    toast:
-                      "group font-sans text-sm rounded-2xl border border-[#e8e2da] bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.07),0_2px_8px_rgba(0,0,0,0.04)] px-4 py-3.5 flex gap-3 items-start",
-                    title: "font-semibold text-[13px] text-[#1c1917] leading-snug",
-                    description: "text-[11.5px] text-[#78716c] leading-relaxed mt-0.5",
-                    success:
-                      "border-[#d1fae5] bg-white/95 [&>[data-icon]]:text-emerald-500",
-                    error:
-                      "border-[#fee2e2] bg-white/95 [&>[data-icon]]:text-red-500",
-                    warning:
-                      "border-[#fef3c7] bg-white/95 [&>[data-icon]]:text-amber-500",
-                    info:
-                      "border-[#dbeafe] bg-white/95 [&>[data-icon]]:text-sky-500",
-                    closeButton:
-                      "rounded-full bg-[#f5f0eb] hover:bg-[#ebe5de] text-[#78716c] hover:text-[#1c1917] border border-[#e8e2da] transition-colors",
-                    actionButton:
-                      "bg-[#1c1917] text-white text-[11px] font-bold rounded-xl px-3 py-1.5 hover:bg-[#292524] transition-colors",
-                    cancelButton:
-                      "bg-[#f5f0eb] text-[#78716c] text-[11px] font-bold rounded-xl px-3 py-1.5 hover:bg-[#ebe5de] transition-colors",
-                  },
-                }}
-              />
+              <CspToaster />
               <ScrollToTop />
               <LazyChatBubble />
               <Suspense fallback={null}>

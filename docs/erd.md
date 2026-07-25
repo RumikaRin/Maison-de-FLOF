@@ -1,6 +1,6 @@
 # Maison de FLOF ERD
 
-Last synchronized with `prisma/schema.prisma`: 24/07/2026
+Last synchronized with `prisma/schema.prisma`: 26/07/2026 (36 models, 12 enums, 13 migrations)
 
 `public/erd_diagram.png` is a historical image and is not an authoritative
 schema reference. It omits current models, duplicates `Paint`, and uses key
@@ -15,9 +15,12 @@ erDiagram
   User ||--o| Customer : owns
   User ||--o{ Account : authenticates
   User ||--o{ Session : has
+  User ||--o{ AuthSession : registers
+  User ||--o| MfaCredential : secures
   User ||--o{ Address : saves
   User ||--o{ Notification : receives
   User ||--o| Conversation : opens
+  User ||--o{ VisualizerDesign : saves
   VerificationToken {
     string identifier PK
     string token PK
@@ -34,6 +37,10 @@ erDiagram
     string roleId FK
     string password
     string name
+    int sessionVersion
+    datetime emailVerified
+    datetime privacyConsentAt
+    datetime deletionRequestedAt
   }
   Customer {
     string id PK
@@ -51,6 +58,21 @@ erDiagram
     string id PK
     string userId FK
     string sessionToken UK
+  }
+  AuthSession {
+    string id PK
+    string userId FK
+    datetime expiresAt
+    datetime revokedAt
+    string userAgentHash
+    string ipHash
+  }
+  MfaCredential {
+    string id PK
+    string userId FK,UK
+    string secretCiphertext
+    datetime enabledAt
+    json recoveryCodeHashes
   }
   Address {
     string id PK
@@ -197,6 +219,8 @@ erDiagram
   User ||--o{ Review : writes
   Paint ||--o{ Review : receives
   User ||--o{ Blog : authors
+  User ||--o{ VisualizerDesign : saves
+  VisualizerRoom ||--o{ VisualizerDesign : templates
   Conversation ||--o{ Message : contains
   User ||--o| Conversation : owns
   Wishlist {
@@ -224,6 +248,8 @@ erDiagram
     string id PK
     string authorId FK
     string slug UK
+    string category
+    string categoryEn
   }
   ChatMessage {
     string id PK
@@ -256,6 +282,20 @@ erDiagram
     string status
     int retryCount
   }
+  VisualizerRoom {
+    string id PK
+    string slug UK
+    string baseImage
+    boolean isActive
+    int sortOrder
+  }
+  VisualizerDesign {
+    string id PK
+    string userId FK
+    string roomId FK
+    string name
+    json palette
+  }
 ```
 
 ## Intentional weak references
@@ -267,3 +307,7 @@ erDiagram
 - `Message.senderId` is retained as an identifier but has no Prisma relation.
 - `ChatMessage` is the guest/legacy support flow; `Conversation` and `Message`
   are the authenticated flow.
+- `AuthSession` is the revocable application session registry; `Session` is
+  retained for Auth.js database-adapter compatibility.
+- `MfaCredential.secretCiphertext` and recovery hashes are never rendered in
+  audit/export responses.

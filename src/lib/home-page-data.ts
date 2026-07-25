@@ -1,6 +1,7 @@
 import { getFallbackColors, getFallbackProducts } from "./catalog-fallback-data.ts";
 import { getProductImage } from "./product-image.ts";
 import type { CatalogAvailability } from "./catalog-result.ts";
+import { writeOperationalLog } from "./operations/log.ts";
 
 type HomePageDatabase = {
   paint: {
@@ -124,9 +125,11 @@ export async function getHomePageData(database: HomePageDatabase): Promise<HomeP
     ]);
 
     return mapHomePageData(products, colors, blogs);
-  } catch (error) {
+  } catch {
     if (process.env.NODE_ENV === "production") {
-      console.error("Failed to load home page data; using static fallback.", error);
+      writeOperationalLog("warn", "home.database_fallback", {
+        fallback: "static",
+      });
     }
 
     return getFallbackHomePageData();

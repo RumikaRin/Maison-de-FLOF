@@ -47,6 +47,21 @@ export function sendWelcomeEmail(to: string, name: string) {
   );
 }
 
+export function sendEmailVerificationEmail(
+  to: string,
+  name: string,
+  verifyUrl: string,
+) {
+  return sendEmail(
+    to,
+    "Xác minh email Maison de FLOF",
+    `<p>Xin chào <strong>${escapeHtml(name)}</strong>,</p>
+     <p>Vui lòng xác minh địa chỉ email để kích hoạt đăng nhập bằng mật khẩu.</p>
+     <p><a href="${escapeHtml(verifyUrl)}">Xác minh email</a></p>
+     <p>Liên kết có hiệu lực trong 24 giờ. Nếu bạn không tạo tài khoản, hãy bỏ qua email này.</p>`,
+  );
+}
+
 export function sendOrderConfirmationEmail(to: string, name: string, orderNumber: string, total: number) {
   return sendEmail(
     to,

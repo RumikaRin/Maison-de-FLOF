@@ -51,7 +51,7 @@ export const ADMIN_API_POLICIES: readonly AdminApiPolicy[] = [
   mutation("/api/admin/articles", "PATCH", permission("CATALOG_MANAGE")),
   mutation("/api/admin/articles", "DELETE", permission("CATALOG_MANAGE")),
 
-  read("/api/admin/audit-logs", admin),
+  read("/api/admin/audit-logs", admin, "e2e"),
 
   read("/api/admin/categories", staff, "db-integration"),
   mutation(

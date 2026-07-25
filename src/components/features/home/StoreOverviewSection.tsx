@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
 import { ArrowRight, MapPin, PaintBucket, ShieldCheck, Truck } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -49,7 +49,7 @@ export function StoreOverviewSection() {
     <section id="store-overview" className="py-20 md:py-28 bg-jotun-ivory relative overflow-hidden">
       <div className="w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12">
         {/* Article header */}
-        <motion.header
+        <safeMotion.header
           initial={reduceMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
@@ -75,11 +75,11 @@ export function StoreOverviewSection() {
               ? "FLOF kết hợp showroom số và thương mại điện tử: chọn màu, phối trên phòng mẫu, đặt hàng online hoặc tìm đại lý ủy quyền gần nhà. Dưới đây là bức tranh tổng quan về những gì cửa hàng mang lại."
               : "FLOF blends a digital showroom with e-commerce: pick colors, preview on sample rooms, order online, or find an authorized dealer nearby. Here is what the store offers at a glance."}
           </p>
-        </motion.header>
+        </safeMotion.header>
 
         {/* Lead image + pull quote */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mb-12 md:mb-16">
-          <motion.div
+          <safeMotion.div
             initial={reduceMotion ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -93,8 +93,8 @@ export function StoreOverviewSection() {
               sizes="(min-width: 1024px) 60vw, 100vw"
               className="object-cover"
             />
-          </motion.div>
-          <motion.aside
+          </safeMotion.div>
+          <safeMotion.aside
             initial={reduceMotion ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -112,7 +112,7 @@ export function StoreOverviewSection() {
                 {language === "vi" ? "Nền tảng sơn & tư vấn màu" : "Paint & color platform"}
               </p>
             </div>
-          </motion.aside>
+          </safeMotion.aside>
         </div>
 
         {/* Article body columns */}
@@ -160,7 +160,7 @@ export function StoreOverviewSection() {
 
           <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
             {pillars.map((p, index) => (
-              <motion.div
+              <safeMotion.div
                 key={p.titleEn}
                 initial={reduceMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -183,7 +183,7 @@ export function StoreOverviewSection() {
                     {language === "vi" ? p.bodyVi : p.bodyEn}
                   </p>
                 </div>
-              </motion.div>
+              </safeMotion.div>
             ))}
           </div>
         </div>
@@ -214,3 +214,5 @@ export function StoreOverviewSection() {
     </section>
   );
 }
+
+

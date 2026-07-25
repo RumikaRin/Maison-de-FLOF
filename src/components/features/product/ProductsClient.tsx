@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { formatPrice } from "@/lib/utils";
@@ -17,7 +17,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 
 interface ProductsClientProps {
   initialPaints: any[];
@@ -217,7 +217,7 @@ export function ProductsClient({
   return (
     <div className="min-h-screen bg-jotun-ivory text-warm-900 transition-colors duration-300 pt-24 md:pt-32 pb-24">
       {/* Page header */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
@@ -234,7 +234,7 @@ export function ProductsClient({
               : "Search the ultimate protection solution and bring long-lasting beauty to your project."}
           </p>
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       <div className="container mx-auto px-4 sm:px-6 py-4 max-w-7xl relative z-10">
         {!commerceAvailable && (
@@ -337,7 +337,7 @@ export function ProductsClient({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
           {/* ── Desktop: sticky sidebar filter ── */}
-          <motion.aside
+          <safeMotion.aside
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1], delay: 0.1 }}
@@ -358,10 +358,10 @@ export function ProductsClient({
               )}
             </div>
             <FilterContent />
-          </motion.aside>
+          </safeMotion.aside>
 
           {/* ── Right: products ── */}
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1], delay: 0.15 }}
@@ -407,7 +407,7 @@ export function ProductsClient({
 
             {/* Cards grid */}
             {sortedProducts.length > 0 ? (
-              <motion.div
+              <safeMotion.div
                 key={selectedCategory + selectedSupplier + selectedFinish + searchQuery}
                 initial="hidden"
                 animate="visible"
@@ -416,7 +416,7 @@ export function ProductsClient({
               >
                 {sortedProducts.map((p) => {
                   return (
-                    <motion.div
+                    <safeMotion.div
                       key={p.id}
                       variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { ease: [0.32, 0.72, 0, 1], duration: 0.6 } } }}
                       className="h-full"
@@ -473,10 +473,10 @@ export function ProductsClient({
                           </div>
                         </div>
                       </Link>
-                    </motion.div>
+                    </safeMotion.div>
                   );
                 })}
-              </motion.div>
+              </safeMotion.div>
             ) : (
               <div className="bg-white border border-warm-200/80 rounded-2xl h-60 flex flex-col items-center justify-center text-center p-6 gap-3 shadow-sm">
                 <Search className="h-8 w-8 text-warm-300 mb-1" />
@@ -488,7 +488,7 @@ export function ProductsClient({
                 </button>
               </div>
             )}
-          </motion.div>
+          </safeMotion.div>
         </div>
       </div>
 
@@ -497,7 +497,7 @@ export function ProductsClient({
         {filterOpen && (
           <>
             {/* Backdrop */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -505,7 +505,7 @@ export function ProductsClient({
               onClick={() => setFilterOpen(false)}
             />
             {/* Sheet */}
-            <motion.div
+            <safeMotion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -543,10 +543,12 @@ export function ProductsClient({
                   {language === "vi" ? `Xem ${sortedProducts.length} sản phẩm` : `View ${sortedProducts.length} items`}
                 </button>
               </div>
-            </motion.div>
+            </safeMotion.div>
           </>
         )}
       </AnimatePresence>
     </div>
   );
 }
+
+

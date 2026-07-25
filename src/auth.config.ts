@@ -1,11 +1,12 @@
 import type { NextAuthConfig } from "next-auth";
+import { stripLocalePrefix } from "@/lib/locale";
 
 export const authConfig = {
   pages: {
     signIn: "/login",
   },
-  // Keep the edge-safe session mapping here so middleware authorization sees
-  // the role stored in the JWT. DB-backed role refresh remains in auth.ts.
+  // Keep the edge-safe session mapping here so middleware can make an initial
+  // routing decision. Server/API authorization validates the DB registry.
   callbacks: {
     session({ session, token }) {
       if (session.user) {
@@ -14,13 +15,16 @@ export const authConfig = {
           token.role === "ADMIN" || token.role === "STAFF" || token.role === "CUSTOMER"
             ? token.role
             : "CUSTOMER";
+        session.user.sessionId =
+          typeof token.sessionId === "string" ? token.sessionId : "";
       }
       return session;
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      const isOnProfile = nextUrl.pathname.startsWith("/profile");
+      const pathname = stripLocalePrefix(nextUrl.pathname).pathname;
+      const isOnAdmin = pathname.startsWith("/admin");
+      const isOnProfile = pathname.startsWith("/profile");
 
       if (isOnAdmin) {
         if (!isLoggedIn) return false;

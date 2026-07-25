@@ -3,16 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { CspImage as Image } from "@/components/ui/csp-image";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ChevronLeft, Minus, Plus, Trash2, Tag, ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 export default function CartPage() {
   const router = useRouter();
@@ -108,7 +109,7 @@ export default function CartPage() {
         </div>
 
         {items.length === 0 ? (
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -132,12 +133,12 @@ export default function CartPage() {
               <span>{language === "vi" ? "Mua sắm ngay" : "Shop Now"}</span>
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-white">→</span>
             </Link>
-          </motion.div>
+          </safeMotion.div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
             {/* ── LEFT: Cart Items ── */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -150,12 +151,12 @@ export default function CartPage() {
                     <span>{language === "vi" ? "🚚 Mua thêm để miễn phí giao hàng" : "🚚 Add more for free shipping"}</span>
                     <span className="font-bold text-[#88734C]">{formatPrice(amountNeededForFreeShipping)}</span>
                   </div>
-                  <div className="w-full h-1.5 bg-warm-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#88734C] rounded-full transition-all duration-500"
-                      style={{ width: `${progressToFreeShipping}%` }}
-                    />
-                  </div>
+                  <progress
+                    value={progressToFreeShipping}
+                    max={100}
+                    aria-label={language === "vi" ? "Tiến độ miễn phí giao hàng" : "Free shipping progress"}
+                    className="h-1.5 w-full overflow-hidden rounded-full bg-warm-100 accent-[#88734C]"
+                  />
                 </div>
               ) : (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-xs text-emerald-700 font-semibold">
@@ -173,7 +174,7 @@ export default function CartPage() {
                       : item.paint.price;
 
                     return (
-                      <motion.div
+                      <safeMotion.div
                         key={item.id}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -200,9 +201,9 @@ export default function CartPage() {
                                 </Link>
                                 {item.selectedColor && (
                                   <div className="flex items-center gap-1.5 mt-1">
-                                    <div
-                                      className="h-3 w-3 rounded-full border border-black/10 shrink-0"
-                                      style={{ backgroundColor: item.selectedColor.hex }}
+                                    <ColorSwatch
+                                      color={item.selectedColor.hex}
+                                      className="h-3 w-3 shrink-0 rounded-full border border-black/10"
                                     />
                                     <span className="text-[10px] font-medium text-warm-500 truncate">
                                       {language === "vi" ? item.selectedColor.name : item.selectedColor.nameEn} ({item.selectedColor.code})
@@ -262,7 +263,7 @@ export default function CartPage() {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
+                      </safeMotion.div>
                     );
                   })}
                 </AnimatePresence>
@@ -281,10 +282,10 @@ export default function CartPage() {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </safeMotion.div>
 
             {/* ── RIGHT: Summary & Coupon ── */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
@@ -306,7 +307,7 @@ export default function CartPage() {
                 </button>
                 <AnimatePresence>
                   {couponOpen && (
-                    <motion.div
+                    <safeMotion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -332,7 +333,7 @@ export default function CartPage() {
                         {couponError && <p className="text-red-500 text-[10px] mt-2 font-semibold">{couponError}</p>}
                         <p className="text-[10px] text-warm-400 mt-2">{language === "vi" ? "Thử: FLOF10 hoặc JOTUN100" : "Try: FLOF10 or JOTUN100"}</p>
                       </div>
-                    </motion.div>
+                    </safeMotion.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -386,7 +387,7 @@ export default function CartPage() {
                     : "100% genuine products from authorized distributors — 200% refund if counterfeit."}
                 </div>
               </div>
-            </motion.div>
+            </safeMotion.div>
           </div>
         )}
       </div>
@@ -410,3 +411,5 @@ export default function CartPage() {
     </div>
   );
 }
+
+

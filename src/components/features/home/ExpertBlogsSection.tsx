@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
 import { ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -56,7 +56,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
           {featured && (
-            <motion.article
+            <safeMotion.article
               initial={reduceMotion ? false : { opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
@@ -103,7 +103,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
                   </span>
                 </div>
               </Link>
-            </motion.article>
+            </safeMotion.article>
           )}
 
           <div className="lg:col-span-5 flex flex-col gap-4">
@@ -113,7 +113,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
                 language === "vi" ? blog.summary : blog.summaryEn || blog.summary;
 
               return (
-                <motion.article
+                <safeMotion.article
                   key={blog.id}
                   initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -152,7 +152,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
                       </p>
                     </div>
                   </Link>
-                </motion.article>
+                </safeMotion.article>
               );
             })}
           </div>
@@ -161,3 +161,5 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
     </section>
   );
 }
+
+

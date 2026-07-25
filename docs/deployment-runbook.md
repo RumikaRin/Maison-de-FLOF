@@ -1,6 +1,6 @@
 # Maison de FLOF Deployment Runbook
 
-Last verified against source and demo platforms: 25/07/2026
+Last verified against source and demo platforms: 26/07/2026
 
 ## Supported runtime
 
@@ -68,10 +68,13 @@ npm run lint
 npm run build
 npm run typecheck
 npm test
+npm run test:coverage
 npm run test:env
 npm run test:integration
 npm run test:e2e
+npm run test:load
 npm run test:openapi
+npm run test:bundle
 npm run test:lighthouse
 npx prisma validate
 npm audit --omit=dev --audit-level=high
@@ -193,10 +196,14 @@ Remove-Item Env:DATABASE_URL
 $restoreUrl = $null
 ```
 
-Review and deploy additive production migrations:
+Review and deploy additive production migrations. On 26/07/2026 the five P2/P3
+migrations were first applied to a temporary Neon branch, verified through
+metadata-only queries, then applied to production; production is now 13/13 and
+the temporary branch was deleted:
 
 ```powershell
-Get-Content -Raw prisma/migrations/20260724170000_reconcile_missing_schema_objects/migration.sql
+Get-ChildItem prisma/migrations -Directory | Sort-Object Name
+rg -n -i -g "migration.sql" "\b(drop|truncate|delete\s+from|alter\s+table.+drop)\b" prisma/migrations
 npx --yes vercel@latest env run -e production -- npm run db:status
 npx --yes vercel@latest env run -e production -- npm run db:migrate
 npx --yes vercel@latest env run -e production -- npm run db:status
@@ -207,6 +214,7 @@ npx --yes vercel@latest env run -e production -- npm run db:status
 The repository-owned `vercel.json` schedules:
 
 - `GET /api/cron/process-outbox` at `00:05 UTC` daily.
+- `GET /api/cron/apply-retention` at `00:35 UTC` daily.
 
 The call requires:
 

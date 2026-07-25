@@ -17,8 +17,8 @@ test("creates a stable error envelope with a request identifier", async () => {
     error: {
       code: "FORBIDDEN",
       message: "Forbidden",
-      requestId: "request-123",
     },
+    requestId: "request-123",
   });
 });
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
 import { Search, FileText, Printer, CheckCircle, Clock, XCircle, ShieldAlert } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { InvoiceModal } from "@/components/admin/InvoiceModal";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 
@@ -83,7 +83,7 @@ export default function AdminInvoicesPage() {
   return (
     <div className="flex flex-col gap-6 text-left">
       {/* Title */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -96,7 +96,7 @@ export default function AdminInvoicesPage() {
             ? "Xem danh sách giao dịch, truy xuất hóa đơn bán lẻ/VAT và chuẩn bị tài liệu in ấn gửi khách hàng."
             : "Review sales transactions, generate retail/VAT invoices, and prepare printable receipts for customers."}
         </p>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Tabs and Search Filters */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between border-b border-warm-200 pb-4">
@@ -118,7 +118,7 @@ export default function AdminInvoicesPage() {
                   }`}
               >
                 {isActive && (
-                  <motion.div
+                  <safeMotion.div
                     layoutId="activeInvoiceFilterTab"
                     className="absolute inset-0 bg-warm-900 rounded-xl z-0"
                     transition={{ type: "spring", stiffness: 600, damping: 42 }}
@@ -146,7 +146,7 @@ export default function AdminInvoicesPage() {
       </div>
 
       {/* Invoices List Table */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -206,7 +206,7 @@ export default function AdminInvoicesPage() {
             </span>
           </div>
         )}
-      </motion.div>
+      </safeMotion.div>
 
       {/* Invoice modal */}
       <InvoiceModal
@@ -220,3 +220,4 @@ export default function AdminInvoicesPage() {
     </div>
   );
 }
+

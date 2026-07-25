@@ -2,9 +2,9 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import { Facebook, MessageCircle, Send, X, User as UserIcon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { useLanguageStore } from "@/store/language-store";
 import { useSession } from "next-auth/react";
 
@@ -28,7 +28,7 @@ export function ChatBubble() {
   
   // Guest Form State
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ fullName: "", phone: "", email: "", message: "" });
+  const [form, setForm] = useState({ fullName: "", phone: "", email: "", message: "", privacyConsent: false });
   
   // Live Chat State
   const [messages, setMessages] = useState<Message[]>([]);
@@ -76,7 +76,7 @@ export function ChatBubble() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Không thể gửi tin nhắn");
       toast.success(language === "vi" ? "Đã gửi tin nhắn đến đội ngũ tư vấn." : "Message sent to our team.");
-      setForm({ fullName: "", phone: "", email: "", message: "" });
+      setForm({ fullName: "", phone: "", email: "", message: "", privacyConsent: false });
       setView("options");
       setOpen(false);
     } catch (error) {
@@ -129,7 +129,7 @@ export function ChatBubble() {
     <div className="fixed bottom-5 right-4 z-[70] flex flex-col items-end gap-3 sm:bottom-7 sm:right-7">
       <AnimatePresence>
         {open && (
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
@@ -181,6 +181,20 @@ export function ChatBubble() {
                   </div>
                   <p className="text-[9px] text-warm-450">{language === "vi" ? "Nhập số điện thoại hoặc email để chúng tôi phản hồi." : "Enter a phone number or email so we can respond."}</p>
                   <textarea required rows={4} value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder={language === "vi" ? "Bạn cần hỗ trợ điều gì? *" : "How can we help? *"} className="w-full resize-none rounded-xl border border-warm-200 p-3 text-xs outline-none focus:border-jotun-teal bg-white" />
+                  <label className="flex items-start gap-2 text-[10px] leading-4 text-warm-700">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={form.privacyConsent}
+                      onChange={(event) => setForm({ ...form, privacyConsent: event.target.checked })}
+                      className="mt-0.5 h-3.5 w-3.5 accent-jotun-teal"
+                    />
+                    <span>
+                      {language === "vi"
+                        ? "Tôi đồng ý để FLOF lưu thông tin liên hệ nhằm phản hồi yêu cầu này."
+                        : "I consent to FLOF storing my contact details to answer this request."}
+                    </span>
+                  </label>
                   <button disabled={submitting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-warm-950 px-4 py-3 text-xs font-bold text-white hover:bg-warm-850 disabled:opacity-50">
                     <Send className="h-3.5 w-3.5" />
                     {submitting ? (language === "vi" ? "Đang gửi..." : "Sending...") : (language === "vi" ? "Gửi đến quản trị viên" : "Send to administrator")}
@@ -238,11 +252,11 @@ export function ChatBubble() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
 
-      <motion.button
+      <safeMotion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => { setOpen((value) => !value); if (!open) setView("options"); }}
@@ -251,7 +265,8 @@ export function ChatBubble() {
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6" />}
         {!open && <span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400" />}
-      </motion.button>
+      </safeMotion.button>
     </div>
   );
 }
+

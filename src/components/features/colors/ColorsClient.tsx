@@ -12,10 +12,11 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 interface ColorsClientProps {
   initialColors: any[];
@@ -121,7 +122,7 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
   return (
     <div className="min-h-screen bg-jotun-ivory text-warm-900 transition-colors duration-300">
       {/* Page Header */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
@@ -136,11 +137,11 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
             {t.colorCatalogSub}
           </p>
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-10 text-left">
         {/* Filters */}
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1], delay: 0.1 }}
@@ -217,10 +218,10 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
               {filteredColors.length} {language === "vi" ? "màu sắc" : "colors"}
             </span>
           </div>
-        </motion.div>
+        </safeMotion.div>
 
         {/* Color Grid */}
-        <motion.div
+        <safeMotion.div
           key={selectedFamily + selectedTone + searchQuery}
           initial="hidden"
           animate="visible"
@@ -233,7 +234,7 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
             const isFav = favorites.includes(color.code);
             const colorName = language === "vi" ? color.name : (color.nameEn || color.name);
             return (
-              <motion.div
+              <safeMotion.div
                 key={color.code}
                 variants={{
                   hidden: { opacity: 0, scale: 0.95, y: 12 },
@@ -243,10 +244,11 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
                 onClick={() => setSelectedColor(color)}
                 className="bg-white rounded-2xl border border-warm-200/80 hover:border-[#88734C]/40 p-3 flex flex-col gap-3 group cursor-pointer hover:shadow-md transition-all duration-300"
               >
-                <div
-                  className="h-28 rounded-xl border border-black/5 flex items-center justify-center relative shadow-inner"
-                  style={{ backgroundColor: color.hex }}
-                >
+                <div className="h-28 rounded-xl border border-black/5 flex items-center justify-center relative shadow-inner overflow-hidden">
+                  <ColorSwatch
+                    color={color.hex}
+                    className="absolute inset-0 h-full w-full"
+                  />
                   <button
                     type="button"
                     aria-label={
@@ -274,10 +276,10 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
                   </h4>
                   <div className="w-6 h-0.5 bg-transparent mt-2 group-hover:bg-[#88734C] group-hover:w-12 transition-all duration-300" />
                 </div>
-              </motion.div>
+              </safeMotion.div>
             );
           })}
-        </motion.div>
+        </safeMotion.div>
 
         {filteredColors.length === 0 && (
           <div className="text-center py-20 text-warm-400">
@@ -297,3 +299,4 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
     </div>
   );
 }
+

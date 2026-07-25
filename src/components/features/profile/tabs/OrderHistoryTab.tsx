@@ -1,10 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { formatPrice } from "@/lib/utils";
+import type { ProfileOrder, ProfileOrderItem } from "../types";
 
 interface OrderHistoryTabProps {
-  orders: any[];
+  orders: ProfileOrder[];
   language: string;
 }
 
@@ -33,7 +34,7 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
   };
 
   return (
-    <motion.div
+    <safeMotion.div
       key="history"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -62,7 +63,7 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
                       {typeof ord.items === "string"
                         ? ord.items
                         : Array.isArray(ord.items)
-                          ? ord.items.map((i: any) => typeof i === "string" ? i : `${i.paint?.name || i.name || (language === "vi" ? "Sản phẩm" : "Paint")} x ${i.quantity || 1}`).join(", ")
+                          ? ord.items.map((i: string | ProfileOrderItem) => typeof i === "string" ? i : `${i.paint?.name || i.name || (language === "vi" ? "Sản phẩm" : "Paint")} x ${i.quantity || 1}`).join(", ")
                           : JSON.stringify(ord.items || "")}
                     </p>
                     <span className="text-[10px] text-warm-500 flex items-center gap-1 mt-1 font-mono">
@@ -88,6 +89,7 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
           )}
         </div>
       </div>
-    </motion.div>
+    </safeMotion.div>
   );
 }
+

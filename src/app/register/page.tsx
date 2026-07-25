@@ -7,7 +7,7 @@ import { signIn } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 
@@ -21,12 +21,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || !privacyConsent) {
       toast.error(
         language === "vi" ? "Vui lòng nhập đầy đủ các thông tin." : "Please enter all required details."
       );
@@ -51,7 +52,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, privacyConsent }),
       });
 
       const data = await res.json();
@@ -68,9 +69,11 @@ export default function RegisterPage() {
       }
 
       toast.success(
-        language === "vi" ? "Đăng ký tài khoản thành công!" : "Account created successfully!"
+        language === "vi"
+          ? "Tài khoản đã được tạo. Hãy kiểm tra email để xác minh."
+          : "Account created. Check your email to verify it."
       );
-      router.push("/login");
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       toast.error(
         language === "vi" ? "Lỗi kết nối đến máy chủ." : "Connection error."
@@ -139,7 +142,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-jotun-teal hover:text-warm-850"
+                className="absolute right-1 top-1/2 min-h-11 min-w-11 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-jotun-teal hover:text-warm-850"
               >
                 {showPassword ? (language === "vi" ? "[Ẩn]" : "[Hide]") : (language === "vi" ? "[Hiện]" : "[Show]")}
               </button>
@@ -162,6 +165,21 @@ export default function RegisterPage() {
               className="px-3.5 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all text-warm-800"
             />
           </div>
+
+          <label className="flex items-start gap-2 text-xs leading-5 text-warm-700">
+            <input
+              type="checkbox"
+              checked={privacyConsent}
+              onChange={(event) => setPrivacyConsent(event.target.checked)}
+              required
+              className="mt-1 h-4 w-4 accent-jotun-teal"
+            />
+            <span>
+              {language === "vi"
+                ? "Tôi đồng ý để FLOF xử lý dữ liệu tài khoản và đơn hàng theo chính sách quyền riêng tư."
+                : "I consent to FLOF processing account and order data under the privacy policy."}
+            </span>
+          </label>
 
           <button
             type="submit"

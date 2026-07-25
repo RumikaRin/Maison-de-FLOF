@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
 import { useCartStore } from "@/store/cart-store";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { Paint, PaintColor } from "@/types";
 import { useSession } from "next-auth/react";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import {
   canAddCatalogItemToCart,
   type CatalogAvailability,
@@ -155,7 +155,7 @@ export function HomeClient({
     return (
       <div className="relative w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[70vh] flex flex-col items-center justify-center px-6 py-20 text-center gap-6">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
@@ -186,7 +186,7 @@ export function HomeClient({
           >
             {language === "vi" ? "Thử lại kết nối" : "Retry Connection"}
           </button>
-        </motion.div>
+        </safeMotion.div>
       </div>
     );
   }
@@ -233,3 +233,4 @@ export function HomeClient({
     </div>
   );
 }
+

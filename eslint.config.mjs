@@ -15,5 +15,13 @@ export default defineConfig([
       "react/no-unescaped-entities": "off",
     },
   },
-  globalIgnores([".next/**", "node_modules/**", "prisma/migrations/**", "next-env.d.ts", "tools/**"]),
+  globalIgnores([
+    ".next/**",
+    "node_modules/**",
+    "playwright-report/**",
+    "test-results/**",
+    "prisma/migrations/**",
+    "next-env.d.ts",
+    "tools/**",
+  ]),
 ]);

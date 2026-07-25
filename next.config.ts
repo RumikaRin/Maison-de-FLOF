@@ -1,6 +1,26 @@
 import type { NextConfig } from "next";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
+const cspAnnouncer = fileURLToPath(
+  new URL("./src/components/csp-app-router-announcer.tsx", import.meta.url),
+);
+const announcerAliases = [
+  require.resolve("next/dist/client/components/app-router-announcer"),
+  require.resolve("next/dist/esm/client/components/app-router-announcer"),
+];
 
 const nextConfig: NextConfig = {
+  webpack(config) {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      ...Object.fromEntries(
+        announcerAliases.map((modulePath) => [modulePath, cspAnnouncer]),
+      ),
+    };
+    return config;
+  },
   async headers() {
     return [
       {

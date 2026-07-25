@@ -288,7 +288,7 @@
 }
 
 .admin-shell main thead th {
-  color: #8a7d6e;
+  color: #4d4339;
   font-size: 0.625rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -507,4 +507,16 @@ body:has(.fullscreen-loader) main {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+next-route-announcer,
+next-route-announcer > div {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

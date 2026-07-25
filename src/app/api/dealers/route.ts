@@ -2,12 +2,19 @@ import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { parsePagination, PaginationError } from "@/lib/pagination";
+import { jsonApiError } from "@/lib/api-error-contract";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 export async function GET(request: NextRequest) {
   try {
     const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return jsonApiError(
+        request,
+        429,
+        "TOO_MANY_REQUESTS",
+        "Too many requests",
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -64,9 +71,16 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof PaginationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return jsonApiError(
+        request,
+        400,
+        "BAD_REQUEST",
+        error.message,
+      );
     }
-    console.error("Failed to fetch dealers:", error);
+    writeOperationalLog("warn", "dealers.database_fallback", {
+      fallback: "empty",
+    });
     return NextResponse.json([]);
   }
 }

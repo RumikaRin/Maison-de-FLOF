@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { ProfileSidebar } from "./ProfileSidebar";
@@ -15,6 +15,16 @@ import { PersonalInfoTab } from "./tabs/PersonalInfoTab";
 import { PasswordTab } from "./tabs/PasswordTab";
 import { AddressBookTab } from "./tabs/AddressBookTab";
 import { SavedColorsTab } from "./tabs/SavedColorsTab";
+import { SessionsTab } from "./tabs/SessionsTab";
+import { PrivacyTab } from "./tabs/PrivacyTab";
+import { AsyncState } from "@/components/ui/AsyncState";
+import type {
+  FavoriteProduct,
+  ProfileAddress,
+  ProfileColor,
+  ProfileOrder,
+  ProfileTab,
+} from "./types";
 
 interface UserSession {
   email: string;
@@ -28,10 +38,13 @@ export function ProfileClient() {
 
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
-  const [activeTab, setActiveTab] = useState<"history" | "profile" | "password" | "addresses" | "favorites">("history");
+  const [profileStatus, setProfileStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("history");
   const [wishlistColors, setWishlistColors] = useState<string[]>([]);
-  const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
-  const [selectedColor, setSelectedColor] = useState<any | null>(null);
+  const [wishlistProducts, setWishlistProducts] = useState<FavoriteProduct[]>([]);
+  const [selectedColor, setSelectedColor] = useState<ProfileColor | null>(null);
 
   // Profile Form state
   const [profileName, setProfileName] = useState("");
@@ -44,10 +57,10 @@ export function ProfileClient() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<ProfileOrder[]>([]);
 
   // Address book state
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<ProfileAddress[]>([]);
   const [isAddingAddr, setIsAddingAddr] = useState(false);
   const [addrId, setAddrId] = useState("");
   const [addrName, setAddrName] = useState("");
@@ -59,8 +72,26 @@ export function ProfileClient() {
 
   const { data: authSession, status: authStatus } = useSession();
 
-  function syncProfileAddressFromDefault(addrs: any[]) {
-    const defaultAddress = addrs.find((address: any) => address.isDefault);
+  const loadProfile = useCallback(async () => {
+    setProfileStatus("loading");
+    try {
+      const response = await fetch("/api/profile");
+      if (!response.ok) throw new Error("PROFILE_FETCH_FAILED");
+      const profile = (await response.json()) as UserSession & {
+        phone?: string | null;
+      };
+      setUser(profile);
+      setProfileName(profile.name || "");
+      setProfileEmail(profile.email || "");
+      setProfilePhone(profile.phone || "");
+      setProfileStatus("ready");
+    } catch {
+      setProfileStatus("error");
+    }
+  }, []);
+
+  function syncProfileAddressFromDefault(addrs: ProfileAddress[]) {
+    const defaultAddress = addrs.find((address) => address.isDefault);
     if (defaultAddress) {
       setProfileAddress(
         [defaultAddress.address, defaultAddress.district, defaultAddress.province]
@@ -89,15 +120,8 @@ export function ProfileClient() {
       }
     };
 
-    // Fetch primary user profile first to render the page quickly
-    fetchJson("/api/profile").then((profile) => {
-      if (profile) {
-        setUser(profile);
-        setProfileName(profile.name || "");
-        setProfileEmail(profile.email || "");
-        setProfilePhone(profile.phone || "");
-      }
-    });
+    // Fetch primary user profile first to render the page quickly.
+    void loadProfile();
 
     // Fetch other data in parallel without blocking user profile
     Promise.all([
@@ -114,10 +138,35 @@ export function ProfileClient() {
       if (Array.isArray(favorites)) setWishlistColors(favorites);
       if (Array.isArray(favoriteProducts)) setWishlistProducts(favoriteProducts);
     });
-  }, [router, authSession, authStatus]);
+  }, [router, authSession, authStatus, loadProfile]);
 
   if (!mounted) return null;
-  if (!user) return null;
+  if (profileStatus === "loading" || authStatus === "loading") {
+    return (
+      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="loading"
+          title={language === "vi" ? "Đang tải hồ sơ…" : "Loading profile…"}
+        />
+      </div>
+    );
+  }
+  if (profileStatus === "error" || !user) {
+    return (
+      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+        <AsyncState
+          status="error"
+          title={
+            language === "vi"
+              ? "Không thể tải hồ sơ"
+              : "Unable to load profile"
+          }
+          retryLabel={language === "vi" ? "Thử lại" : "Retry"}
+          onRetry={() => void loadProfile()}
+        />
+      </div>
+    );
+  }
 
   const handleToggleFavoriteColor = async (code: string) => {
     const previous = wishlistColors;
@@ -267,7 +316,7 @@ export function ProfileClient() {
     setAddrIsDefault(false);
   };
 
-  const handleEditAddress = (addr: any) => {
+  const handleEditAddress = (addr: ProfileAddress) => {
     setAddrId(addr.id);
     setAddrName(addr.name);
     setAddrPhone(addr.phone);
@@ -325,7 +374,7 @@ export function ProfileClient() {
         />
 
         {/* Right column settings panels */}
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
@@ -400,6 +449,9 @@ export function ProfileClient() {
             />
           )}
 
+          {activeTab === "sessions" && <SessionsTab language={language} />}
+          {activeTab === "privacy" && <PrivacyTab language={language} />}
+
           {/* Color Detail Side Panel */}
           <ColorDetailDrawer
             selectedColor={selectedColor}
@@ -408,8 +460,9 @@ export function ProfileClient() {
             onToggleFavorite={handleToggleFavoriteColor}
             language={language}
           />
-        </motion.div>
+        </safeMotion.div>
       </div>
     </div>
   );
 }
+

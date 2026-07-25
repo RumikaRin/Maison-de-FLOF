@@ -2,7 +2,7 @@
 
 import { CustomSelect } from "@/components/ui/custom-select";
 import { User, Phone, MapPin, CreditCard, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 
 interface CheckoutFormProps {
   language: string;
