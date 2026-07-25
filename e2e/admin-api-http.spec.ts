@@ -198,3 +198,97 @@ test("a public quote can be created and advanced by ADMIN", async ({ page }) => 
     }),
   ).resolves.toBe(1);
 });
+
+test("customer and ADMIN can complete a support conversation through HTTP", async ({
+  page,
+}) => {
+  const customerContent = `integration-http-chat-customer-${Date.now()}`;
+  const adminContent = `integration-http-chat-admin-${Date.now()}`;
+
+  await loginAsCustomer(page);
+  const customerResponse = await page.request.post("/api/chat/conversation", {
+    data: { content: customerContent },
+  });
+  expect(customerResponse.status()).toBe(201);
+  const customerPayload = (await customerResponse.json()) as {
+    message: { conversationId: string };
+  };
+  const conversationId = customerPayload.message.conversationId;
+
+  const conversationResponse = await page.request.get(
+    "/api/chat/conversation",
+  );
+  expect(conversationResponse.status()).toBe(200);
+  const customerConversation = (await conversationResponse.json()) as {
+    id: string;
+    messages: Array<{ content: string; isAdmin: boolean }>;
+  };
+  expect(customerConversation.id).toBe(conversationId);
+  expect(customerConversation.messages).toEqual([
+    expect.objectContaining({
+      content: customerContent,
+      isAdmin: false,
+    }),
+  ]);
+
+  const resetUser = await database.user.findUniqueOrThrow({
+    where: { email: TEST_FIXTURES.resetEmail },
+    select: { id: true },
+  });
+  await expect(
+    database.conversation.findUnique({
+      where: { userId: resetUser.id },
+    }),
+  ).resolves.toBeNull();
+
+  await page.context().clearCookies();
+  await loginAsAdmin(page);
+  const replyResponse = await page.request.post(
+    "/api/admin/chat/conversations",
+    {
+      data: {
+        conversationId,
+        content: adminContent,
+      },
+    },
+  );
+  expect(replyResponse.status()).toBe(201);
+  const replyPayload = (await replyResponse.json()) as {
+    message: { isAdmin: boolean; content: string };
+  };
+  expect(replyPayload.message).toMatchObject({
+    isAdmin: true,
+    content: adminContent,
+  });
+
+  const staffReadResponse = await page.request.get(
+    `/api/admin/chat/conversations/${encodeURIComponent(conversationId)}`,
+  );
+  expect(staffReadResponse.status()).toBe(200);
+  const staffConversation = (await staffReadResponse.json()) as {
+    messages: Array<{ content: string; isAdmin: boolean; isRead: boolean }>;
+  };
+  expect(staffConversation.messages).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        content: customerContent,
+        isAdmin: false,
+        isRead: true,
+      }),
+      expect.objectContaining({
+        content: adminContent,
+        isAdmin: true,
+      }),
+    ]),
+  );
+  await expect(
+    database.auditLog.findMany({
+      where: { entityType: "Conversation", entityId: conversationId },
+      orderBy: { createdAt: "asc" },
+      select: { action: true },
+    }),
+  ).resolves.toEqual([
+    { action: "CHAT_REPLY_SENT" },
+    { action: "CHAT_CONVERSATION_READ" },
+  ]);
+});
