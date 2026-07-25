@@ -43,6 +43,7 @@ function operationId(operation: ApiOperation) {
 function requiresSession(pathname: string, method: ApiOperation["method"]) {
   if (pathname.startsWith("/api/admin/")) return true;
   if (pathname.startsWith("/api/profile")) return true;
+  if (pathname.startsWith("/api/visualizer/designs")) return true;
   if (pathname === "/api/orders") return true;
   if (pathname === "/api/orders/{orderNumber}") return true;
   if (pathname === "/api/reviews" && method === "post") return true;

@@ -113,6 +113,16 @@ export async function exportUserData(database: PrismaClient, userId: string) {
           },
         },
       },
+      visualizerDesigns: {
+        select: {
+          id: true,
+          roomId: true,
+          name: true,
+          palette: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
       customer: {
         select: {
           id: true,
@@ -218,6 +228,7 @@ export async function exportUserData(database: PrismaClient, userId: string) {
     reviews,
     notifications,
     conversation,
+    visualizerDesigns,
     role,
     ...profile
   } = user;
@@ -228,6 +239,7 @@ export async function exportUserData(database: PrismaClient, userId: string) {
     reviews,
     notifications,
     conversation,
+    visualizerDesigns,
     customer: customer
       ? {
           id: customer.id,
@@ -353,6 +365,7 @@ export async function anonymizeUserData(
     await transaction.authSession.deleteMany({ where: { userId } });
     await transaction.mfaCredential.deleteMany({ where: { userId } });
     await transaction.notification.deleteMany({ where: { userId } });
+    await transaction.visualizerDesign.deleteMany({ where: { userId } });
     await transaction.conversation.deleteMany({ where: { userId } });
     await transaction.address.deleteMany({ where: { userId } });
 

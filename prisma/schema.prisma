@@ -105,10 +105,10 @@ model Role {
 }
 
 model User {
-  id                  String         @id @default(cuid())
-  email               String         @unique
+  id                  String             @id @default(cuid())
+  email               String             @unique
   emailVerified       DateTime?
-  sessionVersion      Int            @default(0)
+  sessionVersion      Int                @default(0)
   password            String?
   name                String?
   phone               String?
@@ -116,7 +116,7 @@ model User {
   privacyConsentAt    DateTime?
   deletionRequestedAt DateTime?
   roleId              String
-  role                Role           @relation(fields: [roleId], references: [id])
+  role                Role               @relation(fields: [roleId], references: [id])
   customer            Customer?
   addresses           Address[]
   reviews             Review[]
@@ -127,8 +127,9 @@ model User {
   authSessions        AuthSession[]
   mfaCredential       MfaCredential?
   conversation        Conversation?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  visualizerDesigns   VisualizerDesign[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   @@index([roleId])
 }
@@ -692,4 +693,34 @@ model Message {
 
   @@index([conversationId])
   @@index([createdAt])
+}
+
+model VisualizerRoom {
+  id        String             @id @default(cuid())
+  slug      String             @unique
+  name      String
+  nameEn    String
+  baseImage String
+  isActive  Boolean            @default(true)
+  sortOrder Int                @default(0)
+  designs   VisualizerDesign[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model VisualizerDesign {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roomId    String
+  room      VisualizerRoom @relation(fields: [roomId], references: [id])
+  name      String
+  palette   Json
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId, updatedAt])
+  @@index([roomId])
 }

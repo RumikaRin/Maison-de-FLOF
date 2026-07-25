@@ -3023,6 +3023,180 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/visualizer/designs:
+    get:
+      operationId: getVisualizerDesigns
+      summary: GET /api/visualizer/designs
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postVisualizerDesigns
+      summary: POST /api/visualizer/designs
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a23
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a23
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/visualizer/designs/{id}:
+    get:
+      operationId: getVisualizerDesignsById
+      summary: GET /api/visualizer/designs/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+    patch:
+      operationId: patchVisualizerDesignsById
+      summary: PATCH /api/visualizer/designs/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteVisualizerDesignsById
+      summary: DELETE /api/visualizer/designs/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+  /api/visualizer/rooms:
+    get:
+      operationId: getVisualizerRooms
+      summary: GET /api/visualizer/rooms
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/vnpay/ipn:
     get:
       operationId: getVnpayIpn

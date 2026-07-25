@@ -8,14 +8,14 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - Database: PostgreSQL, schema `public`.
 - ORM: Prisma 6.
 - Khóa chính: tất cả model nghiệp vụ dùng `String @id @default(cuid())`, ngoại trừ `VerificationToken` dùng composite key.
-- Schema hiện có: **34 model**, **12 enum**, **11 migration trong repository**.
+- Schema hiện có: **36 model**, **12 enum**, **12 migration trong repository**.
 - `npx prisma validate`: pass.
 - `prisma migrate status`: database schema up to date.
 - Neon production: 17/17 CHECK constraint từ migration invariant đã installed + validated; hậu kiểm có 0 row vi phạm.
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
-- PostgreSQL test cô lập đã áp dụng đủ 11 migration; các DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow, commerce concurrency và privacy lifecycle.
+- PostgreSQL test cô lập đã áp dụng đủ 12 migration; các DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow, commerce concurrency, privacy lifecycle và ownership của thiết kế phối màu.
 - Migration reconciliation thứ 8 là idempotent. Bằng chứng P0 ghi nhận migration history production đã được reconcile; P1 không thay đổi schema và không mutate Neon.
 
 ## Enums
@@ -40,7 +40,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | Model | Khóa/field chính | Quan hệ | Constraint/index | Mục đích |
 |---|---|---|---|---|
 | Role | `id`, `name`, `type` | 1-N User | `type` unique | Danh mục vai trò |
-| User | `id`, `email`, `password?`, `name?`, `phone?`, `privacyConsentAt?`, `deletionRequestedAt?`, `roleId` | Role; Customer; Address; Review; Account; Session; AuthSession; MfaCredential; Blog; Notification; Conversation | email unique; index roleId | Tài khoản đăng nhập và mốc privacy lifecycle |
+| User | `id`, `email`, `password?`, `name?`, `phone?`, `privacyConsentAt?`, `deletionRequestedAt?`, `roleId` | Role; Customer; Address; Review; Account; Session; AuthSession; MfaCredential; Blog; Notification; Conversation; VisualizerDesign | email unique; index roleId | Tài khoản đăng nhập và mốc privacy lifecycle |
 | Account | provider/account/token fields | N-1 User | unique provider+providerAccountId; index userId; cascade | OAuth account Auth.js |
 | Session | `sessionToken`, `expires`, `userId` | N-1 User | token unique; index userId; cascade | Auth.js DB session compatibility; app dùng JWT |
 | VerificationToken | `identifier`, `token`, `expires` | Không FK | token unique; composite PK/unique | Token verification/password reset hash |
@@ -71,6 +71,8 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | EmailOutbox | type/payload/status/error/retry/nextRetry/date | Không FK | index status+nextRetry | Hàng đợi email |
 | Conversation | userId/status/date | User; Messages | userId unique; index status; cascade | Hội thoại authenticated |
 | Message | conversationId/senderId/isAdmin/content/isRead/date | Conversation | indexes conversation/date; conversation cascade | Tin nhắn hội thoại |
+| VisualizerRoom | slug/name/nameEn/baseImage/active/sort | VisualizerDesign | slug unique; index active+sort | Phòng nền được quản trị cho công cụ phối màu |
+| VisualizerDesign | userId/roomId/name/palette | User; VisualizerRoom | indexes user+updatedAt và room; user cascade | Bản phối màu riêng tư do customer lưu |
 
 ## Invariant và ownership từ application
 
@@ -120,3 +122,4 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | `20260726130000_auth_session_registry` | Registry session thu hồi được và `User.sessionVersion` |
 | `20260726140000_admin_mfa` | TOTP MFA credential, ciphertext và recovery hashes |
 | `20260726150000_privacy_and_inventory_reference` | Consent/deletion timestamps, guest consent, inventory reference discriminator và backfill additive |
+| `20260726160000_visualizer_projects` | Phòng phối màu được seed idempotent và thiết kế phối màu có ownership theo user |
