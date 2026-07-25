@@ -79,7 +79,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 950000.00,
     costPrice: 600000.00,
     stock: 45,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "1002", "2001", "2002", "3001", "3004", "7002", "8001", "6005"],
   },
   {
@@ -107,7 +107,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 2650000.00,
     costPrice: 1800000.00,
     stock: 20,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "1002", "2001", "2002", "3001", "3002", "3004"],
   },
   {
@@ -135,7 +135,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1100000.00,
     costPrice: 750000.00,
     stock: 35,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "1002", "2001", "2002", "3001", "7002", "8002", "6005"],
   },
   {
@@ -163,7 +163,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 850000.00,
     costPrice: 550000.00,
     stock: 40,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2001", "2002", "3001", "7002", "8002", "6005"],
   },
   {
@@ -191,7 +191,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 750000.00,
     costPrice: 500000.00,
     stock: 30,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2001", "2002", "3001", "3004"],
   },
   {
@@ -219,7 +219,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 780000.00,
     costPrice: 520000.00,
     stock: 25,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2001", "2002", "3001", "3002"],
   },
 
@@ -251,7 +251,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1350000.00,
     costPrice: 900000.00,
     stock: 50,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2002", "3002", "3003", "4002", "5002", "8002", "9002"],
   },
   {
@@ -279,7 +279,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1280000.00,
     costPrice: 850000.00,
     stock: 35,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2002", "3002", "3003", "4003", "8002"],
   },
   {
@@ -307,7 +307,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1180000.00,
     costPrice: 780000.00,
     stock: 30,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2002", "3002", "3003"],
   },
   {
@@ -335,7 +335,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 990000.00,
     costPrice: 650000.00,
     stock: 40,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2002", "3002", "3003"],
   },
   {
@@ -363,7 +363,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1050000.00,
     costPrice: 700000.00,
     stock: 35,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "1001", "2002", "3002", "3003"],
   },
 
@@ -395,7 +395,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 450000.00,
     costPrice: 300000.00,
     stock: 60,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001"],
   },
   {
@@ -423,7 +423,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 580000.00,
     costPrice: 380000.00,
     stock: 50,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001"],
   },
   {
@@ -451,7 +451,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 490000.00,
     costPrice: 320000.00,
     stock: 45,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001"],
   },
   {
@@ -479,7 +479,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 460000.00,
     costPrice: 310000.00,
     stock: 55,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001"],
   },
   {
@@ -507,7 +507,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 480000.00,
     costPrice: 330000.00,
     stock: 40,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001"],
   },
 
@@ -539,7 +539,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1850000.00,
     costPrice: 1300000.00,
     stock: 30,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["3001", "3002"],
   },
   {
@@ -567,7 +567,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 820000.00,
     costPrice: 550000.00,
     stock: 35,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["3001", "3002"],
   },
   {
@@ -595,7 +595,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 690000.00,
     costPrice: 450000.00,
     stock: 40,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["3001", "3002"],
   },
   {
@@ -623,7 +623,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1680000.00,
     costPrice: 1100000.00,
     stock: 25,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["3001", "3002"],
   },
   {
@@ -651,7 +651,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1720000.00,
     costPrice: 1150000.00,
     stock: 30,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["3001", "3002"],
   },
 
@@ -683,7 +683,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 230000.00,
     costPrice: 150000.00,
     stock: 80,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "3003", "4002", "6001", "8002", "9001"],
   },
   {
@@ -711,7 +711,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 180000.00,
     costPrice: 120000.00,
     stock: 90,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "3003", "4002", "9001"],
   },
   {
@@ -739,7 +739,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 195000.00,
     costPrice: 130000.00,
     stock: 75,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "3003", "4002", "9001"],
   },
   {
@@ -767,7 +767,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 190000.00,
     costPrice: 125000.00,
     stock: 85,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "3003", "4002", "9001"],
   },
   {
@@ -795,7 +795,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 185000.00,
     costPrice: 120000.00,
     stock: 70,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["0001", "3003", "4002", "9001"],
   },
 
@@ -827,7 +827,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1850000.00,
     costPrice: 1200000.00,
     stock: 15,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["1001", "2002", "3004", "7002", "8002", "6005"],
   },
   {
@@ -855,7 +855,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1950000.00,
     costPrice: 1300000.00,
     stock: 10,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["2001", "2002", "4002"],
   },
   {
@@ -883,7 +883,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1750000.00,
     costPrice: 1100000.00,
     stock: 12,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["1001", "2001", "3004"],
   },
   {
@@ -911,7 +911,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1450000.00,
     costPrice: 950000.00,
     stock: 18,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["3002", "3003", "8002"],
   },
   {
@@ -939,7 +939,7 @@ export const MOCK_PAINTS: Paint[] = [
     price: 1550000.00,
     costPrice: 1000000.00,
     stock: 22,
-    images: ["/product_interior.png"],
+    images: ["/product_interior.webp"],
     colors: ["3002", "3003", "8002"],
   }
 ];

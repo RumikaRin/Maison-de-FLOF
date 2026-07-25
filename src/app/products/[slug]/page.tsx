@@ -110,7 +110,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     price: Number(product.price),
     discountPercent: product.discountPercent,
     stock: product.stock,
-    images: product.images,
+    images: (() => {
+      const list = Array.isArray(product.images)
+        ? product.images.filter((src: unknown) => typeof src === "string" && src.trim().length > 0)
+        : [];
+      return list.length > 0 ? list : ["/product_interior.webp"];
+    })(),
     isFeatured: product.isFeatured,
     soldCount: product.soldCount,
     colors: product.colors.map((link) => link.color.code),

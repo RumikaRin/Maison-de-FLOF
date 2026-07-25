@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ChevronLeft } from "lucide-react";
 import { CheckoutSuccess } from "./CheckoutSuccess";
 import { CheckoutForm } from "./CheckoutForm";
@@ -139,7 +140,7 @@ export function CheckoutClient() {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Không thể tạo đơn hàng");
+        throw new Error(getApiErrorMessage(data, "Không thể tạo đơn hàng"));
       }
 
       clearCart();

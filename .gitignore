@@ -5,6 +5,10 @@
 
 # testing
 /coverage
+/.playwright-cli/
+/playwright-report/
+/test-results/
+/.lighthouseci/
 
 # next.js
 /.next/
@@ -34,4 +38,12 @@ yarn-error.log*
 
 # agent / AI tools
 .agent
+
+# security scanners and cloned tools
+/tools/skillspector/
+
+# report files and documents
+/reports/
+/PROJECT_AUDIT_REPORT_VI.md
+/PROJECT_ROADMAP_VI.md
 

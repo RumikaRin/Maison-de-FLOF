@@ -10,9 +10,16 @@ import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
 import { Toaster } from "sonner";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
-import { ChatBubble } from "@/components/layout/ChatBubble";
+import { LazyChatBubble } from "@/components/layout/LazyChatBubble";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { shouldEnableVercelTelemetry } from "@/lib/vercel-runtime";
 import "./globals.css";
+
+// A strict per-request CSP nonce requires dynamic rendering so Next.js can
+// attach the nonce to every framework and application script.
+export const dynamic = "force-dynamic";
 
 const noto = Noto_Sans({
   subsets: ["vietnamese"],
@@ -48,6 +55,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const enableVercelTelemetry = shouldEnableVercelTelemetry({
+    VERCEL: process.env.VERCEL,
+  });
+
   return (
     <html lang="vi" suppressHydrationWarning>
       <body
@@ -96,10 +107,16 @@ export default function RootLayout({
                 }}
               />
               <ScrollToTop />
-              <ChatBubble />
+              <LazyChatBubble />
               <Suspense fallback={null}>
                 <GlobalNavigationLoader />
               </Suspense>
+              {enableVercelTelemetry ? (
+                <>
+                  <Analytics />
+                  <SpeedInsights />
+                </>
+              ) : null}
             </ThemeProvider>
           </QueryProvider>
         </SessionProvider>

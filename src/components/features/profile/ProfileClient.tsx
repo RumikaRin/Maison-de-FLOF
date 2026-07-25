@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
+import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { ProfileSidebar } from "./ProfileSidebar";
 import { OrderHistoryTab } from "./tabs/OrderHistoryTab";
@@ -176,7 +178,9 @@ export function ProfileClient() {
         body: JSON.stringify({ name: profileName, phone: profilePhone }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể cập nhật hồ sơ");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể cập nhật hồ sơ"));
+      }
       setUser(data);
       toast.success(language === "vi" ? "Cập nhật thông tin thành công!" : "Profile updated successfully!");
     } catch (error) {
@@ -192,6 +196,10 @@ export function ProfileClient() {
     }
     if (newPassword !== confirmPassword) {
       toast.error(language === "vi" ? "Mật khẩu mới không trùng khớp" : "New passwords do not match");
+      return;
+    }
+    if (!isPasswordStrong(newPassword)) {
+      toast.error(passwordPolicyMessage(language === "vi" ? "vi" : "en"));
       return;
     }
     try {

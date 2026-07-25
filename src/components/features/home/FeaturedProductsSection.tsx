@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Star } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ArrowRight, ShoppingBag } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 import { cn, formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { Paint, PaintColor } from "@/types";
 
 interface FeaturedProductsSectionProps {
@@ -16,70 +17,89 @@ interface FeaturedProductsSectionProps {
   paints: (Paint & { supplier?: { name: string }; soldCount?: number })[];
   colorCatalog: PaintColor[];
   handleAddToCart: (prod: any) => void;
+  commerceAvailable: boolean;
 }
 
+/**
+ * Shop-style product grid (coffee "online store" + Aura furniture ecom):
+ * soft card plates, clear price hierarchy, add-to-cart affordance.
+ */
 export function FeaturedProductsSection({
   activeTab,
   setActiveTab,
   isTabLoading,
   setIsTabLoading,
   paints,
-  colorCatalog,
-  handleAddToCart
+  handleAddToCart,
+  commerceAvailable,
 }: FeaturedProductsSectionProps) {
   const { language } = useLanguageStore();
+  const reduceMotion = useReducedMotion();
+
+  const tabs = [
+    { value: "bestseller" as const, label: language === "vi" ? "Bán chạy" : "Bestsellers" },
+    { value: "new" as const, label: language === "vi" ? "Mới" : "New" },
+    { value: "promo" as const, label: language === "vi" ? "Khuyến mãi" : "Promos" },
+  ];
+
+  const list = [...paints]
+    .filter((paint) => activeTab !== "promo" || (paint.discountPercent || 0) > 0)
+    .sort((a, b) =>
+      activeTab === "bestseller" ? (b.soldCount || 0) - (a.soldCount || 0) : 0,
+    )
+    .slice(0, 6);
 
   return (
-    <section className="py-16 md:py-28 bg-white">
-      <div className="w-full max-w-[1200px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-          className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6"
-        >
+    <section className="py-20 md:py-28 bg-white relative overflow-hidden">
+      {/* Soft atmosphere wash */}
+      <div className="pointer-events-none absolute top-0 right-0 w-[40%] h-[50%] bg-[radial-gradient(ellipse_at_top_right,_rgba(0,123,138,0.06),_transparent_60%)]" />
+
+      <div className="relative w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           <div className="max-w-xl text-left">
-            <h2 className="text-2xl md:text-3.5xl lg:text-4xl font-serif font-bold text-warm-900 mb-2">
-              {language === "vi" ? "Sản Phẩm Sơn Nước Nổi Bật" : "Featured Paint Products"}
+            <div className="flex items-center gap-3 mb-3">
+              <span className="h-px w-8 bg-jotun-teal" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-jotun-teal">
+                {language === "vi" ? "Cửa hàng" : "Shop"}
+              </p>
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-[2.6rem] font-serif font-bold text-warm-950 leading-tight">
+              {language === "vi" ? "Sản phẩm sơn nước nổi bật" : "Featured paint products"}
             </h2>
-            <p className="text-warm-550 text-xs">
+            <p className="mt-3 text-sm text-warm-550 max-w-md leading-relaxed">
               {language === "vi"
-                ? "Danh sách các dòng sơn chính hãng chất lượng cao bán chạy nhất hiện nay."
-                : "Top-selling premium authentic paint lines of the highest quality available today."}
+                ? "Dòng sơn chính hãng bán chạy, mới ra mắt và đang khuyến mãi."
+                : "Bestsellers, new arrivals, and current promotions."}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="flex gap-1 bg-warm-100 p-1 rounded-full border border-black/5">
-              {[
-                { value: "bestseller", label: language === "vi" ? "Bán chạy nhất" : "Bestsellers" },
-                { value: "new", label: language === "vi" ? "Mới nhất" : "New" },
-                { value: "promo", label: language === "vi" ? "Khuyến mãi" : "Promotions" }
-              ].map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => {
-                    if (tab.value === activeTab) return;
-                    setIsTabLoading(true);
-                    setTimeout(() => {
-                      setActiveTab(tab.value as any);
-                      setIsTabLoading(false);
-                    }, 400);
-                  }}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300",
-                    activeTab === tab.value ? "bg-white text-warm-900 shadow-sm" : "text-warm-500 hover:text-warm-900"
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+          <div className="flex gap-1 p-1 rounded-full bg-warm-100/90 border border-warm-200 self-start md:self-auto shadow-sm">
+            {tabs.map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => {
+                  if (tab.value === activeTab) return;
+                  setIsTabLoading(true);
+                  setTimeout(() => {
+                    setActiveTab(tab.value);
+                    setIsTabLoading(false);
+                  }, 260);
+                }}
+                className={cn(
+                  "px-4 py-2 rounded-full text-xs font-bold transition-all duration-300",
+                  activeTab === tab.value
+                    ? "bg-warm-900 text-white shadow-sm"
+                    : "text-warm-500 hover:text-warm-900",
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-        </motion.div>
+        </div>
 
-        <div className="relative min-h-[350px]">
+        <div className="relative min-h-[300px]">
           <AnimatePresence mode="wait">
             {isTabLoading ? (
               <motion.div
@@ -87,122 +107,114 @@ export function FeaturedProductsSection({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="min-h-[350px] flex flex-col items-center justify-center gap-4 w-full py-16"
+                className="min-h-[300px] flex items-center justify-center"
               >
-                <div className="relative w-10 h-10">
-                  <div className="absolute inset-0 rounded-full border-4 border-warm-200" />
-                  <div className="absolute inset-0 rounded-full border-4 border-jotun-teal border-t-transparent animate-spin" />
-                </div>
-                <p className="text-xs text-warm-550 font-medium tracking-wide">
-                  {language === "vi" ? "Đang tải sản phẩm..." : "Loading products..."}
-                </p>
+                <div className="w-9 h-9 rounded-full border-2 border-warm-200 border-t-jotun-teal animate-spin" />
               </motion.div>
             ) : (
               <motion.div
                 key={activeTab}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                variants={{
-                  visible: { transition: { staggerChildren: 0.08 } }
-                }}
-                className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-6 md:gap-8"
+                initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduceMotion ? undefined : { opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6"
               >
-                {[...paints]
-                  .filter((paint) => activeTab !== "promo" || (paint.discountPercent || 0) > 0)
-                  .sort((a, b) => activeTab === "bestseller" ? (b.soldCount || 0) - (a.soldCount || 0) : 0)
-                  .slice(0, 3)
-                  .map((paint) => {
+                {list.map((paint, index) => {
                   const prod = {
                     id: paint.id,
                     name: paint.name,
                     nameEn: paint.nameEn,
-                    rating: 5,
                     desc: paint.description,
                     descEn: paint.descriptionEn,
                   };
-                  const slug = paint.slug;
+                  const hasDiscount = Boolean(paint.discountPercent && paint.discountPercent > 0);
+                  const finalPrice = hasDiscount
+                    ? paint.price * (1 - (paint.discountPercent || 0) / 100)
+                    : paint.price;
+
                   return (
-                    <motion.div
-                      key={prod.id}
-                      variants={{
-                        hidden: { opacity: 0, y: 32 },
-                        visible: { opacity: 1, y: 0, transition: { ease: [0.32, 0.72, 0, 1], duration: 0.7 } }
+                    <motion.article
+                      key={paint.id}
+                      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.45,
+                        delay: reduceMotion ? 0 : index * 0.04,
+                        ease: [0.16, 1, 0.3, 1],
                       }}
-                      className="bg-white p-3 sm:p-5 flex flex-col gap-2.5 sm:gap-4 rounded-xl border border-black/5 hover:shadow-lg transition-all duration-500 h-full group relative"
+                      className="group relative flex flex-col rounded-[1.5rem] bg-jotun-ivory border border-warm-200/90 overflow-hidden shadow-[0_8px_30px_rgba(47,40,34,0.04)] hover:shadow-[0_18px_50px_rgba(47,40,34,0.1)] transition-shadow duration-500"
                     >
-                      <Link href={`/products/${slug}`} className="flex flex-col gap-2.5 sm:gap-4 flex-grow cursor-pointer">
-                        <div className="relative h-36 xs:h-44 sm:h-64 md:h-80 w-full bg-jotun-ivory-100 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-2.5 sm:p-6 shadow-inner">
-                          <Image
-                            src={paint.images?.[0] || "/product_interior.png"}
-                            alt={language === "vi" ? prod.name : (prod.nameEn || prod.name)}
-                            fill
-                            className="object-contain p-2.5 sm:p-6 transition-transform duration-700 group-hover:scale-105"
-                          />
-                          {paint.discountPercent && paint.discountPercent > 0 && (
-                            <div className="absolute top-1.5 left-1.5 xs:top-3.5 xs:left-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white font-mono text-[9px] xs:text-xs font-extrabold px-1.5 py-0.5 xs:px-3 xs:py-1 rounded-md xs:rounded-lg shadow-md z-10 animate-pulse select-none border border-white/20">
-                              -{paint.discountPercent}%
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex flex-col gap-1 sm:gap-2 flex-grow text-left">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-warm-400 font-mono">
-                              {paint.supplier?.name || "Maison de FLOF"}
-                            </span>
-                            <div className="flex gap-0.5 text-jotun-teal">
-                              {Array.from({ length: prod.rating }).map((_, i) => (
-                                <Star key={i} className="h-2 w-2 sm:h-3 sm:w-3 fill-current" />
-                              ))}
-                            </div>
-                          </div>
-
-                          <h3 className="font-serif font-bold text-xs sm:text-base group-hover:text-jotun-teal transition-colors text-warm-900 line-clamp-1">
-                            {language === "vi" ? prod.name : (prod.nameEn || prod.name)}
-                          </h3>
-
-                          <p className="text-[10px] sm:text-xs text-warm-500 line-clamp-1 sm:line-clamp-2 leading-tight sm:leading-relaxed">
-                            {language === "vi" ? prod.desc : (prod.descEn || prod.desc)}
-                          </p>
-                        </div>
-                      </Link>
-
-                      <div className="mt-auto pt-2.5 sm:pt-4 border-t border-black/5 flex items-center justify-between gap-1">
-                        {paint.discountPercent && paint.discountPercent > 0 ? (
-                          <div className="flex flex-col items-start">
-                            <span className="text-xs sm:text-base font-mono font-bold text-red-500">
-                              {formatPrice(paint.price * (1 - paint.discountPercent / 100))}
-                            </span>
-                            <span className="text-[9px] sm:text-xs font-mono text-warm-400 line-through">
-                              {formatPrice(paint.price)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs sm:text-base font-extrabold text-warm-900 font-mono">
-                            {formatPrice(paint.price)}
+                      <Link
+                        href={`/products/${paint.slug}`}
+                        className="relative aspect-[4/5] sm:aspect-square bg-white overflow-hidden"
+                      >
+                        <Image
+                          src={getProductImage(paint.images)}
+                          alt={language === "vi" ? prod.name : prod.nameEn || prod.name}
+                          fill
+                          sizes="(min-width: 768px) 30vw, 45vw"
+                          className="object-contain p-6 sm:p-8 transition-transform duration-700 group-hover:scale-105"
+                        />
+                        {hasDiscount && (
+                          <span className="absolute top-3 left-3 rounded-full bg-warm-900 text-white text-[10px] font-bold px-2.5 py-1">
+                            -{paint.discountPercent}%
                           </span>
                         )}
-                        <button
-                          onClick={() => handleAddToCart(prod)}
-                          className="btn-island bg-warm-900 hover:bg-warm-800 text-white text-[10px] sm:text-xs px-2.5 py-1.5 sm:px-4 sm:py-2 gap-1.5 sm:gap-3"
-                        >
-                          <span>
-                            {language === "vi" ? "Mua" : "Buy"}
-                            <span className="hidden xs:inline">{language === "vi" ? " ngay" : " now"}</span>
-                          </span>
-                          <span className="btn-island-icon bg-white/20 w-5 h-5 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center rounded-full">
-                            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </span>
-                        </button>
+                      </Link>
+
+                      <div className="flex flex-col flex-grow p-4 sm:p-5">
+                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.12em] text-warm-400">
+                          {paint.supplier?.name || "Maison de FLOF"}
+                        </p>
+                        <Link href={`/products/${paint.slug}`}>
+                          <h3 className="mt-1.5 font-serif font-bold text-sm sm:text-base text-warm-950 group-hover:text-jotun-teal transition-colors line-clamp-2 leading-snug">
+                            {language === "vi" ? prod.name : prod.nameEn || prod.name}
+                          </h3>
+                        </Link>
+
+                        <div className="mt-auto pt-4 flex items-end justify-between gap-2">
+                          <div className="flex flex-col">
+                            <span className="text-sm sm:text-base font-mono font-bold text-warm-950">
+                              {formatPrice(finalPrice)}
+                            </span>
+                            {hasDiscount && (
+                              <span className="text-[11px] font-mono text-warm-400 line-through">
+                                {formatPrice(paint.price)}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleAddToCart(prod)}
+                            disabled={!commerceAvailable}
+                            aria-disabled={!commerceAvailable}
+                            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-jotun-teal text-white text-[10px] sm:text-[11px] font-bold px-3.5 py-2.5 hover:bg-jotun-teal-dark transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                            aria-label={language === "vi" ? "Thêm vào giỏ" : "Add to cart"}
+                          >
+                            <ShoppingBag className="w-3.5 h-3.5" />
+                            <span className="hidden xs:inline sm:inline">
+                              {language === "vi" ? "Thêm" : "Add"}
+                            </span>
+                          </button>
+                        </div>
                       </div>
-                    </motion.div>
+                    </motion.article>
                   );
                 })}
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        <div className="mt-12 flex justify-center">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 rounded-full border border-warm-300 bg-white px-6 py-3 text-xs font-bold text-warm-900 hover:border-jotun-teal/40 hover:text-jotun-teal transition-colors"
+          >
+            {language === "vi" ? "Khám phá thêm sản phẩm" : "Explore more products"}
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
     </section>

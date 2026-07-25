@@ -8,7 +8,7 @@ const updateProfileSchema = z.object({
   phone: z.string().trim().max(20).optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const sessionUser = await requireUser();
     const user = await db.user.findUnique({
@@ -24,7 +24,7 @@ export async function GET() {
       role: user.role.type,
     });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }
 
@@ -46,6 +46,6 @@ export async function PATCH(request: NextRequest) {
       role: user.role.type,
     });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }

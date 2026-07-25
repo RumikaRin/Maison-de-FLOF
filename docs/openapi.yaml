@@ -1,0 +1,3200 @@
+openapi: 3.1.0
+info:
+  title: Maison de FLOF API
+  version: 1.0.0
+  description: Source-inventoried OpenAPI contract for every Next.js API route.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: /
+security: []
+paths:
+  /api/admin/articles:
+    get:
+      operationId: getAdminArticles
+      summary: GET /api/admin/articles
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminArticles
+      summary: POST /api/admin/articles
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a1
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminArticles
+      summary: PATCH /api/admin/articles
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminArticles
+      summary: DELETE /api/admin/articles
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/audit-logs:
+    get:
+      operationId: getAdminAuditLogs
+      summary: GET /api/admin/audit-logs
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/AuditLog"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/AuditLog"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/categories:
+    get:
+      operationId: getAdminCategories
+      summary: GET /api/admin/categories
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Category"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminCategories
+      summary: POST /api/admin/categories
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a2
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Category"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+        "201":
+          description: Resource created
+          content: *a2
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminCategories
+      summary: PATCH /api/admin/categories
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Category"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminCategories
+      summary: DELETE /api/admin/categories
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/chat:
+    get:
+      operationId: getAdminChat
+      summary: GET /api/admin/chat
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    patch:
+      operationId: patchAdminChat
+      summary: PATCH /api/admin/chat
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/chat/conversations:
+    get:
+      operationId: getAdminChatConversations
+      summary: GET /api/admin/chat/conversations
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminChatConversations
+      summary: POST /api/admin/chat/conversations
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a3
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a3
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/chat/conversations/{id}:
+    get:
+      operationId: getAdminChatConversationsById
+      summary: GET /api/admin/chat/conversations/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+  /api/admin/collections:
+    get:
+      operationId: getAdminCollections
+      summary: GET /api/admin/collections
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminCollections
+      summary: POST /api/admin/collections
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a4
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a4
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminCollections
+      summary: PATCH /api/admin/collections
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminCollections
+      summary: DELETE /api/admin/collections
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/colors:
+    get:
+      operationId: getAdminColors
+      summary: GET /api/admin/colors
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminColors
+      summary: POST /api/admin/colors
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a5
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a5
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminColors
+      summary: PATCH /api/admin/colors
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminColors
+      summary: DELETE /api/admin/colors
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/coupons:
+    get:
+      operationId: getAdminCoupons
+      summary: GET /api/admin/coupons
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminCoupons
+      summary: POST /api/admin/coupons
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a6
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a6
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminCoupons
+      summary: PATCH /api/admin/coupons
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminCoupons
+      summary: DELETE /api/admin/coupons
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      summary: GET /api/admin/dashboard
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/dealers:
+    get:
+      operationId: getAdminDealers
+      summary: GET /api/admin/dealers
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminDealers
+      summary: POST /api/admin/dealers
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a7
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a7
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminDealers
+      summary: PATCH /api/admin/dealers
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminDealers
+      summary: DELETE /api/admin/dealers
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/inventory:
+    get:
+      operationId: getAdminInventory
+      summary: GET /api/admin/inventory
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminInventory
+      summary: POST /api/admin/inventory
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a8
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a8
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/media:
+    get:
+      operationId: getAdminMedia
+      summary: GET /api/admin/media
+      description: Provider-dependent operation; local contract coverage is not live provider verification.
+      x-contract-tier: provider
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminMedia
+      summary: POST /api/admin/media
+      description: Provider-dependent operation; local contract coverage is not live provider verification.
+      x-contract-tier: provider
+      responses:
+        "200":
+          description: Successful response
+          content: &a9
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a9
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminMedia
+      summary: DELETE /api/admin/media
+      description: Provider-dependent operation; local contract coverage is not live provider verification.
+      x-contract-tier: provider
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/notifications:
+    get:
+      operationId: getAdminNotifications
+      summary: GET /api/admin/notifications
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Notification"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/notifications/{id}/read:
+    patch:
+      operationId: patchAdminNotificationsByIdRead
+      summary: PATCH /api/admin/notifications/{id}/read
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Notification"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/notifications/mark-all-read:
+    post:
+      operationId: postAdminNotificationsMarkAllRead
+      summary: POST /api/admin/notifications/mark-all-read
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a10
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Notification"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+        "201":
+          description: Resource created
+          content: *a10
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/payments:
+    get:
+      operationId: getAdminPayments
+      summary: GET /api/admin/payments
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    patch:
+      operationId: patchAdminPayments
+      summary: PATCH /api/admin/payments
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/products:
+    get:
+      operationId: getAdminProducts
+      summary: GET /api/admin/products
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminProducts
+      summary: POST /api/admin/products
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a11
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a11
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminProducts
+      summary: PATCH /api/admin/products
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminProducts
+      summary: DELETE /api/admin/products
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/products/promotions:
+    patch:
+      operationId: patchAdminProductsPromotions
+      summary: PATCH /api/admin/products/promotions
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/quotes:
+    get:
+      operationId: getAdminQuotes
+      summary: GET /api/admin/quotes
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/QuoteRequest"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/QuoteRequest"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    patch:
+      operationId: patchAdminQuotes
+      summary: PATCH /api/admin/quotes
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/QuoteRequest"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/QuoteRequest"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/reviews:
+    get:
+      operationId: getAdminReviews
+      summary: GET /api/admin/reviews
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Review"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    patch:
+      operationId: patchAdminReviews
+      summary: PATCH /api/admin/reviews
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Review"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminReviews
+      summary: DELETE /api/admin/reviews
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/suppliers:
+    get:
+      operationId: getAdminSuppliers
+      summary: GET /api/admin/suppliers
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminSuppliers
+      summary: POST /api/admin/suppliers
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a12
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a12
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminSuppliers
+      summary: PATCH /api/admin/suppliers
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminSuppliers
+      summary: DELETE /api/admin/suppliers
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/admin/users:
+    get:
+      operationId: getAdminUsers
+      summary: GET /api/admin/users
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminUsers
+      summary: POST /api/admin/users
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a13
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a13
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchAdminUsers
+      summary: PATCH /api/admin/users
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminUsers
+      summary: DELETE /api/admin/users
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/auth/{nextauth}:
+    get:
+      operationId: getAuthByNextauth
+      summary: GET /api/auth/{nextauth}
+      description: Provider-dependent operation; local contract coverage is not live provider verification.
+      x-contract-tier: provider
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: nextauth
+          in: path
+          required: true
+          schema:
+            type: string
+    post:
+      operationId: postAuthByNextauth
+      summary: POST /api/auth/{nextauth}
+      description: Provider-dependent operation; local contract coverage is not live provider verification.
+      x-contract-tier: provider
+      responses:
+        "200":
+          description: Successful response
+          content: &a14
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a14
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: nextauth
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/auth/forgot-password:
+    post:
+      operationId: requestPasswordReset
+      summary: Request a password reset without revealing account existence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: Generic reset request acknowledgement
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/auth/register:
+    post:
+      operationId: registerCustomer
+      summary: Register a customer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 120
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        "201":
+          description: Customer registered
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - email
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  email:
+                    type: string
+                    format: email
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/auth/reset-password:
+    post:
+      operationId: postAuthResetPassword
+      summary: POST /api/auth/reset-password
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a15
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a15
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/blog:
+    get:
+      operationId: getBlog
+      summary: GET /api/blog
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/blog/{slug}:
+    get:
+      operationId: getBlogBySlug
+      summary: GET /api/blog/{slug}
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+  /api/categories:
+    get:
+      operationId: getCategories
+      summary: GET /api/categories
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Category"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/chat:
+    post:
+      operationId: postChat
+      summary: POST /api/chat
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a16
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a16
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/chat/conversation:
+    get:
+      operationId: getChatConversation
+      summary: GET /api/chat/conversation
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postChatConversation
+      summary: POST /api/chat/conversation
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a17
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a17
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/color-collections:
+    get:
+      operationId: getColorCollections
+      summary: GET /api/color-collections
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/colors:
+    get:
+      operationId: listColors
+      summary: List paint colors
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Color list
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/coupons/validate:
+    post:
+      operationId: validateCoupon
+      summary: Validate a coupon against a subtotal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - subtotal
+              properties:
+                code:
+                  type: string
+                subtotal:
+                  type: number
+                  minimum: 0
+      responses:
+        "200":
+          description: Coupon discount
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/cron/expire-unpaid-orders:
+    get:
+      operationId: getCronExpireUnpaidOrders
+      summary: GET /api/cron/expire-unpaid-orders
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/cron/process-outbox:
+    get:
+      operationId: getCronProcessOutbox
+      summary: GET /api/cron/process-outbox
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/dealers:
+    get:
+      operationId: getDealers
+      summary: GET /api/dealers
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/orders:
+    get:
+      operationId: listOrders
+      summary: List orders visible to the authenticated user
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: email
+          in: query
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: Visible orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      operationId: createOrder
+      summary: Create an idempotent checkout order
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 16
+            maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Checkout"
+      responses:
+        "200":
+          description: Existing idempotent order
+        "201":
+          description: Order created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/orders/{orderNumber}:
+    parameters:
+      - $ref: "#/components/parameters/OrderNumber"
+    get:
+      operationId: getOrder
+      summary: Get an order visible to the authenticated user
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    patch:
+      operationId: updateOrderStatus
+      summary: Update an order status with staff permission
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - PENDING
+                    - CONFIRMED
+                    - PROCESSING
+                    - SHIPPING
+                    - COMPLETED
+                    - CANCELLED
+      responses:
+        "200":
+          description: Order status updated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/products:
+    get:
+      operationId: listProducts
+      summary: List active paint products
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Product list or paginated product result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  - allOf:
+                      - $ref: "#/components/schemas/Pagination"
+                      - type: object
+                        required:
+                          - data
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/products/{slug}:
+    get:
+      operationId: getProductsBySlug
+      summary: GET /api/products/{slug}
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+  /api/profile:
+    get:
+      operationId: getProfile
+      summary: Get the authenticated user profile
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: User profile
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    patch:
+      operationId: updateProfile
+      summary: Update the authenticated user profile
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 120
+                phone:
+                  type: string
+                  maxLength: 20
+      responses:
+        "200":
+          description: Updated user profile
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/profile/addresses:
+    get:
+      operationId: getProfileAddresses
+      summary: GET /api/profile/addresses
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postProfileAddresses
+      summary: POST /api/profile/addresses
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a18
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a18
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    patch:
+      operationId: patchProfileAddresses
+      summary: PATCH /api/profile/addresses
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteProfileAddresses
+      summary: DELETE /api/profile/addresses
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+  /api/profile/favorite-products:
+    get:
+      operationId: getProfileFavoriteProducts
+      summary: GET /api/profile/favorite-products
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postProfileFavoriteProducts
+      summary: POST /api/profile/favorite-products
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a19
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a19
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/profile/favorites:
+    get:
+      operationId: getProfileFavorites
+      summary: GET /api/profile/favorites
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postProfileFavorites
+      summary: POST /api/profile/favorites
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a20
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/profile/password:
+    post:
+      operationId: postProfilePassword
+      summary: POST /api/profile/password
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a21
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a21
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/quote-request:
+    post:
+      operationId: createQuoteRequest
+      summary: Submit a quote request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+                - phone
+                - email
+                - message
+              properties:
+                fullName:
+                  type: string
+                  minLength: 2
+                  maxLength: 120
+                phone:
+                  type: string
+                  minLength: 8
+                  maxLength: 30
+                email:
+                  type: string
+                  format: email
+                companyName:
+                  type: string
+                  maxLength: 180
+                projectName:
+                  type: string
+                  maxLength: 180
+                projectType:
+                  type: string
+                  maxLength: 100
+                area:
+                  type: number
+                  exclusiveMinimum: 0
+                  maximum: 10000000
+                paintType:
+                  type: string
+                  maxLength: 180
+                message:
+                  type: string
+                  minLength: 5
+                  maxLength: 5000
+      responses:
+        "201":
+          description: Quote request created
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/reviews:
+    get:
+      operationId: getReviews
+      summary: GET /api/reviews
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Review"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      operationId: postReviews
+      summary: POST /api/reviews
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a22
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Review"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+        "201":
+          description: Resource created
+          content: *a22
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/suppliers:
+    get:
+      operationId: getSuppliers
+      summary: GET /api/suppliers
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/vnpay/ipn:
+    get:
+      operationId: getVnpayIpn
+      summary: GET /api/vnpay/ipn
+      description: Simulated VNPay operation retained for demo compatibility and excluded from
+        production-readiness claims.
+      x-contract-tier: simulated
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/vnpay/return:
+    get:
+      operationId: getVnpayReturn
+      summary: GET /api/vnpay/return
+      description: Simulated VNPay operation retained for demo compatibility and excluded from
+        production-readiness claims.
+      x-contract-tier: simulated
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: authjs.session-token
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+    OrderNumber:
+      name: orderNumber
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Forbidden:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Conflict:
+      description: Resource state conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    TooManyRequests:
+      description: Request rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+  schemas:
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - requestId
+          properties:
+            code:
+              type: string
+              enum:
+                - BAD_REQUEST
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - NOT_FOUND
+                - CONFLICT
+                - TOO_MANY_REQUESTS
+                - INTERNAL_ERROR
+            message:
+              type: string
+            requestId:
+              type: string
+    Pagination:
+      type: object
+      required:
+        - total
+        - page
+        - limit
+        - totalPages
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        totalPages:
+          type: integer
+          minimum: 0
+    Product:
+      type: object
+      required:
+        - id
+        - sku
+        - name
+        - slug
+        - price
+        - stock
+      properties:
+        id:
+          type: string
+        sku:
+          type: string
+        name:
+          type: string
+        nameEn:
+          type: string
+        slug:
+          type: string
+        price:
+          type: number
+        discountPercent:
+          type: integer
+        stock:
+          type: integer
+        images:
+          type: array
+          items:
+            type: string
+    Order:
+      type: object
+      required:
+        - id
+        - total
+        - status
+      properties:
+        id:
+          type: string
+        total:
+          type: number
+        status:
+          type: string
+        paymentMethod:
+          type: string
+        paymentStatus:
+          type: string
+        structuredItems:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    Checkout:
+      type: object
+      required:
+        - items
+        - paymentMethod
+        - shipping
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - paintId
+              - quantity
+            properties:
+              paintId:
+                type: string
+              colorId:
+                type: string
+              quantity:
+                type: integer
+                minimum: 1
+        paymentMethod:
+          type: string
+          enum:
+            - COD
+            - TRANSFER
+            - VNPAY
+        couponCode:
+          type: string
+        note:
+          type: string
+        shipping:
+          type: object
+          required:
+            - fullName
+            - phone
+            - addressLine1
+            - district
+            - province
+          properties:
+            fullName:
+              type: string
+            phone:
+              type: string
+            addressLine1:
+              type: string
+            addressLine2:
+              type: string
+            district:
+              type: string
+            province:
+              type: string
+    GenericObject:
+      type: object
+      additionalProperties: true
+    GenericArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/GenericObject"
+    Success:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          const: true
+    Category:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - isActive
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameEn:
+          type:
+            - string
+            - "null"
+        slug:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        sortOrder:
+          type: integer
+        isActive:
+          type: boolean
+    Review:
+      type: object
+      required:
+        - id
+        - rating
+        - comment
+      properties:
+        id:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        adminReply:
+          type:
+            - string
+            - "null"
+    QuoteRequest:
+      type: object
+      required:
+        - id
+        - fullName
+        - phone
+        - email
+        - projectType
+        - status
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        projectType:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING
+            - CONTACTED
+            - QUOTED
+            - CLOSED
+        adminNote:
+          type:
+            - string
+            - "null"
+    Message:
+      type: object
+      required:
+        - id
+        - conversationId
+        - senderId
+        - isAdmin
+        - content
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        senderId:
+          type: string
+        isAdmin:
+          type: boolean
+        content:
+          type: string
+        isRead:
+          type: boolean
+    Conversation:
+      type: object
+      required:
+        - id
+        - userId
+        - status
+        - messages
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        status:
+          type: string
+          enum:
+            - NEW
+            - IN_PROGRESS
+            - CLOSED
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+    Notification:
+      type: object
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - message
+        - isRead
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+    AuditLog:
+      type: object
+      required:
+        - id
+        - actorId
+        - actorEmail
+        - action
+        - entityType
+      properties:
+        id:
+          type: string
+        actorId:
+          type: string
+        actorEmail:
+          type: string
+          format: email
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type:
+            - string
+            - "null"

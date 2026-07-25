@@ -1,86 +1,94 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
-const heroContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const heroItemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut",
-    },
-  },
-};
-
+/**
+ * Cinematic full-bleed hero (Aura-style immersion)
+ * + clear dual CTAs (product-site clarity from coffee/ecom landings).
+ */
 export function HeroSection() {
   const { language } = useLanguageStore();
+  const reduceMotion = useReducedMotion();
 
   return (
-    <section className="relative w-full pt-14 pb-10 md:pt-5 md:pb-10 overflow-hidden bg-jotun-ivory">
-      {/* Subtle grid accent background */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
+    <section className="relative w-full min-h-[100dvh] flex items-end overflow-hidden bg-warm-950">
+      {/* Full-bleed media */}
+      <div className="absolute inset-0">
+        <Image
+          src="/generated/hero-cinematic.jpg"
+          alt={language === "vi" ? "Không gian sống với màu sơn cao cấp" : "Living space with premium paint"}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center scale-105"
+        />
+        {/* Cinematic scrim: readable type without killing the photo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-warm-950 via-warm-950/55 to-warm-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-warm-950/70 via-warm-950/20 to-transparent" />
+      </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-        {/* Left Text Column */}
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 pb-16 md:pb-24 pt-32">
         <motion.div
-          variants={heroContainerVariants}
-          initial="hidden"
-          animate="visible"
-          className="lg:col-span-5 flex flex-col gap-8 text-left items-start"
+          initial={reduceMotion ? false : { opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-2xl text-left"
         >
-          <motion.h1
-            variants={heroItemVariants}
-            className="text-3xl sm:text-4xl lg:text-[3rem] font-serif font-bold tracking-tight text-warm-955"
-            style={{ lineHeight: 1.35 }}
-          >
+          <p className="text-[11px] md:text-xs font-semibold tracking-[0.22em] uppercase text-white/70 mb-5">
+            Maison de FLOF
+          </p>
+
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold text-white tracking-tight leading-[1.05]">
             {language === "vi" ? (
-              <>Kiến tạo không gian sống <br /><span className="font-normal italic text-jotun-teal">Đậm chất nghệ thuật</span></>
+              <>
+                Màu sơn cho
+                <br />
+                ngôi nhà Việt
+              </>
             ) : (
-              <>Creating living spaces <br /><span className="font-normal italic text-jotun-teal">Full of artistic flavor</span></>
+              <>
+                Color for
+                <br />
+                Vietnamese homes
+              </>
             )}
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            variants={heroItemVariants}
-            className="text-warm-600 text-sm lg:text-[1.05rem] font-light leading-relaxed max-w-xl"
-          >
+          <p className="mt-5 md:mt-6 text-sm md:text-base text-white/75 font-light leading-relaxed max-w-md">
             {language === "vi"
-              ? "Hơn 1000+ sắc màu sơn cao cấp từ Maison de FLOF mang đến sự kết hợp hoàn mỹ giữa nghệ thuật và công nghệ bảo vệ bề mặt, tôn vinh kiến trúc ngôi nhà Việt."
-              : "Over 1000+ premium paint colors from Maison de FLOF deliver a perfect blend of art and surface protection technology, honoring Vietnamese home architecture."
-            }
-          </motion.p>
-        </motion.div>
+              ? "Hơn 1000 sắc. Phối trên phòng mẫu. Mua online hoặc qua đại lý ủy quyền."
+              : "1000+ shades. Preview on real rooms. Shop online or visit a dealer."}
+          </p>
 
-        {/* Right Image Column (Double Bezel Layout) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-          className="lg:col-span-7 w-full flex justify-center items-center"
-        >
-          <div className="relative aspect-[4/3] sm:h-[450px] md:h-[620px] lg:h-[720px] xl:h-[800px] lg:aspect-none w-full overflow-hidden bg-white shadow-2xl rounded-3xl border border-black/5 max-w-[960px]">
-            <Image
-              src="/hero_bg.png"
-              alt={language === "vi" ? "Không gian sống cao cấp" : "Premium living space"}
-              fill
-              className="object-cover transition-transform duration-1000 hover:scale-103"
-              priority
-            />
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              href="/colors"
+              className="inline-flex items-center gap-2.5 rounded-full bg-jotun-teal text-white text-xs font-bold px-7 py-3.5 hover:bg-jotun-teal-light transition-colors active:scale-[0.98] shadow-[0_12px_40px_rgba(0,123,138,0.35)]"
+            >
+              {language === "vi" ? "Khám phá màu" : "Explore colors"}
+              <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </Link>
+            <Link
+              href="/color-visualizer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/5 backdrop-blur-md text-white text-xs font-bold px-7 py-3.5 hover:bg-white/12 transition-colors active:scale-[0.98]"
+            >
+              {language === "vi" ? "Phối màu ngay" : "Try visualizer"}
+            </Link>
+          </div>
+
+          {/* Micro trust strip - coffee landings use this under hero copy */}
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-2 text-[11px] text-white/55 font-medium">
+            <span>{language === "vi" ? "1000+ mã màu" : "1000+ colors"}</span>
+            <span className="hidden sm:inline text-white/25">|</span>
+            <span>{language === "vi" ? "Visualizer phòng mẫu" : "Room visualizer"}</span>
+            <span className="hidden sm:inline text-white/25">|</span>
+            <span>{language === "vi" ? "Đại lý toàn quốc" : "Nationwide dealers"}</span>
           </div>
         </motion.div>
       </div>

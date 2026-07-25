@@ -9,6 +9,7 @@ import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { Paint, PaintColor } from "@/types";
 import { formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { toast } from "sonner";
 import {
   getComplementaryColors,
@@ -235,7 +236,7 @@ export function ProductClient({
         <div className="lg:col-span-5 flex flex-col gap-4">
           <div className="relative h-[450px] w-full rounded-xl overflow-hidden border border-border bg-zinc-50 shadow-sm">
             <Image
-              src={paint.images?.[0] || "/product_interior.png"}
+              src={getProductImage(paint.images)}
               alt={paint.name}
               fill
               priority
@@ -433,6 +434,8 @@ export function ProductClient({
           <div className="flex flex-col sm:flex-row items-center gap-4 border-t border-border pt-6">
             <div className="flex items-center border border-border rounded-md w-full sm:w-auto bg-white dark:bg-zinc-950">
               <button
+                type="button"
+                aria-label={language === "vi" ? "Giảm số lượng" : "Decrease quantity"}
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
               >
@@ -442,6 +445,8 @@ export function ProductClient({
                 {quantity}
               </span>
               <button
+                type="button"
+                aria-label={language === "vi" ? "Tăng số lượng" : "Increase quantity"}
                 onClick={() => setQuantity((q) => q + 1)}
                 className="px-4 py-3 text-muted-foreground hover:text-foreground transition-colors"
               >
@@ -669,7 +674,7 @@ export function ProductClient({
                 >
                   <div className="relative h-48 w-full bg-zinc-100 rounded-md overflow-hidden">
                     <Image
-                      src={item.images?.[0] || "/product_interior.png"}
+                      src={getProductImage(item.images)}
                       alt={item.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"

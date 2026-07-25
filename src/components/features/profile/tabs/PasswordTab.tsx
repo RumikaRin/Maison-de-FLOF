@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { passwordPolicyMessage } from "@/lib/password-policy";
 
 interface PasswordTabProps {
   language: string;
@@ -35,6 +36,9 @@ export function PasswordTab({
         <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
           {language === "vi" ? "Đổi mật khẩu" : "Change Password"}
         </h3>
+        <p className="text-[11px] text-warm-500 -mt-3 mb-4">
+          {passwordPolicyMessage(language === "vi" ? "vi" : "en")}
+        </p>
 
         <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1">

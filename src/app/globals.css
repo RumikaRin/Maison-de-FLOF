@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* Preserve the warm palette for surfaces while ensuring small body text
+     reaches WCAG AA contrast on the light ivory/white backgrounds. */
+  html:not(.dark) .text-warm-400,
+  html:not(.dark) .text-warm-450,
+  html:not(.dark) .text-warm-500,
+  html:not(.dark) .text-warm-550,
+  html:not(.dark) .text-warm-600 {
+    color: #6b5f52;
+  }
+
+  html:not(.dark) .text-jotun-teal {
+    color: #005a66;
+  }
+}
+
 /* ============================================================
    Maison de FLOF Design System — Premium Ivory Theme
    Cubic-bezier vars · Double-Bezel · Grain overlay · Scroll-reveal

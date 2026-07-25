@@ -8,20 +8,45 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: flof_test
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d flof_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: postgresql://user:password@localhost:5432/flof
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/flof_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/flof_test
       AUTH_SECRET: ci-only-secret-that-is-not-used-in-production
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      AUTH_URL: http://127.0.0.1:3100
+      AUTH_TRUST_HOST: "true"
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run db:generate
+      - run: npm run test:db:migrate
+      - run: npm run test:db:fixtures
+      - run: npx playwright install --with-deps chromium
       - run: npm run lint
-      - run: npm run typecheck
       - run: npm test
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run test:env
+      - run: npm run test:integration
       - run: npm run build
+      - run: npm run typecheck
+      - run: npm run test:e2e
+      - run: npm run test:openapi
+      - run: npm run test:lighthouse
+      - run: npm audit --omit=dev --audit-level=high

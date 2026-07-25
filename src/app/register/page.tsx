@@ -6,7 +6,9 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
+import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 
 export default function RegisterPage() {
@@ -38,10 +40,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 8) {
-      toast.error(
-        language === "vi" ? "Mật khẩu phải có ít nhất 8 ký tự." : "Password must be at least 8 characters."
-      );
+    if (!isPasswordStrong(password)) {
+      toast.error(passwordPolicyMessage(language === "vi" ? "vi" : "en"));
       return;
     }
 
@@ -57,7 +57,12 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error || (language === "vi" ? "Đăng ký thất bại." : "Registration failed."));
+        toast.error(
+          getApiErrorMessage(
+            data,
+            language === "vi" ? "Đăng ký thất bại." : "Registration failed.",
+          ),
+        );
         setIsLoading(false);
         return;
       }
@@ -86,11 +91,13 @@ export default function RegisterPage() {
 
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
+            <label htmlFor="register-name" className="text-[10px] font-bold uppercase text-warm-450">
               {language === "vi" ? "Họ và tên" : "Full Name"}
             </label>
             <input
+              id="register-name"
               type="text"
+              autoComplete="name"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -100,9 +107,11 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">Email</label>
+            <label htmlFor="register-email" className="text-[10px] font-bold uppercase text-warm-450">Email</label>
             <input
+              id="register-email"
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -112,12 +121,14 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
+            <label htmlFor="register-password" className="text-[10px] font-bold uppercase text-warm-450">
               {language === "vi" ? "Mật khẩu" : "Password"}
             </label>
             <div className="relative">
               <input
+                id="register-password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 required
                 minLength={8}
                 value={password}
@@ -136,11 +147,13 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
+            <label htmlFor="register-confirm-password" className="text-[10px] font-bold uppercase text-warm-450">
               {language === "vi" ? "Xác nhận mật khẩu" : "Confirm Password"}
             </label>
             <input
+              id="register-confirm-password"
               type="password"
+              autoComplete="new-password"
               required
               minLength={8}
               value={confirmPassword}

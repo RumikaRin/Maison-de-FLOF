@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { Search, SlidersHorizontal, ArrowUpDown, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,12 +23,14 @@ interface ProductsClientProps {
   initialPaints: any[];
   initialCategories: any[];
   initialSuppliers: any[];
+  commerceAvailable: boolean;
 }
 
 export function ProductsClient({
   initialPaints,
   initialCategories,
   initialSuppliers,
+  commerceAvailable,
 }: ProductsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,11 +46,9 @@ export function ProductsClient({
   const [selectedSupplier, setSelectedSupplier] = useState("all");
   const [selectedFinish, setSelectedFinish] = useState("all");
   const [sortBy, setSortBy] = useState("default");
-  const [mounted, setMounted] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const catParam = searchParams.get("category");
     if (catParam) {
       const match = categories.find((c) => c.slug === catParam);
@@ -94,8 +95,6 @@ export function ProductsClient({
     selectedFinish !== "all",
     searchQuery !== "",
   ].filter(Boolean).length;
-
-  if (!mounted) return null;
 
   const FilterContent = () => (
     <div className="flex flex-col gap-5">
@@ -238,6 +237,16 @@ export function ProductsClient({
       </motion.div>
 
       <div className="container mx-auto px-4 sm:px-6 py-4 max-w-7xl relative z-10">
+        {!commerceAvailable && (
+          <div
+            role="status"
+            className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+          >
+            {language === "vi"
+              ? "Dữ liệu sản phẩm trực tiếp đang tạm gián đoạn. Bạn vẫn có thể tham khảo danh mục, nhưng chức năng mua hàng đang tạm khóa."
+              : "Live product data is temporarily unavailable. You can still browse the catalog, but purchasing is disabled."}
+          </div>
+        )}
         {/* ── Mobile: top toolbar with filter button + sort ── */}
         <div className="flex lg:hidden items-center gap-2 mb-4">
           {/* Search bar */}
@@ -269,7 +278,11 @@ export function ProductsClient({
           {/* Sort dropdown */}
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="px-3 py-2.5 h-auto bg-white border-warm-200 text-warm-900 rounded-xl text-xs font-bold flex items-center gap-1 whitespace-nowrap">
+              <Button
+                variant="outline"
+                aria-label={language === "vi" ? "Sắp xếp sản phẩm" : "Sort products"}
+                className="px-3 py-2.5 h-auto bg-white border-warm-200 text-warm-900 rounded-xl text-xs font-bold flex items-center gap-1 whitespace-nowrap"
+              >
                 <ArrowUpDown className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
@@ -415,7 +428,7 @@ export function ProductsClient({
                         {/* Image */}
                         <div className="relative h-36 sm:h-48 w-full bg-jotun-ivory-100 rounded-xl overflow-hidden border border-black/5 flex items-center justify-center p-3 sm:p-4 shadow-inner">
                           <Image
-                            src={p.images?.[0] || "/product_interior.png"}
+                            src={getProductImage(p.images)}
                             alt={p.name}
                             fill
                             className="object-contain p-3 sm:p-4 transition-transform duration-700 group-hover:scale-105"
@@ -437,15 +450,15 @@ export function ProductsClient({
                             </span>
                           </div>
 
-                          <h3 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-warm-900 group-hover:text-jotun-teal transition-colors duration-300">
+                          <h2 className="font-serif font-bold text-sm leading-snug line-clamp-2 text-warm-900 group-hover:text-jotun-teal transition-colors duration-300">
                             {language === "vi" ? p.name : p.nameEn}
-                          </h3>
+                          </h2>
 
                           <div className="mt-auto pt-2 border-t border-black/5 flex items-center justify-between">
                             <span className="text-[9px] text-warm-400 font-mono hidden sm:block">{p.sku}</span>
                             {p.discountPercent && p.discountPercent > 0 ? (
                               <div className="flex flex-col items-end">
-                                <span className="text-sm font-mono font-bold text-red-500">
+                                <span className="text-sm font-mono font-bold text-red-600">
                                   {formatPrice(p.price * (1 - p.discountPercent / 100))}
                                 </span>
                                 <span className="text-[9px] font-mono text-warm-400 line-through">

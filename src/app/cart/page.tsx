@@ -9,7 +9,9 @@ import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { formatPrice } from "@/lib/utils";
+import { getProductImage } from "@/lib/product-image";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ChevronLeft, Minus, Plus, Trash2, Tag, ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
 
 export default function CartPage() {
@@ -57,7 +59,7 @@ export default function CartPage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Invalid coupon");
+        throw new Error(getApiErrorMessage(data, "Invalid coupon"));
       }
 
       setCouponCode(data.code);
@@ -182,7 +184,7 @@ export default function CartPage() {
                         <div className="flex gap-3 sm:gap-4">
                           {/* Product image */}
                           <Link href={`/products/${item.paint.slug}`} className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border border-warm-100 bg-warm-50 shrink-0">
-                            <Image src={item.paint.images?.[0] || "/product_interior.png"} alt={item.paint.name} fill className="object-cover" />
+                            <Image src={getProductImage(item.paint.images)} alt={item.paint.name} fill className="object-cover" />
                           </Link>
 
                           {/* Product info + controls */}

@@ -4,15 +4,10 @@ export const authConfig = {
   pages: {
     signIn: "/login",
   },
+  // Keep the edge-safe session mapping here so middleware authorization sees
+  // the role stored in the JWT. DB-backed role refresh remains in auth.ts.
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
+    session({ session, token }) {
       if (session.user) {
         session.user.id = typeof token.id === "string" ? token.id : "";
         session.user.role =

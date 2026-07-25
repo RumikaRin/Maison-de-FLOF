@@ -3,11 +3,13 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requireAdmin } from "@/lib/api-auth";
+import { passwordSchema } from "@/lib/password-policy";
+import { createAuditLog } from "@/lib/audit";
 
 const createUserSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email(),
-  password: z.string().min(8).max(100),
+  password: passwordSchema,
   role: z.enum(["CUSTOMER", "STAFF", "ADMIN"]),
 });
 
@@ -48,7 +50,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     const parsed = createUserSchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Thông tin tài khoản không hợp lệ");
     const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
@@ -66,6 +68,13 @@ export async function POST(request: NextRequest) {
           parsed.data.role === "CUSTOMER" ? { create: { customerType: "RETAIL" } } : undefined,
       },
       include: { role: true },
+    });
+    await createAuditLog(db, {
+      actor: admin,
+      action: "USER_CREATED",
+      entityType: "User",
+      entityId: user.id,
+      afterData: { email: user.email, role: user.role.type },
     });
     return NextResponse.json(serializeUser(user), { status: 201 });
   } catch (error) {
@@ -94,11 +103,20 @@ export async function PATCH(request: NextRequest) {
           create: { userId: target.id, customerType: "RETAIL" },
         });
       }
-      return tx.user.update({
+      const updatedUser = await tx.user.update({
         where: { id: target.id },
         data: { roleId: role.id },
         include: { role: true },
       });
+      await createAuditLog(tx, {
+        actor: admin,
+        action: "USER_ROLE_CHANGED",
+        entityType: "User",
+        entityId: target.id,
+        beforeData: { roleId: target.roleId },
+        afterData: { role: parsed.data.role },
+      });
+      return updatedUser;
     });
     return NextResponse.json(serializeUser(user));
   } catch (error) {
@@ -124,6 +142,13 @@ export async function DELETE(request: NextRequest) {
     }
 
     await db.user.delete({ where: { id } });
+    await createAuditLog(db, {
+      actor: admin,
+      action: "USER_DELETED",
+      entityType: "User",
+      entityId: id,
+      beforeData: { email: target.email },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return apiErrorResponse(error);

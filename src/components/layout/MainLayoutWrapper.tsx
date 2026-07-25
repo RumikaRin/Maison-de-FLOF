@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { SiteLoadingScreen } from "@/components/layout/SiteLoadingScreen";
 
 // Helper component that runs the observer only when the new page layout mounts
 function ScrollRevealObserver() {
@@ -60,19 +59,10 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
   const isHomepage = pathname === "/";
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
-
-  if (!mounted) {
-    return <SiteLoadingScreen />;
-  }
 
   // Apply transitions and scroll reveals ONLY to the homepage
   if (!isHomepage) {

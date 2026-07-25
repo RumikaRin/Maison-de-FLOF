@@ -6,6 +6,7 @@ import {
   canTransitionOrderStatus,
   isCouponUsable,
 } from "../src/lib/commerce.ts";
+import { checkoutSchema } from "../src/lib/order-validation.ts";
 
 test("coupon percentage honors maximum discount", () => {
   assert.equal(
@@ -49,3 +50,19 @@ test("shipping and order transition rules protect commerce flow", () => {
   assert.equal(canTransitionOrderStatus("PENDING", "CONFIRMED"), true);
   assert.equal(canTransitionOrderStatus("COMPLETED", "CANCELLED"), false);
 });
+
+test("checkout validation rejects empty orders and invalid shipping data", () => {
+  const parsed = checkoutSchema.safeParse({
+    items: [],
+    paymentMethod: "COD",
+    shipping: {
+      fullName: "A",
+      phone: "1",
+      addressLine1: "",
+      district: "",
+      province: "",
+    },
+  });
+  assert.equal(parsed.success, false);
+});
+

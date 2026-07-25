@@ -1,25 +1,22 @@
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest } from "next/server";
+import { parsePagination } from "@/lib/pagination";
+import { ApiError, apiErrorResponse } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
     const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
-      return Response.json({ error: "Too many requests" }, { status: 429 });
+      throw new ApiError(429, "Too many requests");
     }
 
     const { searchParams } = new URL(request.url);
-    const pageParam = searchParams.get("page");
-    const limitParam = searchParams.get("limit");
-    
-    let page = 1;
-    let limit = 20;
-    
-    if (pageParam) page = parseInt(pageParam);
-    if (limitParam) limit = parseInt(limitParam);
-
-    const isPaginationRequested = !!pageParam || !!limitParam;
+    const {
+      page,
+      limit,
+      requested: isPaginationRequested,
+    } = parsePagination(searchParams);
 
     const queryOptions: any = {
       where: { isActive: true },
@@ -68,7 +65,12 @@ export async function GET(request: NextRequest) {
       price: Number(product.price),
       discountPercent: product.discountPercent,
       stock: product.stock,
-      images: product.images,
+      images: (() => {
+        const list = Array.isArray(product.images)
+          ? product.images.filter((src: unknown) => typeof src === "string" && src.trim().length > 0)
+          : [];
+        return list.length > 0 ? list : ["/product_interior.webp"];
+      })(),
       isFeatured: product.isFeatured,
       soldCount: product.soldCount,
       colors: product.colors.map((link: any) => link.color.code),
@@ -90,7 +92,6 @@ export async function GET(request: NextRequest) {
       headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
     });
   } catch (error) {
-    console.error("Failed to fetch products:", error);
-    return Response.json({ error: "Failed to fetch products" }, { status: 500 });
+    return apiErrorResponse(error, request);
   }
 }

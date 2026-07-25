@@ -2,107 +2,160 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
 interface ExpertBlogsSectionProps {
   blogs: any[];
 }
 
+/**
+ * Editorial "latest articles" block (coffee blog row + Aura editorial):
+ * one cinematic featured story + compact side list with dates.
+ */
 export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
   const { language } = useLanguageStore();
+  const reduceMotion = useReducedMotion();
+  const list = blogs.slice(0, 3);
+  const featured = list[0];
+  const rest = list.slice(1);
+
+  if (!list.length) return null;
 
   return (
-    <section id="blogs-section" className="py-16 md:py-28 bg-jotun-ivory-100 border-b border-black/5">
-      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-          className="text-center mb-16"
-        >
-          <span className="text-[#88734C] font-semibold text-xs tracking-widest mb-3 flex items-center justify-center gap-2 uppercase">
-            <Sparkles className="w-4 h-4 text-[#88734C]" />
-            {language === "vi" ? "CẨM NANG & CẢM HỨNG" : "GUIDES & INSPIRATION"}
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-warm-900 mb-4 leading-tight">
-            {language === "vi" ? "Xu Hướng Từ Chuyên Gia" : "Expert Design Trends"}
-          </h2>
-          <div className="w-16 h-1 bg-[#88734C] mx-auto mt-2 mb-6" />
-          <p className="text-warm-550 text-xs md:text-sm max-w-2xl mx-auto leading-relaxed">
-            {language === "vi"
-              ? "Cập nhật các xu hướng màu sắc mới nhất và những hướng dẫn thi công thực tế từ đội ngũ chuyên gia của chúng tôi."
-              : "Stay updated with the latest color trends and practical application guides from our expert team."}
-          </p>
-        </motion.div>
+    <section id="blogs-section" className="py-20 md:py-28 bg-warm-950 text-white relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(0,123,138,0.18),_transparent_55%)]" />
 
-        <div className="flex flex-col gap-10 max-w-[1200px] mx-auto">
-          {blogs.map((blog, idx) => {
-            const title = language === "vi" ? blog.title : (blog.titleEn || blog.title);
-            const summary = language === "vi" ? blog.summary : (blog.summaryEn || blog.summary);
-            const category = language === "vi" ? blog.category : (blog.categoryEn || blog.category);
+      <div className="relative w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="h-px w-8 bg-jotun-teal" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-jotun-teal">
+                {language === "vi" ? "Blog" : "Journal"}
+              </p>
+            </div>
+            <h2 className="font-serif text-3xl md:text-4xl lg:text-[2.6rem] font-bold text-white leading-tight">
+              {language === "vi" ? "Xu hướng từ chuyên gia" : "Trends from experts"}
+            </h2>
+            <p className="mt-3 text-sm text-white/55 leading-relaxed max-w-md">
+              {language === "vi"
+                ? "Màu sắc mới và hướng dẫn thực tế từ đội ngũ FLOF."
+                : "Fresh color ideas and practical guides from the FLOF team."}
+            </p>
+          </div>
+          <Link
+            href="/blog"
+            className="text-xs font-bold text-white/80 hover:text-white transition-colors inline-flex items-center gap-1.5 shrink-0 border-b border-white/25 pb-0.5"
+          >
+            {language === "vi" ? "Tất cả bài viết" : "All articles"}
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
 
-            return (
-              <motion.div
-                key={blog.id}
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.08 }}
-                transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1], delay: idx * 0.15 }}
-                className="group bg-white rounded-3xl overflow-hidden border border-black/5 hover:border-[#88734C]/30 shadow-sm hover:shadow-xl transition-all duration-500 grid grid-cols-1 md:grid-cols-12 items-stretch"
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
+          {featured && (
+            <motion.article
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-7 group"
+            >
+              <Link
+                href={`/blog/${featured.slug}`}
+                className="block relative overflow-hidden rounded-[1.5rem] min-h-[340px] md:min-h-[460px] border border-white/10"
               >
-                {/* Blog Image */}
-                <div className="md:col-span-5 relative min-h-[260px] md:min-h-full overflow-hidden">
-                  <Image
-                    src={blog.image}
-                    alt={title}
-                    fill
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-500" />
-
-                  {/* Category Tag overlay on image */}
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-[#88734C] border border-[#88734C]/10 text-[9px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full shadow-xs">
-                    {category}
+                <Image
+                  src={featured.image}
+                  alt={language === "vi" ? featured.title : featured.titleEn || featured.title}
+                  fill
+                  sizes="(min-width: 1024px) 55vw, 100vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-warm-950 via-warm-950/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-9">
+                  <div className="flex items-center gap-3 text-[10px] font-semibold uppercase tracking-wider text-white/60 mb-3">
+                    <span className="text-jotun-teal">
+                      {language === "vi"
+                        ? featured.category
+                        : featured.categoryEn || featured.category}
+                    </span>
+                    {featured.createdAt && (
+                      <>
+                        <span className="w-1 h-1 rounded-full bg-white/30" />
+                        <span>{featured.createdAt}</span>
+                      </>
+                    )}
                   </div>
+                  <h3 className="font-serif text-2xl md:text-3xl font-bold leading-snug max-w-lg text-white">
+                    {language === "vi" ? featured.title : featured.titleEn || featured.title}
+                  </h3>
+                  <p className="mt-3 text-sm text-white/65 line-clamp-2 max-w-md leading-relaxed">
+                    {language === "vi"
+                      ? featured.summary
+                      : featured.summaryEn || featured.summary}
+                  </p>
+                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-white group-hover:gap-2.5 transition-all">
+                    {language === "vi" ? "Đọc tiếp" : "Read more"}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </div>
+              </Link>
+            </motion.article>
+          )}
 
-                {/* Blog Content */}
-                <div className="md:col-span-7 p-6 md:p-10 flex flex-col justify-between items-start text-left bg-gradient-to-br from-white to-warm-50/10">
-                  <div className="flex flex-col gap-4 w-full">
-                    {/* Meta info */}
-                    <div className="flex items-center gap-4 text-[10px] text-warm-450 font-bold uppercase tracking-wider">
-                      <span>{blog.author.split(" - ")[0]}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-warm-300" />
-                      <span>{blog.readTime}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-warm-300 hidden sm:inline" />
-                      <span className="hidden sm:inline">{blog.createdAt}</span>
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {rest.map((blog, index) => {
+              const title = language === "vi" ? blog.title : blog.titleEn || blog.title;
+              const summary =
+                language === "vi" ? blog.summary : blog.summaryEn || blog.summary;
+
+              return (
+                <motion.article
+                  key={blog.id}
+                  initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{
+                    duration: 0.5,
+                    ease: [0.16, 1, 0.3, 1],
+                    delay: reduceMotion ? 0 : index * 0.06,
+                  }}
+                  className="flex-1"
+                >
+                  <Link
+                    href={`/blog/${blog.slug}`}
+                    className="group grid grid-cols-5 gap-4 h-full rounded-[1.35rem] border border-white/10 bg-white/[0.04] p-3 hover:bg-white/[0.07] hover:border-jotun-teal/40 transition-colors"
+                  >
+                    <div className="col-span-2 relative aspect-[4/3] rounded-2xl overflow-hidden bg-warm-800">
+                      <Image
+                        src={blog.image}
+                        alt={title}
+                        fill
+                        sizes="160px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
                     </div>
-
-                    <h3 className="font-serif font-bold text-xl md:text-2xl text-warm-900 group-hover:text-jotun-teal transition-colors duration-300 leading-tight">
-                      {title}
-                    </h3>
-
-                    <p className="text-xs md:text-sm text-warm-550 leading-relaxed font-light line-clamp-3">
-                      {summary}
-                    </p>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-black/5 w-full flex items-center justify-between">
-                    <Link
-                      href={`/blog/${blog.slug}`}
-                      className="inline-flex items-center gap-2 text-xs font-bold text-warm-900 group-hover:text-jotun-teal transition-all duration-300"
-                    >
-                      {language === "vi" ? "Đọc tiếp" : "Read more"}
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+                    <div className="col-span-3 flex flex-col justify-center pr-1 py-1">
+                      {blog.createdAt && (
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40 mb-1.5">
+                          {blog.createdAt}
+                        </p>
+                      )}
+                      <h3 className="font-serif font-bold text-white text-[15px] md:text-base leading-snug group-hover:text-jotun-teal transition-colors line-clamp-2">
+                        {title}
+                      </h3>
+                      <p className="mt-1.5 text-xs text-white/45 line-clamp-2 leading-relaxed">
+                        {summary}
+                      </p>
+                    </div>
+                  </Link>
+                </motion.article>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

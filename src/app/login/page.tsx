@@ -84,8 +84,9 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">Email</label>
+            <label htmlFor="login-email" className="text-[10px] font-bold uppercase text-warm-450">Email</label>
             <input
+              id="login-email"
               type="email"
               required
               value={email}
@@ -96,11 +97,12 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold uppercase text-warm-450">
+            <label htmlFor="login-password" className="text-[10px] font-bold uppercase text-warm-450">
               {language === "vi" ? "Mật khẩu" : "Password"}
             </label>
             <div className="relative">
               <input
+                id="login-password"
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
@@ -111,11 +113,20 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-jotun-teal hover:text-warm-850"
+                className="absolute right-1 top-1/2 min-h-11 min-w-11 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-jotun-teal hover:text-warm-850"
               >
                 {showPassword ? (language === "vi" ? "[Ẩn]" : "[Hide]") : (language === "vi" ? "[Hiện]" : "[Show]")}
               </button>
             </div>
+          </div>
+
+          <div className="flex justify-end -mt-1">
+            <Link
+              href="/forgot-password"
+              className="text-[10px] font-bold text-jotun-teal hover:underline uppercase tracking-wide"
+            >
+              {language === "vi" ? "Quên mật khẩu?" : "Forgot password?"}
+            </Link>
           </div>
 
           <button

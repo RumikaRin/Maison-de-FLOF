@@ -7,18 +7,24 @@ import {
   calculateShippingFee,
   isCouponUsable,
 } from "@/lib/commerce";
-import { sendOrderConfirmationEmail } from "@/lib/email";
 import { hashCheckoutRequest, isValidIdempotencyKey } from "@/lib/idempotency";
 import { z } from "zod";
 import { paymentService } from "./vnpay.service";
+
+type CheckoutDependencies = {
+  database?: typeof db;
+};
 
 export async function processCheckout(
   input: z.infer<typeof checkoutSchema>,
   sessionUser: { id: string; email: string },
   idempotencyKey: string | null,
   ipAddr: string = "127.0.0.1",
-  returnUrl: string = ""
+  returnUrl: string = "",
+  dependencies: CheckoutDependencies = {},
 ) {
+  const database = dependencies.database ?? db;
+
   if (!isValidIdempotencyKey(idempotencyKey)) {
     throw new ApiError(400, "Thiếu hoặc sai Idempotency-Key");
   }
@@ -26,7 +32,7 @@ export async function processCheckout(
   const requestHash = hashCheckoutRequest(input);
   
   // 1. Check Idempotency
-  const existingIdempotency = await db.checkoutIdempotency.findUnique({
+  const existingIdempotency = await database.checkoutIdempotency.findUnique({
     where: { key: idempotencyKey! },
   });
 
@@ -46,7 +52,7 @@ export async function processCheckout(
 
   // 2. Validate Products & Stock
   const requestedPaintIds = [...new Set(input.items.map((item: any) => item.paintId))];
-  const paints = await db.paint.findMany({
+  const paints = await database.paint.findMany({
     where: { id: { in: requestedPaintIds as string[] }, isActive: true },
     include: { colors: { include: { color: true } } },
   });
@@ -93,7 +99,7 @@ export async function processCheckout(
   const now = new Date();
   
   const coupon = normalizedCouponCode
-    ? await db.coupon.findUnique({ where: { code: normalizedCouponCode } })
+    ? await database.coupon.findUnique({ where: { code: normalizedCouponCode } })
     : null;
 
   if (normalizedCouponCode && !isCouponUsable(coupon, subtotal, now)) {
@@ -109,7 +115,7 @@ export async function processCheckout(
     .toUpperCase()}`;
 
   // 4. Transaction: create order, update stock, save idempotency
-  const txResult = await db.$transaction(async (tx) => {
+  const txResult = await database.$transaction(async (tx) => {
     await tx.checkoutIdempotency.create({
       data: {
         key: idempotencyKey!,
@@ -233,18 +239,21 @@ export async function processCheckout(
       await tx.notification.createMany({ data: notifications });
     }
 
-    // Insert to Outbox to be processed asynchronously
-    await tx.emailOutbox.create({
-      data: {
-        type: "ORDER_CONFIRMATION",
-        payload: {
-          email: sessionUser.email,
-          fullName: input.shipping.fullName,
-          orderNumber,
-          total
-        }
-      }
-    });
+    // COD / TRANSFER: confirm receipt immediately.
+    // VNPAY: wait until payment is PAID (IPN/return) before emailing.
+    if (input.paymentMethod !== "VNPAY") {
+      await tx.emailOutbox.create({
+        data: {
+          type: "ORDER_CONFIRMATION",
+          payload: {
+            email: sessionUser.email,
+            fullName: input.shipping.fullName,
+            orderNumber,
+            total: Number(total),
+          },
+        },
+      });
+    }
 
     return { orderId: order.id, orderNumber: order.orderNumber, total: Number(total) };
   });

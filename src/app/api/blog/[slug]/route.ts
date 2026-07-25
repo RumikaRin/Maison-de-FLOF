@@ -23,7 +23,7 @@ export async function GET(
     summaryEn: blog.summaryEn || blog.summary,
     content: blog.content,
     contentEn: blog.contentEn || blog.content,
-    image: blog.image || "/room_inspiration.png",
+    image: blog.image || "/room_inspiration.webp",
     category: "Xu Hướng Thiết Kế",
     categoryEn: "Design Trends",
     author: blog.author.name || "Maison de FLOF",
