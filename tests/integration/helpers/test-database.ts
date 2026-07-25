@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { assertTestDatabaseUrl } from "../../../scripts/assert-test-database.ts";
+import { TEST_FIXTURES } from "../../../scripts/test-db-fixtures.ts";
 
 export function createTestDatabase() {
   return new PrismaClient({
@@ -130,6 +131,74 @@ export async function resetCustomerWorkflowFixtures(database: PrismaClient) {
       where: { orderId: { in: orderIds } },
     }),
     database.order.deleteMany({ where: { id: { in: orderIds } } }),
+  ]);
+}
+
+export async function resetHttpApiFixtures(database: PrismaClient) {
+  const [categories, quotes, reviews, messages, testUsers] = await Promise.all([
+    database.category.findMany({
+      where: { slug: { startsWith: "integration-http-" } },
+      select: { id: true },
+    }),
+    database.quoteRequest.findMany({
+      where: { email: { startsWith: "integration-http-" } },
+      select: { id: true },
+    }),
+    database.review.findMany({
+      where: { comment: { startsWith: "integration-http-" } },
+      select: { id: true },
+    }),
+    database.message.findMany({
+      where: { content: { startsWith: "integration-http-" } },
+      select: { conversationId: true },
+    }),
+    database.user.findMany({
+      where: {
+        email: {
+          in: [
+            TEST_FIXTURES.customerEmail,
+            TEST_FIXTURES.resetEmail,
+            TEST_FIXTURES.adminEmail,
+          ],
+        },
+      },
+      select: { id: true },
+    }),
+  ]);
+
+  const categoryIds = categories.map(({ id }) => id);
+  const quoteIds = quotes.map(({ id }) => id);
+  const reviewIds = reviews.map(({ id }) => id);
+  const conversationIds = [
+    ...new Set(messages.map(({ conversationId }) => conversationId)),
+  ];
+  const userIds = testUsers.map(({ id }) => id);
+  const auditedEntityIds = [
+    ...categoryIds,
+    ...quoteIds,
+    ...reviewIds,
+    ...conversationIds,
+  ];
+
+  await database.$transaction([
+    database.auditLog.deleteMany({
+      where: { entityId: { in: auditedEntityIds } },
+    }),
+    database.notification.deleteMany({
+      where: {
+        userId: { in: userIds },
+        type: { in: ["REVIEW", "QUOTE", "SYSTEM"] },
+      },
+    }),
+    database.message.deleteMany({
+      where: { conversationId: { in: conversationIds } },
+    }),
+    database.conversation.deleteMany({
+      where: { id: { in: conversationIds } },
+    }),
+    database.review.deleteMany({ where: { id: { in: reviewIds } } }),
+    database.quoteRequest.deleteMany({ where: { id: { in: quoteIds } } }),
+    database.category.deleteMany({ where: { id: { in: categoryIds } } }),
   ]);
 }
 
