@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { Blog } from "@/types";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 
 export default function AdminArticlesPage() {
@@ -163,7 +163,7 @@ export default function AdminArticlesPage() {
   return (
     <div className="flex flex-col gap-8 text-left">
       {/* Header and Add CTA with spring reveal */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -185,10 +185,10 @@ export default function AdminArticlesPage() {
         >
           {language === "vi" ? "Viết Bài Mới" : "Publish New Article"}
         </button>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Filter and Search Bar */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.35 }}
@@ -203,10 +203,10 @@ export default function AdminArticlesPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 text-warm-900 transition-shadow"
         />
-      </motion.div>
+      </safeMotion.div>
 
       {/* Article Listing Grid */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.4 }}
@@ -275,19 +275,19 @@ export default function AdminArticlesPage() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Write/Edit Modal overlay with premium spring scale transitions */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div 
+          <safeMotion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsModalOpen(false)} 
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto text-left"
           >
-            <motion.div 
+            <safeMotion.div 
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
@@ -451,8 +451,8 @@ export default function AdminArticlesPage() {
                 </div>
 
               </form>
-            </motion.div>
-          </motion.div>
+            </safeMotion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
 
@@ -473,3 +473,5 @@ export default function AdminArticlesPage() {
     </div>
   );
 }
+
+

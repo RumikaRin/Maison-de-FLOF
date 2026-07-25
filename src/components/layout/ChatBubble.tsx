@@ -2,9 +2,9 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import { Facebook, MessageCircle, Send, X, User as UserIcon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { useLanguageStore } from "@/store/language-store";
 import { useSession } from "next-auth/react";
 
@@ -129,7 +129,7 @@ export function ChatBubble() {
     <div className="fixed bottom-5 right-4 z-[70] flex flex-col items-end gap-3 sm:bottom-7 sm:right-7">
       <AnimatePresence>
         {open && (
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
@@ -238,11 +238,11 @@ export function ChatBubble() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
 
-      <motion.button
+      <safeMotion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => { setOpen((value) => !value); if (!open) setView("options"); }}
@@ -251,7 +251,8 @@ export function ChatBubble() {
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6" />}
         {!open && <span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400" />}
-      </motion.button>
+      </safeMotion.button>
     </div>
   );
 }
+

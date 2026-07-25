@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useCartStore } from "@/store/cart-store";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ChevronLeft } from "lucide-react";
 import { CheckoutSuccess } from "./CheckoutSuccess";

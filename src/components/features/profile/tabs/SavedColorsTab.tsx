@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { Heart } from "lucide-react";
 import { PALETTE_COLORS } from "@/lib/color-utils";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 interface SavedColorsTabProps {
   language: string;
@@ -19,7 +20,7 @@ export function SavedColorsTab({
   setSelectedColor,
 }: SavedColorsTabProps) {
   return (
-    <motion.div
+    <safeMotion.div
       key="favorites"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -42,10 +43,11 @@ export function SavedColorsTab({
                   onClick={() => setSelectedColor(color)}
                   className="bg-white rounded-2xl border border-warm-200 p-3 flex flex-col gap-3 group relative hover:shadow-md transition-all duration-300 cursor-pointer"
                 >
-                  <div
-                    className="h-24 rounded-xl border border-black/5 flex items-center justify-center relative shadow-inner"
-                    style={{ backgroundColor: color.hex }}
-                  >
+                  <div className="h-24 rounded-xl border border-black/5 flex items-center justify-center relative shadow-inner overflow-hidden">
+                    <ColorSwatch
+                      color={color.hex}
+                      className="absolute inset-0 h-full w-full"
+                    />
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -79,6 +81,7 @@ export function SavedColorsTab({
           </div>
         )}
       </div>
-    </motion.div>
+    </safeMotion.div>
   );
 }
+

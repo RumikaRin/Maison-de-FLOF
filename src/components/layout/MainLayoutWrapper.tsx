@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 
 // Helper component that runs the observer only when the new page layout mounts
 function ScrollRevealObserver() {
@@ -71,7 +71,7 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
 
   return (
     <AnimatePresence mode="wait">
-      <motion.main
+      <safeMotion.main
         key={pathname}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -81,7 +81,8 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
       >
         <ScrollRevealObserver />
         {children}
-      </motion.main>
+      </safeMotion.main>
     </AnimatePresence>
   );
 }
+

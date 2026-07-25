@@ -6,7 +6,7 @@ import { signIn, getSession } from "next-auth/react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 
 
 

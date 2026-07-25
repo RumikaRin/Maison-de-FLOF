@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
 import { ArrowRight, Layers, Palette, Smartphone } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -50,7 +50,7 @@ export function VisualizerPromoSection() {
 
       <div className="relative w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          <motion.div
+          <safeMotion.div
             initial={reduceMotion ? false : { opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -105,9 +105,9 @@ export function VisualizerPromoSection() {
                 {language === "vi" ? "Xem bảng màu" : "Browse colors"}
               </Link>
             </div>
-          </motion.div>
+          </safeMotion.div>
 
-          <motion.div
+          <safeMotion.div
             initial={reduceMotion ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
@@ -162,7 +162,7 @@ export function VisualizerPromoSection() {
                 </Link>
               ))}
             </div>
-          </motion.div>
+          </safeMotion.div>
         </div>
 
         {/* Bottom dual cards - keep discovery CTAs */}
@@ -230,3 +230,5 @@ export function VisualizerPromoSection() {
     </section>
   );
 }
+
+

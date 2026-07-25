@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { cn } from "@/lib/utils";
 
 interface ProfileSidebarProps {
@@ -24,7 +24,7 @@ export function ProfileSidebar({
   handleLogout,
 }: ProfileSidebarProps) {
   return (
-    <motion.aside
+    <safeMotion.aside
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -130,6 +130,7 @@ export function ProfileSidebar({
           <span>{language === "vi" ? "Đăng xuất" : "Log Out"}</span>
         </button>
       </div>
-    </motion.aside>
+    </safeMotion.aside>
   );
 }
+

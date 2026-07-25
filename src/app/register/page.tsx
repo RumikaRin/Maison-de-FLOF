@@ -7,7 +7,7 @@ import { signIn } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 

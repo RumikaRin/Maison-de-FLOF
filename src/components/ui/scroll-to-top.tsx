@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { ArrowUp } from "lucide-react";
 
 export function ScrollToTop() {
@@ -20,7 +20,7 @@ export function ScrollToTop() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.button
+        <safeMotion.button
           key="scroll-to-top"
           initial={{ opacity: 0, y: 16, scale: 0.88 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -35,15 +35,17 @@ export function ScrollToTop() {
                      border border-white/10
                      transition-colors duration-300 cursor-pointer
                      group"
-          style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.93 }}
         >
           <ArrowUp
             className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5"
           />
-        </motion.button>
+        </safeMotion.button>
       )}
     </AnimatePresence>
   );
 }
+
+
+

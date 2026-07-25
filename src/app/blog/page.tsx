@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -83,7 +83,7 @@ export default function BlogListingPage() {
       {/* Page Header */}
       <div className="py-16 md:py-20 relative bg-jotun-ivory overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
-        <motion.div
+        <safeMotion.div
           initial="hidden"
           animate="visible"
           variants={headerVariants}
@@ -97,12 +97,12 @@ export default function BlogListingPage() {
               ? "Cập nhật xu hướng phối màu sắc thời thượng và cẩm nang thi công sơn nước chuyên nghiệp."
               : "Update beautiful color palettes, trending designs, and professional paint application guides."}
           </p>
-        </motion.div>
+        </safeMotion.div>
       </div>
 
       <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 py-10">
         {/* Filter panel */}
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
@@ -119,7 +119,7 @@ export default function BlogListingPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <motion.button
+            <safeMotion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setSelectedCategory("all")}
@@ -130,9 +130,9 @@ export default function BlogListingPage() {
               }`}
             >
               {language === "vi" ? "Tất cả" : "All"}
-            </motion.button>
+            </safeMotion.button>
             {categories.map((cat) => (
-              <motion.button
+              <safeMotion.button
                 key={cat}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -144,14 +144,14 @@ export default function BlogListingPage() {
                 }`}
               >
                 {cat}
-              </motion.button>
+              </safeMotion.button>
             ))}
           </div>
-        </motion.div>
+        </safeMotion.div>
 
         {/* Blog Grid */}
         {filteredBlogs.length > 0 ? (
-          <motion.div
+          <safeMotion.div
             key={searchQuery + selectedCategory}
             variants={containerVariants}
             initial="hidden"
@@ -162,7 +162,7 @@ export default function BlogListingPage() {
               const catLabel = language === "vi" ? blog.category : blog.categoryEn;
               const catColor = CATEGORY_COLORS[catLabel] || "bg-warm-50 text-warm-700 border-warm-150";
               return (
-                <motion.div
+                <safeMotion.div
                   key={blog.id}
                   variants={itemVariants}
                   whileHover={{ y: -6, scale: 1.015 }}
@@ -217,10 +217,10 @@ export default function BlogListingPage() {
                       </div>
                     </div>
                   </Link>
-                </motion.div>
+                </safeMotion.div>
               );
             })}
-          </motion.div>
+          </safeMotion.div>
         ) : (
           <div className="bg-warm-50/50 border border-dashed border-warm-200/80 rounded-2xl h-80 flex flex-col items-center justify-center text-center p-6 gap-2">
             <p className="font-serif font-bold text-lg text-warm-450 uppercase tracking-wider">
@@ -235,3 +235,5 @@ export default function BlogListingPage() {
     </div>
   );
 }
+
+

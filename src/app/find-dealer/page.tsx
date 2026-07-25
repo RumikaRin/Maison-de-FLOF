@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import dynamic from "next/dynamic";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
@@ -14,7 +14,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 
 const DealerMap = dynamic(() => import("@/components/maps/dealer-map"), {
   ssr: false,
@@ -117,7 +117,7 @@ export default function FindDealerPage() {
           <div className="flex flex-col lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
 
             {/* Mobile: compact text-only hero, image hidden on xs */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
@@ -130,7 +130,6 @@ export default function FindDealerPage() {
 
               <h1
                 className="text-2xl sm:text-3xl lg:text-[2.75rem] font-serif font-bold text-warm-900 tracking-tight"
-                style={{ lineHeight: 1.3 }}
               >
                 {language === "vi" ? (
                   <>Tìm Đại Lý Sơn <br className="hidden sm:block" /><span className="font-normal italic text-jotun-teal">Gần Nhất</span></>
@@ -150,10 +149,10 @@ export default function FindDealerPage() {
                 <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jotun-teal shrink-0" />{language === "vi" ? "Bảng giá niêm yết công khai" : "Transparent public pricing"}</p>
                 <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jotun-teal shrink-0" />{language === "vi" ? "Hỗ trợ pha màu máy tính" : "Computer color tinting support"}</p>
               </div>
-            </motion.div>
+            </safeMotion.div>
 
             {/* Image: hidden on mobile, visible on lg+ */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -168,7 +167,7 @@ export default function FindDealerPage() {
                   priority
                 />
               </div>
-            </motion.div>
+            </safeMotion.div>
           </div>
         </div>
       </section>
@@ -262,7 +261,7 @@ export default function FindDealerPage() {
           <div className={`lg:col-span-5 flex flex-col gap-3 lg:max-h-[600px] lg:overflow-y-auto lg:pr-1 ${mobileView === "map" ? "hidden lg:flex" : "flex"}`}>
             {filteredDealers.length > 0 ? (
               filteredDealers.map((d) => (
-                <motion.div
+                <safeMotion.div
                   key={d.id}
                   layout
                   initial={{ opacity: 0, y: 12 }}
@@ -308,7 +307,7 @@ export default function FindDealerPage() {
                       <span>{language === "vi" ? "Xem bản đồ" : "View map"}</span>
                     </button>
                   </div>
-                </motion.div>
+                </safeMotion.div>
               ))
             ) : (
               <div className="bg-warm-50/50 border border-dashed border-warm-200/80 rounded-2xl h-60 flex flex-col items-center justify-center text-center p-6 gap-2">
@@ -346,3 +345,5 @@ export default function FindDealerPage() {
     </div>
   );
 }
+
+

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
@@ -136,3 +136,4 @@ export function PersonalInfoTab({
     </div>
   );
 }
+

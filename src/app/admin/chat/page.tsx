@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { ExternalLink, Mail, MessageCircle, Phone, Send, UserRound } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -355,3 +355,4 @@ export default function AdminChatPage() {
     </div>
   );
 }
+

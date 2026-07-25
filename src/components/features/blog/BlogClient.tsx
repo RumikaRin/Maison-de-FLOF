@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import {
   ArrowLeft,
@@ -186,3 +186,4 @@ export function BlogClient({ initialBlog, initialRelatedBlogs }: BlogClientProps
     </div>
   );
 }
+

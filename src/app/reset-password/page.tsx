@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguageStore } from "@/store/language-store";
 import { passwordPolicyMessage, isPasswordStrong } from "@/lib/password-policy";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 
 function ResetPasswordForm() {
   const router = useRouter();

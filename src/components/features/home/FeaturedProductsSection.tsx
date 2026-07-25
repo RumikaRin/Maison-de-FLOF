@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 import { cn, formatPrice } from "@/lib/utils";
@@ -102,7 +102,7 @@ export function FeaturedProductsSection({
         <div className="relative min-h-[300px]">
           <AnimatePresence mode="wait">
             {isTabLoading ? (
-              <motion.div
+              <safeMotion.div
                 key="loading"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -110,9 +110,9 @@ export function FeaturedProductsSection({
                 className="min-h-[300px] flex items-center justify-center"
               >
                 <div className="w-9 h-9 rounded-full border-2 border-warm-200 border-t-jotun-teal animate-spin" />
-              </motion.div>
+              </safeMotion.div>
             ) : (
-              <motion.div
+              <safeMotion.div
                 key={activeTab}
                 initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -134,7 +134,7 @@ export function FeaturedProductsSection({
                     : paint.price;
 
                   return (
-                    <motion.article
+                    <safeMotion.article
                       key={paint.id}
                       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -199,10 +199,10 @@ export function FeaturedProductsSection({
                           </button>
                         </div>
                       </div>
-                    </motion.article>
+                    </safeMotion.article>
                   );
                 })}
-              </motion.div>
+              </safeMotion.div>
             )}
           </AnimatePresence>
         </div>
@@ -220,3 +220,5 @@ export function FeaturedProductsSection({
     </section>
   );
 }
+
+

@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { CheckCircle, Info, Copy } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { useRouter } from "next/navigation";
 
 interface CheckoutSuccessProps {
@@ -180,3 +180,4 @@ export function CheckoutSuccess({
     </div>
   );
 }
+

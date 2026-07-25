@@ -9,7 +9,7 @@ import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { cn } from "@/lib/utils";
 import { ShoppingCart, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 
 const NAV_LINKS = [
   { href: "/products", keyVi: "Sản phẩm", keyEn: "Products" },
@@ -62,9 +62,8 @@ export default function Header() {
     <>
       <header
         className="fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-700 pointer-events-none"
-        style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
       >
-        <motion.div
+        <safeMotion.div
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -75,7 +74,6 @@ export default function Header() {
               ? "bg-white/85 backdrop-blur-xl border-warm-300 shadow-black/[0.04] py-2 w-[92vw] sm:w-[90vw] max-w-[1400px] h-16 md:h-[68px] px-4 sm:px-6 md:px-8"
               : "bg-white/70 backdrop-blur-lg border-warm-300 shadow-black/[0.02] py-3 w-[95vw] sm:w-[94vw] max-w-[1550px] h-16 md:h-[76px] px-4 sm:px-8 md:px-10"
           )}
-          style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
         >
           {/* Logo */}
           <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 shrink-0 group">
@@ -105,7 +103,6 @@ export default function Header() {
                       ? "bg-warm-900 text-white"
                       : "text-warm-700 hover:bg-warm-100 hover:text-warm-900"
                   )}
-                  style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
                 >
                   {language === "vi" ? link.keyVi : link.keyEn}
                 </Link>
@@ -121,7 +118,6 @@ export default function Header() {
               <button
                 onClick={toggleLanguage}
                 className="hidden sm:inline-block px-3 py-1.5 text-[11px] font-bold rounded-full hover:bg-white hover:text-warm-900 text-warm-600 transition-all duration-300 hover:shadow-sm"
-                style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
                 title="Switch language"
               >
                 {language === "vi" ? "ENGLISH" : "TIẾNG VIỆT"}
@@ -135,7 +131,6 @@ export default function Header() {
                 href="/cart"
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white hover:shadow-sm text-warm-900 transition-all duration-300 text-xs font-bold"
-                style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
               >
                 <ShoppingCart className="h-4 w-4 text-warm-900" />
                 <span className="hidden sm:inline">{language === "vi" ? "Giỏ hàng" : "Cart"}</span>
@@ -158,7 +153,6 @@ export default function Header() {
                     <button 
                       onClick={() => setIsAvatarOpen(!isAvatarOpen)}
                       className="flex items-center p-0.5 rounded-full hover:scale-105 transition-transform duration-300 focus:outline-none"
-                      style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
                       aria-expanded={isAvatarOpen}
                       aria-haspopup="menu"
                     >
@@ -172,14 +166,12 @@ export default function Header() {
                         "absolute top-full right-0 pt-3 w-52 z-50 transition-all duration-300",
                         isAvatarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                       )}
-                      style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
                     >
                       <div 
                         className={cn(
                           "bg-white border border-black/[0.06] rounded-2xl shadow-xl overflow-hidden transition-transform duration-300",
                           isAvatarOpen ? "translate-y-0" : "translate-y-2"
                         )}
-                        style={{ backdropFilter: "none" }}
                       >
                         <div className="p-3 border-b border-warm-100 bg-warm-50">
                           <p className="text-xs font-bold text-warm-900 truncate">{user.name || "User"}</p>
@@ -248,7 +240,7 @@ export default function Header() {
               {mobileOpen ? (language === "vi" ? "Đóng" : "Close") : "Menu"}
             </button>
           </div>
-        </motion.div>
+        </safeMotion.div>
       </header>
 
       {/* Mobile Menu Overlay */}
@@ -256,7 +248,7 @@ export default function Header() {
         {mobileOpen && (
           <div className="fixed inset-0 z-40 flex flex-col justify-end sm:justify-center items-center p-4">
             {/* Background Blur Overlay */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -265,7 +257,7 @@ export default function Header() {
             />
 
             {/* Menu Box */}
-            <motion.div
+            <safeMotion.div
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
@@ -292,7 +284,7 @@ export default function Header() {
                 {NAV_LINKS.map((link, i) => {
                   const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
                   return (
-                    <motion.div
+                    <safeMotion.div
                       key={link.href}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -313,7 +305,7 @@ export default function Header() {
                           ➔
                         </span>
                       </Link>
-                    </motion.div>
+                    </safeMotion.div>
                   );
                 })}
               </nav>
@@ -388,10 +380,13 @@ export default function Header() {
                   {language === "vi" ? "ENGLISH 🇬🇧" : "TIẾNG VIỆT 🇻🇳"}
                 </button>
               </div>
-            </motion.div>
+            </safeMotion.div>
           </div>
         )}
       </AnimatePresence>
     </>
   );
 }
+
+
+

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Sparkles, ArrowRight, Download, Share2, RefreshCw } from "lucide-react";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -206,7 +207,7 @@ export default function ColorVisualizerPage() {
       <section className="relative w-full border-b border-black/5 bg-[#F2F2EB]">
         <div className="w-full max-w-[1880px] mx-auto grid grid-cols-1 lg:grid-cols-12 items-stretch min-h-[460px]">
           {/* Left Text */}
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, x: -25 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
@@ -220,9 +221,9 @@ export default function ColorVisualizerPage() {
                 ? "Bạn không thể đưa ra sự lựa chọn màu sắc cho ngôi nhà? Với công cụ Phối Màu, việc tìm kiếm màu sắc hoàn hảo cho ngôi nhà của bạn chỉ đơn giản bằng một cú chạm. Hãy biến ngôi nhà mơ ước của bạn thành thực tế."
                 : "Can't decide on the perfect paint colors for your home? With our interactive Color Visualizer, finding the ideal palette is just a tap away. Bring your dream home to life instantly."}
             </p>
-          </motion.div>
+          </safeMotion.div>
           {/* Right Image */}
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
@@ -236,14 +237,14 @@ export default function ColorVisualizerPage() {
               priority
             />
             <div className="absolute inset-0 bg-black/5" />
-          </motion.div>
+          </safeMotion.div>
         </div>
       </section>
 
       {/* 2. INTRO PARAGRAPH - Centered style */}
       <section className="py-16 border-b border-black/5 bg-white overflow-hidden">
         <div className="w-full max-w-[1000px] mx-auto px-6 text-center">
-          <motion.p
+          <safeMotion.p
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -253,7 +254,7 @@ export default function ColorVisualizerPage() {
             {language === "vi"
               ? "Trải nghiệm không gian sống chân thực với các tùy chọn phối màu sơn thực tế được phối sắc tỉ mỉ. Thay đổi màu sắc trên các bức tường, mặt tiền kiến trúc một cách thông minh và chiêm ngưỡng các thiết kế thực tế."
               : "Experience realistic living spaces with dual-color combination presets from our premium collection. Intelligently update architectural details and view real-world paint coordinates."}
-          </motion.p>
+          </safeMotion.p>
         </div>
       </section>
 
@@ -261,7 +262,7 @@ export default function ColorVisualizerPage() {
       <section id="interactive-tool" className="py-24 bg-jotun-ivory">
         <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 text-left">
 
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -276,9 +277,9 @@ export default function ColorVisualizerPage() {
                 ? "Thử nghiệm các bộ phối màu sơn thực tế (Curated Palettes) được dựng 3D sắc nét. Chọn bộ màu bên dưới để thay đổi không gian."
                 : "Experiment with photo-realistic pre-rendered color palettes. Click any preset below to update the entire space to the matching paint render."}
             </p>
-          </motion.div>
+          </safeMotion.div>
 
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
@@ -293,7 +294,7 @@ export default function ColorVisualizerPage() {
                   <span className="hidden sm:inline text-xs font-bold uppercase text-warm-450 whitespace-nowrap">{t.selectSpace}:</span>
                   <div className="flex gap-2">
                     {MOCK_ROOMS.map((room) => (
-                      <motion.button
+                      <safeMotion.button
                         key={room.id}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
@@ -308,7 +309,7 @@ export default function ColorVisualizerPage() {
                         )}
                       >
                         {language === "vi" ? room.name : room.nameEn}
-                      </motion.button>
+                      </safeMotion.button>
                     ))}
                   </div>
                 </div>
@@ -346,7 +347,7 @@ export default function ColorVisualizerPage() {
                   </span>
                   {surfaces.map(s => (
                     <div key={s.value} className="flex items-center gap-2">
-                      <span className="inline-block w-4.5 h-4.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: s.color }} />
+                      <ColorSwatch color={s.color} className="h-4.5 w-4.5 shrink-0 rounded-full border border-black/10" />
                       <span className="text-warm-850 font-mono font-bold">{s.color}</span>
                       <span className="text-warm-450 font-semibold">· {s.label}</span>
                     </div>
@@ -362,7 +363,7 @@ export default function ColorVisualizerPage() {
                   <div className="flex gap-2">
                     {surfaces.map(s => (
                       <div key={s.value} className="flex items-center gap-1.5">
-                        <span className="inline-block w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: s.color }} />
+                        <ColorSwatch color={s.color} className="h-3.5 w-3.5 shrink-0 rounded-full border border-black/10" />
                         <span className="text-[9px] text-warm-900 font-mono font-bold">{s.color}</span>
                       </div>
                     ))}
@@ -383,7 +384,7 @@ export default function ColorVisualizerPage() {
                   <h3 className="font-serif font-bold text-base text-warm-900 mb-4 uppercase tracking-wider">
                     {language === "vi" ? "Bộ Phối 2 Màu" : "Curated Preset"}
                   </h3>
-                  <motion.div
+                  <safeMotion.div
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -392,7 +393,7 @@ export default function ColorVisualizerPage() {
                     {CURATED_COMBINATIONS.map((combo) => {
                       const isActive = selectedComboId === combo.id;
                       return (
-                        <motion.button
+                        <safeMotion.button
                           key={combo.id}
                           variants={itemVariants}
                           whileHover={{ scale: 1.025, y: -2 }}
@@ -413,29 +414,23 @@ export default function ColorVisualizerPage() {
                           </p>
                           <div className="flex items-center gap-3 mt-1">
                             <div className="flex items-center gap-1.5">
-                              <span
-                                className="w-4 h-4 rounded-full border border-black/10 shrink-0"
-                                style={{ backgroundColor: combo.mainHex }}
-                              />
+                              <ColorSwatch color={combo.mainHex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" />
                               <span className="text-[10px] text-warm-700 font-mono font-semibold">{combo.mainHex}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span
-                                className="w-4 h-4 rounded-full border border-black/10 shrink-0"
-                                style={{ backgroundColor: combo.accentHex }}
-                              />
+                              <ColorSwatch color={combo.accentHex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" />
                               <span className="text-[10px] text-warm-700 font-mono font-semibold">{combo.accentHex}</span>
                             </div>
                           </div>
-                        </motion.button>
+                        </safeMotion.button>
                       );
                     })}
-                  </motion.div>
+                  </safeMotion.div>
                 </div>
 
               </div>
             </div>
-          </motion.div>
+          </safeMotion.div>
         </div>
       </section>
 
@@ -444,7 +439,7 @@ export default function ColorVisualizerPage() {
         <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 text-left">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Left Content */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -474,9 +469,9 @@ export default function ColorVisualizerPage() {
                   <ArrowRight className="h-4 w-4 text-white transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
-            </motion.div>
+            </safeMotion.div>
             {/* Right Showroom Image */}
-            <motion.div
+            <safeMotion.div
               initial={{ opacity: 0, scale: 0.94 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -491,7 +486,7 @@ export default function ColorVisualizerPage() {
                   className="object-cover transition-transform duration-700 hover:scale-102"
                 />
               </div>
-            </motion.div>
+            </safeMotion.div>
           </div>
         </div>
       </section>
@@ -501,3 +496,5 @@ export default function ColorVisualizerPage() {
     </div>
   );
 }
+
+

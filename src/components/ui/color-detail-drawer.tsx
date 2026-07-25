@@ -1,6 +1,7 @@
 import { Heart, X } from "lucide-react";
 import { useTrans } from "@/lib/dictionary";
 import { cn } from "@/lib/utils";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 import {
   getComplementaryColors,
   getAnalogousColors,
@@ -65,8 +66,11 @@ export function ColorDetailDrawer({
         {/* Swatch Display */}
         <div
           className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-2 overflow-hidden"
-          style={{ backgroundColor: selectedColor.hex }}
         >
+          <ColorSwatch
+            color={selectedColor.hex}
+            className="absolute inset-0 h-full w-full"
+          />
           <div
             className={cn(
               "absolute inset-0 rounded-2xl",
@@ -115,9 +119,9 @@ export function ColorDetailDrawer({
           </h3>
 
           <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-warm-200 mb-4 shadow-xs">
-            <div
-              className="h-14 w-14 rounded-xl border border-black/5 shrink-0"
-              style={{ backgroundColor: compColor }}
+            <ColorSwatch
+              color={compColor}
+              className="h-14 w-14 shrink-0 rounded-xl border border-black/5"
             />
             <div>
               <span className="text-xs text-warm-500 font-semibold block mb-0.5">
@@ -133,7 +137,7 @@ export function ColorDetailDrawer({
               <div className="grid grid-cols-2 gap-3">
                 {analogous.map((hex, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
-                    <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
+                    <ColorSwatch color={hex} className="h-9 w-9 rounded-lg border border-black/5" />
                     <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
                   </div>
                 ))}
@@ -145,7 +149,7 @@ export function ColorDetailDrawer({
               <div className="grid grid-cols-2 gap-3">
                 {triadic.map((hex, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
-                    <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
+                    <ColorSwatch color={hex} className="h-9 w-9 rounded-lg border border-black/5" />
                     <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
                   </div>
                 ))}

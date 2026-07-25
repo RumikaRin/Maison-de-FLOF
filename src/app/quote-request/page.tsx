@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { useLanguageStore } from "@/store/language-store";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 

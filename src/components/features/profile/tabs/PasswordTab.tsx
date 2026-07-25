@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { passwordPolicyMessage } from "@/lib/password-policy";
 
 interface PasswordTabProps {
@@ -25,7 +25,7 @@ export function PasswordTab({
   handlePasswordSubmit,
 }: PasswordTabProps) {
   return (
-    <motion.div
+    <safeMotion.div
       key="password"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -96,6 +96,7 @@ export function PasswordTab({
           </button>
         </form>
       </div>
-    </motion.div>
+    </safeMotion.div>
   );
 }
+

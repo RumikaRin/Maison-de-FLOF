@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AdminNotificationDropdown } from "@/components/admin/AdminNotificationDropdown";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import {
   BarChart3,
   BookOpenText,
@@ -242,7 +242,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            <motion.button
+            <safeMotion.button
               type="button"
               aria-label="Đóng menu"
               initial={{ opacity: 0 }}
@@ -251,7 +251,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               onClick={() => setIsMobileMenuOpen(false)}
               className="fixed inset-0 z-40 bg-warm-950/45 backdrop-blur-[2px] lg:hidden"
             />
-            <motion.aside
+            <safeMotion.aside
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
@@ -259,7 +259,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="fixed inset-y-0 left-0 z-50 w-[280px] bg-warm-950 lg:hidden"
             >
               {sidebar}
-            </motion.aside>
+            </safeMotion.aside>
           </>
         )}
       </AnimatePresence>
@@ -300,9 +300,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <main className="admin-content min-w-0 flex-1 overflow-x-hidden px-4 py-5 md:px-7 md:py-7">
           <div className="mx-auto w-full max-w-[1600px]">
-            <motion.div key={pathname} initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }}>
+            <safeMotion.div key={pathname} initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }}>
               {children}
-            </motion.div>
+            </safeMotion.div>
           </div>
         </main>
       </div>
@@ -320,3 +320,4 @@ function AdminLoader({ message }: { message: string }) {
     </div>
   );
 }
+

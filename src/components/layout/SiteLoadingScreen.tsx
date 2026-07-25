@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import { useLanguageStore } from "@/store/language-store";
 import { Loader2 } from "@/components/ui/loader-2";
 
@@ -16,7 +16,7 @@ export function SiteLoadingScreen({
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <safeMotion.div
           role="status"
           aria-live="polite"
           aria-label={message || (language === "vi" ? "Đang tải trang" : "Loading page")}
@@ -27,7 +27,7 @@ export function SiteLoadingScreen({
           className="fullscreen-loader fixed inset-0 z-[10000] flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-jotun-ivory px-6 text-center text-warm-900"
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40" />
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22 }}
@@ -47,9 +47,10 @@ export function SiteLoadingScreen({
                 <span className="site-loader-progress block h-full w-1/2 rounded-full bg-jotun-teal" />
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </safeMotion.div>
+        </safeMotion.div>
       )}
     </AnimatePresence>
   );
 }
+

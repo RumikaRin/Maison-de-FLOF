@@ -14,7 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Facebook, Instagram, Linkedin, Send, Twitter } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/csp-toast"
 
 function Footerdemo() {
   const { language } = useLanguageStore()

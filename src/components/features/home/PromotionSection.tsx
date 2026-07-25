@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
 import { ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -20,7 +20,7 @@ export function PromotionSection() {
       <div className="w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           {/* Dual image stack */}
-          <motion.div
+          <safeMotion.div
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -49,10 +49,10 @@ export function PromotionSection() {
                 />
               </div>
             </div>
-          </motion.div>
+          </safeMotion.div>
 
           {/* Copy */}
-          <motion.div
+          <safeMotion.div
             initial={reduceMotion ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
@@ -119,9 +119,11 @@ export function PromotionSection() {
                 {language === "vi" ? "Tư vấn báo giá" : "Request a quote"}
               </Link>
             </div>
-          </motion.div>
+          </safeMotion.div>
         </div>
       </div>
     </section>
   );
 }
+
+

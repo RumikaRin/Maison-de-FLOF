@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import Image from "next/image"
+import { CspImage as Image } from "@/components/ui/csp-image"
 
 import { useState, useEffect, useRef } from "react"
 import {
@@ -21,7 +21,7 @@ import {
   Zap,
   TrendingUp,
 } from "lucide-react"
-import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion"
+import { safeMotion, useScroll, useTransform, useInView, useSpring } from "@/components/ui/motion-safe"
 
 export default function AboutUsSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -130,15 +130,13 @@ export default function AboutUsSection() {
       className="w-full py-24 px-4 bg-gradient-to-b from-[#F2F2EB] to-[#F8F8F2] text-[#202e44] overflow-hidden relative"
     >
       {/* Decorative background elements */}
-      <motion.div
+      <safeMotion.div
         className="absolute top-20 left-10 w-64 h-64 rounded-full bg-[#88734C]/5 blur-3xl"
-        style={{ y: y1, rotate: rotate1 }}
       />
-      <motion.div
+      <safeMotion.div
         className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-[#A9BBC8]/5 blur-3xl"
-        style={{ y: y2, rotate: rotate2 }}
       />
-      <motion.div
+      <safeMotion.div
         className="absolute top-1/2 left-1/4 w-4 h-4 rounded-full bg-[#88734C]/30"
         animate={{
           y: [0, -15, 0],
@@ -150,7 +148,7 @@ export default function AboutUsSection() {
           ease: "easeInOut",
         }}
       />
-      <motion.div
+      <safeMotion.div
         className="absolute bottom-1/3 right-1/4 w-6 h-6 rounded-full bg-[#A9BBC8]/30"
         animate={{
           y: [0, 20, 0],
@@ -164,14 +162,14 @@ export default function AboutUsSection() {
         }}
       />
 
-      <motion.div
+      <safeMotion.div
         className="container mx-auto max-w-6xl relative z-10"
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
         variants={containerVariants}
       >
-        <motion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
-          <motion.span
+        <safeMotion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
+          <safeMotion.span
             className="text-[#88734C] font-medium mb-2 flex items-center gap-2"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -179,21 +177,21 @@ export default function AboutUsSection() {
           >
             <Zap className="w-4 h-4" />
             DISCOVER OUR STORY
-          </motion.span>
+          </safeMotion.span>
           <h2 className="text-4xl md:text-5xl font-light mb-4 text-center">About Us</h2>
-          <motion.div
+          <safeMotion.div
             className="w-24 h-1 bg-[#88734C]"
             initial={{ width: 0 }}
             animate={{ width: 96 }}
             transition={{ duration: 1, delay: 0.5 }}
-          ></motion.div>
-        </motion.div>
+          ></safeMotion.div>
+        </safeMotion.div>
 
-        <motion.p className="text-center max-w-2xl mx-auto mb-16 text-[#202e44]/80" variants={itemVariants}>
+        <safeMotion.p className="text-center max-w-2xl mx-auto mb-16 text-[#202e44]/80" variants={itemVariants}>
           We are a passionate team of designers and architects dedicated to creating beautiful, functional spaces that
           inspire and elevate everyday living. With attention to detail and commitment to excellence, we transform
           visions into reality.
-        </motion.p>
+        </safeMotion.p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
           {/* Left Column */}
@@ -216,8 +214,8 @@ export default function AboutUsSection() {
 
           {/* Center Image */}
           <div className="flex justify-center items-center order-first md:order-none mb-8 md:mb-0">
-            <motion.div className="relative w-full max-w-xs" variants={itemVariants}>
-              <motion.div
+            <safeMotion.div className="relative w-full max-w-xs" variants={itemVariants}>
+              <safeMotion.div
                 className="rounded-md overflow-hidden shadow-xl"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -231,46 +229,44 @@ export default function AboutUsSection() {
                   height={2018}
                   className="w-full h-full object-cover"
                 />
-                <motion.div
+                <safeMotion.div
                   className="absolute inset-0 bg-gradient-to-t from-[#202e44]/50 to-transparent flex items-end justify-center p-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.9 }}
                 >
-                  <motion.button
+                  <safeMotion.button
                     className="bg-white text-[#202e44] px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Our Portfolio <ArrowRight className="w-4 h-4" />
-                  </motion.button>
-                </motion.div>
-              </motion.div>
-              <motion.div
+                  </safeMotion.button>
+                </safeMotion.div>
+              </safeMotion.div>
+              <safeMotion.div
                 className="absolute inset-0 border-4 border-[#A9BBC8] rounded-md -m-3 z-[-1]"
                 initial={{ opacity: 0, scale: 1.1 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-              ></motion.div>
+              ></safeMotion.div>
 
               {/* Floating accent elements */}
-              <motion.div
+              <safeMotion.div
                 className="absolute -top-4 -right-8 w-16 h-16 rounded-full bg-[#88734C]/10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.9 }}
-                style={{ y: y1 }}
-              ></motion.div>
-              <motion.div
+              ></safeMotion.div>
+              <safeMotion.div
                 className="absolute -bottom-6 -left-10 w-20 h-20 rounded-full bg-[#A9BBC8]/15"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 1.1 }}
-                style={{ y: y2 }}
-              ></motion.div>
+              ></safeMotion.div>
 
               {/* Additional decorative elements */}
-              <motion.div
+              <safeMotion.div
                 className="absolute -top-10 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#88734C]"
                 animate={{
                   y: [0, -10, 0],
@@ -281,8 +277,8 @@ export default function AboutUsSection() {
                   repeat: Number.POSITIVE_INFINITY,
                   ease: "easeInOut",
                 }}
-              ></motion.div>
-              <motion.div
+              ></safeMotion.div>
+              <safeMotion.div
                 className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#A9BBC8]"
                 animate={{
                   y: [0, 10, 0],
@@ -294,8 +290,8 @@ export default function AboutUsSection() {
                   ease: "easeInOut",
                   delay: 0.5,
                 }}
-              ></motion.div>
-            </motion.div>
+              ></safeMotion.div>
+            </safeMotion.div>
           </div>
 
           {/* Right Column */}
@@ -318,7 +314,7 @@ export default function AboutUsSection() {
         </div>
 
         {/* Stats Section */}
-        <motion.div
+        <safeMotion.div
           ref={statsRef}
           className="mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
           initial="hidden"
@@ -335,10 +331,10 @@ export default function AboutUsSection() {
               delay={index * 0.1}
             />
           ))}
-        </motion.div>
+        </safeMotion.div>
 
         {/* CTA Section */}
-        <motion.div
+        <safeMotion.div
           className="mt-20 bg-[#202e44] text-white p-8 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6"
           initial={{ opacity: 0, y: 30 }}
           animate={isStatsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -348,15 +344,15 @@ export default function AboutUsSection() {
             <h3 className="text-2xl font-medium mb-2">Ready to transform your space?</h3>
             <p className="text-white/80">Let's create something beautiful together.</p>
           </div>
-          <motion.button
+          <safeMotion.button
             className="bg-[#88734C] hover:bg-[#88734C]/90 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             Get Started <ArrowRight className="w-4 h-4" />
-          </motion.button>
-        </motion.div>
-      </motion.div>
+          </safeMotion.button>
+        </safeMotion.div>
+      </safeMotion.div>
     </section>
   )
 }
@@ -376,38 +372,38 @@ interface ServiceItemProps {
 
 function ServiceItem({ icon, secondaryIcon, title, description, variants, delay, direction }: ServiceItemProps) {
   return (
-    <motion.div
+    <safeMotion.div
       className="flex flex-col group"
       variants={variants}
       transition={{ delay }}
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
-      <motion.div
+      <safeMotion.div
         className="flex items-center gap-3 mb-3"
         initial={{ x: direction === "left" ? -20 : 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: delay + 0.2 }}
       >
-        <motion.div
+        <safeMotion.div
           className="text-[#88734C] bg-[#88734C]/10 p-3 rounded-lg transition-colors duration-300 group-hover:bg-[#88734C]/20 relative"
           whileHover={{ rotate: [0, -10, 10, -5, 0], transition: { duration: 0.5 } }}
         >
           {icon}
           {secondaryIcon}
-        </motion.div>
+        </safeMotion.div>
         <h3 className="text-xl font-medium text-[#202e44] group-hover:text-[#88734C] transition-colors duration-300">
           {title}
         </h3>
-      </motion.div>
-      <motion.p
+      </safeMotion.div>
+      <safeMotion.p
         className="text-sm text-[#202e44]/80 leading-relaxed pl-12"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: delay + 0.4 }}
       >
         {description}
-      </motion.p>
-      <motion.div
+      </safeMotion.p>
+      <safeMotion.div
         className="mt-3 pl-12 flex items-center text-[#88734C] text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         initial={{ opacity: 0 }}
         animate={{ opacity: 0 }}
@@ -415,8 +411,8 @@ function ServiceItem({ icon, secondaryIcon, title, description, variants, delay,
         <span className="flex items-center gap-1">
           Learn more <ArrowRight className="w-3 h-3" />
         </span>
-      </motion.div>
-    </motion.div>
+      </safeMotion.div>
+    </safeMotion.div>
   )
 }
 
@@ -451,7 +447,7 @@ function StatCounter({ icon, value, label, suffix, delay }: StatCounterProps) {
   const displayValue = useTransform(springValue, (latest) => Math.floor(latest))
 
   return (
-    <motion.div
+    <safeMotion.div
       className="bg-white/50 backdrop-blur-sm p-6 rounded-xl flex flex-col items-center text-center group hover:bg-white transition-colors duration-300"
       variants={{
         hidden: { opacity: 0, y: 20 },
@@ -463,18 +459,20 @@ function StatCounter({ icon, value, label, suffix, delay }: StatCounterProps) {
       }}
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
-      <motion.div
+      <safeMotion.div
         className="w-14 h-14 rounded-full bg-[#202e44]/5 flex items-center justify-center mb-4 text-[#88734C] group-hover:bg-[#88734C]/10 transition-colors duration-300"
         whileHover={{ rotate: 360, transition: { duration: 0.8 } }}
       >
         {icon}
-      </motion.div>
-      <motion.div ref={countRef} className="text-3xl font-bold text-[#202e44] flex items-center">
-        <motion.span>{displayValue}</motion.span>
+      </safeMotion.div>
+      <safeMotion.div ref={countRef} className="text-3xl font-bold text-[#202e44] flex items-center">
+        <safeMotion.span>{displayValue}</safeMotion.span>
         <span>{suffix}</span>
-      </motion.div>
+      </safeMotion.div>
       <p className="text-[#202e44]/70 text-sm mt-1">{label}</p>
-      <motion.div className="w-10 h-0.5 bg-[#88734C] mt-3 group-hover:w-16 transition-all duration-300" />
-    </motion.div>
+      <safeMotion.div className="w-10 h-0.5 bg-[#88734C] mt-3 group-hover:w-16 transition-all duration-300" />
+    </safeMotion.div>
   )
 }
+
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 
 interface AddressBookTabProps {
   language: string;
@@ -52,7 +52,7 @@ export function AddressBookTab({
   handleSetDefaultAddress,
 }: AddressBookTabProps) {
   return (
-    <motion.div
+    <safeMotion.div
       key="addresses"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -237,6 +237,7 @@ export function AddressBookTab({
           </div>
         )}
       </div>
-    </motion.div>
+    </safeMotion.div>
   );
 }
+

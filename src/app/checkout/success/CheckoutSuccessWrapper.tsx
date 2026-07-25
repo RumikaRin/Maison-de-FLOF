@@ -3,7 +3,7 @@
 import { useLanguageStore } from "@/store/language-store";
 import { CheckoutSuccess } from "@/components/features/checkout/CheckoutSuccess";
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 

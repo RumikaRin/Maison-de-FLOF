@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { CheckCircle, Clock, Search, XCircle, ShieldAlert } from "lucide-react";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 import { InvoiceModal } from "@/components/admin/InvoiceModal";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
@@ -198,7 +198,7 @@ export default function AdminOrdersPage() {
   return (
     <div className="flex flex-col gap-6 text-left">
       {/* Title with spring entry */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -211,7 +211,7 @@ export default function AdminOrdersPage() {
             ? "Xem danh sách các đơn hàng, lọc theo trạng thái và cập nhật thông tin tiến độ giao nhận."
             : "Review client order list, filter by states, and update shipping progress info."}
         </p>
-      </motion.div>
+      </safeMotion.div>
 
       <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm lg:grid-cols-[minmax(260px,1fr)_auto]">
         <label className="relative block">
@@ -254,7 +254,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Table block with list item animations */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -355,7 +355,7 @@ export default function AdminOrdersPage() {
             </span>
           </div>
         )}
-      </motion.div>
+      </safeMotion.div>
 
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
@@ -383,3 +383,4 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
+

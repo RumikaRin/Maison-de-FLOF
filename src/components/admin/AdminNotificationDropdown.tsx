@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Bell, Check, Package, FileText, MessageCircle, Star, AlertTriangle } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { useLanguageStore } from "@/store/language-store";
 import { cn } from "@/lib/utils";
 
@@ -139,7 +139,7 @@ export function AdminNotificationDropdown() {
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -227,9 +227,10 @@ export function AdminNotificationDropdown() {
                 {language === "vi" ? "Tự động cập nhật mỗi 10 giây" : "Auto updating every 10s"}
               </span>
             </div>
-          </motion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
+

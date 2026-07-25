@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
 import { ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -32,7 +32,7 @@ export function HeroSection() {
       </div>
 
       <div className="relative z-10 w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 pb-16 md:pb-24 pt-32">
-        <motion.div
+        <safeMotion.div
           initial={reduceMotion ? false : { opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -90,8 +90,10 @@ export function HeroSection() {
             <span className="hidden sm:inline text-white/25">|</span>
             <span>{language === "vi" ? "Đại lý toàn quốc" : "Nationwide dealers"}</span>
           </div>
-        </motion.div>
+        </safeMotion.div>
       </div>
     </section>
   );
 }
+
+

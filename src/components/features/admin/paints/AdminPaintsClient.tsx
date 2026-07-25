@@ -5,7 +5,7 @@ import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { Paint, PaintColor, Category, Supplier } from "@/types";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { PaintsFormModal } from "./PaintsFormModal";
 import { PaintsPromoModal } from "./PaintsPromoModal";
 
@@ -165,7 +165,7 @@ export function AdminPaintsClient() {
   return (
     <div className="flex flex-col gap-6 text-left">
       {/* Header and Add CTA */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -195,16 +195,16 @@ export function AdminPaintsClient() {
             {language === "vi" ? "Thêm Sản Phẩm Mới" : "Add New Product"}
           </button>
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Quick Statistics Banner with stagger animation */}
-      <motion.div
+      <safeMotion.div
         variants={statsContainerVariants}
         initial="hidden"
         animate="show"
         className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
       >
-        <motion.div
+        <safeMotion.div
           variants={statsItemVariants}
           className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
         >
@@ -219,9 +219,9 @@ export function AdminPaintsClient() {
               {language === "vi" ? "Đang được hiển thị" : "Currently active"}
             </span>
           </div>
-        </motion.div>
+        </safeMotion.div>
 
-        <motion.div
+        <safeMotion.div
           variants={statsItemVariants}
           className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
         >
@@ -236,9 +236,9 @@ export function AdminPaintsClient() {
               {language === "vi" ? "Tổng số lượng trong kho" : "Total cans in inventory"}
             </span>
           </div>
-        </motion.div>
+        </safeMotion.div>
 
-        <motion.div
+        <safeMotion.div
           variants={statsItemVariants}
           className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
         >
@@ -254,9 +254,9 @@ export function AdminPaintsClient() {
               {language === "vi" ? "Số lượng tồn dưới 5 hộp" : "Stock level under 5"}
             </span>
           </div>
-        </motion.div>
+        </safeMotion.div>
 
-        <motion.div
+        <safeMotion.div
           variants={statsItemVariants}
           className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
         >
@@ -271,11 +271,11 @@ export function AdminPaintsClient() {
               {language === "vi" ? "Theo giá bán lẻ hiện tại" : "Based on retail price"}
             </span>
           </div>
-        </motion.div>
-      </motion.div>
+        </safeMotion.div>
+      </safeMotion.div>
 
       {/* Filter and Search Bar */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -358,10 +358,10 @@ export function AdminPaintsClient() {
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Paints list table with entry animation */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.4 }}
@@ -444,7 +444,7 @@ export function AdminPaintsClient() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Modals */}
       <PaintsFormModal
@@ -485,3 +485,4 @@ export function AdminPaintsClient() {
     </div>
   );
 }
+

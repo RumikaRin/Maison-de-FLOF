@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 
 type Review = {
   id: string;

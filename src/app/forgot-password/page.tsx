@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 export default function ForgotPasswordPage() {

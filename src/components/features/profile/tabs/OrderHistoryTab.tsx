@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { formatPrice } from "@/lib/utils";
 
 interface OrderHistoryTabProps {
@@ -33,7 +33,7 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
   };
 
   return (
-    <motion.div
+    <safeMotion.div
       key="history"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -88,6 +88,7 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
           )}
         </div>
       </div>
-    </motion.div>
+    </safeMotion.div>
   );
 }
+

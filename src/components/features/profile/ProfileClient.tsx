@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { ProfileSidebar } from "./ProfileSidebar";
@@ -328,7 +328,7 @@ export function ProfileClient() {
         />
 
         {/* Right column settings panels */}
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
@@ -413,8 +413,9 @@ export function ProfileClient() {
             onToggleFavorite={handleToggleFavoriteColor}
             language={language}
           />
-        </motion.div>
+        </safeMotion.div>
       </div>
     </div>
   );
 }
+
