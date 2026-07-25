@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { safeMotion } from "@/components/ui/motion-safe";
 import { cn } from "@/lib/utils";
+import type { ProfileTab } from "./types";
 
 interface ProfileSidebarProps {
   user: {
@@ -10,8 +11,8 @@ interface ProfileSidebarProps {
     email: string;
     role: string;
   };
-  activeTab: string;
-  setActiveTab: (tab: any) => void;
+  activeTab: ProfileTab;
+  setActiveTab: (tab: ProfileTab) => void;
   language: string;
   handleLogout: () => void;
 }

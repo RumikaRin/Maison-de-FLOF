@@ -25,6 +25,7 @@
     "test:e2e": "cross-env TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/flof_test playwright test",
     "test:env": "node --experimental-strip-types --test tests/release-environment.test.ts",
     "test:lighthouse": "node --experimental-strip-types scripts/run-lighthouse-gate.ts",
+    "test:bundle": "node --experimental-strip-types scripts/check-bundle-budgets.ts",
     "check:release-env": "node --experimental-strip-types scripts/check-release-environment.ts",
     "check:deployment-smoke": "node --experimental-strip-types scripts/check-deployment-smoke.ts",
     "check:provider:upstash": "cross-env PROVIDER_CHECK=upstash tsx scripts/verify-provider-readiness.ts",

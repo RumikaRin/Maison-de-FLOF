@@ -18,6 +18,13 @@ import { SavedColorsTab } from "./tabs/SavedColorsTab";
 import { SessionsTab } from "./tabs/SessionsTab";
 import { PrivacyTab } from "./tabs/PrivacyTab";
 import { AsyncState } from "@/components/ui/AsyncState";
+import type {
+  FavoriteProduct,
+  ProfileAddress,
+  ProfileColor,
+  ProfileOrder,
+  ProfileTab,
+} from "./types";
 
 interface UserSession {
   email: string;
@@ -34,12 +41,10 @@ export function ProfileClient() {
   const [profileStatus, setProfileStatus] = useState<
     "loading" | "ready" | "error"
   >("loading");
-  const [activeTab, setActiveTab] = useState<
-    "history" | "profile" | "password" | "addresses" | "favorites" | "sessions" | "privacy"
-  >("history");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("history");
   const [wishlistColors, setWishlistColors] = useState<string[]>([]);
-  const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
-  const [selectedColor, setSelectedColor] = useState<any | null>(null);
+  const [wishlistProducts, setWishlistProducts] = useState<FavoriteProduct[]>([]);
+  const [selectedColor, setSelectedColor] = useState<ProfileColor | null>(null);
 
   // Profile Form state
   const [profileName, setProfileName] = useState("");
@@ -52,10 +57,10 @@ export function ProfileClient() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<ProfileOrder[]>([]);
 
   // Address book state
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<ProfileAddress[]>([]);
   const [isAddingAddr, setIsAddingAddr] = useState(false);
   const [addrId, setAddrId] = useState("");
   const [addrName, setAddrName] = useState("");
@@ -85,8 +90,8 @@ export function ProfileClient() {
     }
   }, []);
 
-  function syncProfileAddressFromDefault(addrs: any[]) {
-    const defaultAddress = addrs.find((address: any) => address.isDefault);
+  function syncProfileAddressFromDefault(addrs: ProfileAddress[]) {
+    const defaultAddress = addrs.find((address) => address.isDefault);
     if (defaultAddress) {
       setProfileAddress(
         [defaultAddress.address, defaultAddress.district, defaultAddress.province]
@@ -311,7 +316,7 @@ export function ProfileClient() {
     setAddrIsDefault(false);
   };
 
-  const handleEditAddress = (addr: any) => {
+  const handleEditAddress = (addr: ProfileAddress) => {
     setAddrId(addr.id);
     setAddrName(addr.name);
     setAddrPhone(addr.phone);

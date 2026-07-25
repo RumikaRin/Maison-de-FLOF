@@ -5,12 +5,13 @@ import { safeMotion } from "@/components/ui/motion-safe";
 import { Heart } from "lucide-react";
 import { PALETTE_COLORS } from "@/lib/color-utils";
 import { ColorSwatch } from "@/components/ui/color-swatch";
+import type { ProfileColor } from "../types";
 
 interface SavedColorsTabProps {
   language: string;
   wishlistColors: string[];
   handleToggleFavoriteColor: (code: string) => void;
-  setSelectedColor: (color: any) => void;
+  setSelectedColor: (color: ProfileColor) => void;
 }
 
 export function SavedColorsTab({

@@ -1,10 +1,11 @@
 "use client";
 
 import { safeMotion } from "@/components/ui/motion-safe";
+import type { ProfileAddress } from "../types";
 
 interface AddressBookTabProps {
   language: string;
-  addresses: any[];
+  addresses: ProfileAddress[];
   isAddingAddr: boolean;
   setIsAddingAddr: (val: boolean) => void;
   addrId: string;
@@ -22,7 +23,7 @@ interface AddressBookTabProps {
   addrIsDefault: boolean;
   setAddrIsDefault: (val: boolean) => void;
   handleSaveAddress: (e: React.FormEvent) => void;
-  handleEditAddress: (addr: any) => void;
+  handleEditAddress: (addr: ProfileAddress) => void;
   handleDeleteAddress: (id: string) => void;
   handleSetDefaultAddress: (id: string) => void;
 }

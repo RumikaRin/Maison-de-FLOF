@@ -5,10 +5,11 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
+import type { FavoriteProduct } from "../types";
 
 interface PersonalInfoTabProps {
   language: string;
-  wishlistProducts: any[];
+  wishlistProducts: FavoriteProduct[];
   handleRemoveFavoriteProduct: (id: string) => void;
   profileName: string;
   setProfileName: (val: string) => void;

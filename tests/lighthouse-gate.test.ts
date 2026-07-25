@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   installLighthouseCleanupShim,
@@ -8,6 +9,32 @@ import {
   lighthouseGateUrls,
   runLighthouseGate,
 } from "../scripts/run-lighthouse-gate.ts";
+
+test("Lighthouse runs three samples with release-level assertions", async () => {
+  const config = JSON.parse(await readFile("lighthouserc.json", "utf8"));
+  const collect = config.ci.collect;
+  const assertions = config.ci.assert.assertions;
+
+  assert.equal(collect.numberOfRuns, 3);
+  assert.deepEqual(assertions["categories:performance"], [
+    "error",
+    { minScore: 0.75, aggregationMethod: "median-run" },
+  ]);
+  for (const category of [
+    "categories:accessibility",
+    "categories:best-practices",
+    "categories:seo",
+  ]) {
+    assert.deepEqual(assertions[category], [
+      "error",
+      { minScore: 0.9, aggregationMethod: "median-run" },
+    ]);
+  }
+  assert.deepEqual(assertions["cumulative-layout-shift"], [
+    "error",
+    { maxNumericValue: 0.1, aggregationMethod: "median-run" },
+  ]);
+});
 
 test("runs every configured Lighthouse URL in order", () => {
   const visited: string[] = [];
