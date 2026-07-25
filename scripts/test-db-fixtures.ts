@@ -13,6 +13,22 @@ export const TEST_FIXTURES = {
   couponCode: "INTEGRATION10",
 } as const;
 
+export const P1_FIXTURES = {
+  namespace: "integration-p1-",
+  customerTwoEmail: "integration-p1-customer-two@example.com",
+  loadAccountEmail: "integration-p1-load@example.com",
+  supplierSlug: "integration-p1-supplier",
+  collectionSlug: "integration-p1-collection",
+  colorCode: "integration-p1-color",
+  productSku: "INTEGRATION-P1-PAINT-5L",
+  productSlug: "integration-p1-paint-5l",
+  articleSlug: "integration-p1-article",
+  orderNumberPrefix: "INTEGRATION-P1-",
+  idempotencyPrefix: "integration-p1-",
+  addressLabel: "integration-p1-address",
+  password: TEST_FIXTURES.password,
+} as const;
+
 export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_URL) {
   const datasourceUrl = assertTestDatabaseUrl(databaseUrl);
   const database = new PrismaClient({ datasourceUrl });
@@ -32,7 +48,7 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
       }),
     ]);
 
-    const [customerUser, resetUser, adminUser] = await Promise.all([
+    const [customerUser, resetUser, adminUser, customerTwoUser, loadUser] = await Promise.all([
       database.user.upsert({
         where: { email: TEST_FIXTURES.customerEmail },
         update: {
@@ -75,6 +91,26 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
           roleId: adminRole.id,
         },
       }),
+      database.user.upsert({
+        where: { email: P1_FIXTURES.customerTwoEmail },
+        update: { password, name: "P1 Customer Two", roleId: customerRole.id },
+        create: {
+          email: P1_FIXTURES.customerTwoEmail,
+          password,
+          name: "P1 Customer Two",
+          roleId: customerRole.id,
+        },
+      }),
+      database.user.upsert({
+        where: { email: P1_FIXTURES.loadAccountEmail },
+        update: { password, name: "P1 Load Account", roleId: customerRole.id },
+        create: {
+          email: P1_FIXTURES.loadAccountEmail,
+          password,
+          name: "P1 Load Account",
+          roleId: customerRole.id,
+        },
+      }),
     ]);
 
     await Promise.all([
@@ -87,6 +123,16 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         where: { userId: resetUser.id },
         update: {},
         create: { userId: resetUser.id },
+      }),
+      database.customer.upsert({
+        where: { userId: customerTwoUser.id },
+        update: {},
+        create: { userId: customerTwoUser.id },
+      }),
+      database.customer.upsert({
+        where: { userId: loadUser.id },
+        update: {},
+        create: { userId: loadUser.id },
       }),
     ]);
 
@@ -169,11 +215,114 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
       },
     });
 
+    const p1Supplier = await database.supplier.upsert({
+      where: { slug: P1_FIXTURES.supplierSlug },
+      update: { name: "P1 Supplier", isActive: true },
+      create: {
+        name: "P1 Supplier",
+        slug: P1_FIXTURES.supplierSlug,
+        isActive: true,
+      },
+    });
+    const p1Collection = await database.colorCollection.upsert({
+      where: { slug: P1_FIXTURES.collectionSlug },
+      update: { name: "P1 Collection", year: 2026, isActive: true },
+      create: {
+        name: "P1 Collection",
+        slug: P1_FIXTURES.collectionSlug,
+        year: 2026,
+        isActive: true,
+      },
+    });
+    const p1Color = await database.paintColor.upsert({
+      where: { code: P1_FIXTURES.colorCode },
+      update: {
+        name: "P1 Blue",
+        hex: "#315B7D",
+        toneFamily: "COOL",
+        colorFamily: "BLUE",
+        collectionId: p1Collection.id,
+      },
+      create: {
+        code: P1_FIXTURES.colorCode,
+        name: "P1 Blue",
+        hex: "#315B7D",
+        toneFamily: "COOL",
+        colorFamily: "BLUE",
+        collectionId: p1Collection.id,
+      },
+    });
+    const p1Paint = await database.paint.upsert({
+      where: { sku: P1_FIXTURES.productSku },
+      update: {
+        name: "P1 Paint 5L",
+        slug: P1_FIXTURES.productSlug,
+        categoryId: category.id,
+        supplierId: p1Supplier.id,
+        paintType: "INTERIOR",
+        finish: "MATTE",
+        surfaces: ["WALL"],
+        volume: 5,
+        price: 550000,
+        costPrice: 320000,
+        stock: 20,
+        minStock: 5,
+        images: ["/product_interior.webp"],
+        isActive: true,
+      },
+      create: {
+        sku: P1_FIXTURES.productSku,
+        name: "P1 Paint 5L",
+        slug: P1_FIXTURES.productSlug,
+        categoryId: category.id,
+        supplierId: p1Supplier.id,
+        paintType: "INTERIOR",
+        finish: "MATTE",
+        surfaces: ["WALL"],
+        volume: 5,
+        price: 550000,
+        costPrice: 320000,
+        stock: 20,
+        minStock: 5,
+        images: ["/product_interior.webp"],
+        isActive: true,
+      },
+    });
+    await database.paintColorLink.upsert({
+      where: {
+        paintId_colorId: { paintId: p1Paint.id, colorId: p1Color.id },
+      },
+      update: {},
+      create: { paintId: p1Paint.id, colorId: p1Color.id },
+    });
+    await database.blog.upsert({
+      where: { slug: P1_FIXTURES.articleSlug },
+      update: {
+        title: "P1 Integration Article",
+        summary: "P1 integration summary",
+        content: "P1 integration content",
+        authorId: adminUser.id,
+        isActive: true,
+      },
+      create: {
+        title: "P1 Integration Article",
+        slug: P1_FIXTURES.articleSlug,
+        summary: "P1 integration summary",
+        content: "P1 integration content",
+        authorId: adminUser.id,
+        isActive: true,
+      },
+    });
+
     return {
       customerUser,
       resetUser,
       adminUser,
+      customerTwoUser,
+      loadUser,
       paint,
+      p1Paint,
+      p1Color,
     };
   } finally {
     await database.$disconnect();
