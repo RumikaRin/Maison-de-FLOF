@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { ApiError, apiErrorResponse, requireStaff } from "@/lib/api-auth";
 import { db } from "@/lib/db";
-import { createAuditLog } from "@/lib/audit";
+import {
+  deleteReview,
+  replyToReview,
+} from "@/lib/customer-workflow-service";
 
 const replySchema = z.object({
   id: z.string().min(1),
@@ -45,21 +48,7 @@ export async function PATCH(request: Request) {
     const actor = await requireStaff();
     const parsed = replySchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Phản hồi không hợp lệ");
-    const review = await db.review.update({
-      where: { id: parsed.data.id },
-      data: { adminReply: parsed.data.adminReply || null },
-      include: {
-        user: { select: { name: true, email: true } },
-        paint: { select: { name: true, sku: true } },
-      },
-    });
-    await createAuditLog(db, {
-      actor,
-      action: "REVIEW_REPLIED",
-      entityType: "Review",
-      entityId: review.id,
-      afterData: { hasAdminReply: Boolean(review.adminReply) },
-    });
+    const review = await replyToReview(db, actor, parsed.data);
     return Response.json(serializeReview(review));
   } catch (error) {
     return apiErrorResponse(error);
@@ -71,13 +60,7 @@ export async function DELETE(request: Request) {
     const actor = await requireStaff();
     const id = new URL(request.url).searchParams.get("id");
     if (!id) throw new ApiError(400, "Thiếu mã đánh giá");
-    await db.review.delete({ where: { id } });
-    await createAuditLog(db, {
-      actor,
-      action: "REVIEW_DELETED",
-      entityType: "Review",
-      entityId: id,
-    });
+    await deleteReview(db, actor, id);
     return Response.json({ success: true });
   } catch (error) {
     return apiErrorResponse(error);
