@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AdminNotificationDropdown } from "@/components/admin/AdminNotificationDropdown";
 import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
@@ -33,9 +33,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useLanguageStore } from "@/store/language-store";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "@/components/ui/loader-2";
+import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
 
 type MenuItem = {
   name: string;
@@ -50,16 +50,16 @@ type MenuGroup = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const router = useRouter();
-  const { language, toggleLanguage } = useLanguageStore();
+  const { language, routePath: pathname, localize, switchLanguage } =
+    useLocaleNavigation();
   const { data: session, status } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (status === "unauthenticated") router.push(localize("/login"));
+  }, [localize, status, router]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -148,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               : "This area is restricted to staff and administrators."}
           </p>
           <div className="mt-6 grid gap-2">
-            <Link href="/" className="rounded-xl bg-warm-900 px-4 py-3 text-xs font-bold text-white hover:bg-warm-800">
+            <Link href={localize("/")} className="rounded-xl bg-warm-900 px-4 py-3 text-xs font-bold text-white hover:bg-warm-800">
               {language === "vi" ? "Quay về cửa hàng" : "Return to storefront"}
             </Link>
             <button onClick={async () => { await signOut({ redirect: false }); window.location.href = "/login"; }} className="rounded-xl border border-warm-200 px-4 py-3 text-xs font-bold text-warm-700 hover:bg-warm-50">
@@ -163,7 +163,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const sidebar = (
     <div className="flex h-full min-h-0 flex-col">
       <div className={cn("flex h-[72px] shrink-0 items-center border-b border-white/10", isCollapsed ? "justify-center px-3" : "justify-between px-5")}>
-        <Link href="/admin" className={cn("min-w-0", isCollapsed && "hidden")}>
+        <Link href={localize("/admin")} className={cn("min-w-0", isCollapsed && "hidden")}>
           <span className="block truncate text-base font-bold tracking-tight text-white">Maison de FLOF</span>
           <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">Admin workspace</span>
         </Link>
@@ -191,7 +191,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={localize(item.href)}
                     title={isCollapsed ? item.name : undefined}
                     className={cn(
                       "group relative flex h-10 items-center rounded-xl text-xs font-semibold transition-colors",
@@ -222,7 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
         </div>
         <div className={cn("grid gap-1", isCollapsed ? "grid-cols-1" : "grid-cols-2")}>
-          <Link href="/" title={language === "vi" ? "Xem cửa hàng" : "View storefront"} className="flex h-9 items-center justify-center gap-2 rounded-xl text-[11px] font-semibold text-white/60 hover:bg-white/10 hover:text-white">
+          <Link href={localize("/")} title={language === "vi" ? "Xem cửa hàng" : "View storefront"} className="flex h-9 items-center justify-center gap-2 rounded-xl text-[11px] font-semibold text-white/60 hover:bg-white/10 hover:text-white">
             <Store className="h-4 w-4" />
             {!isCollapsed && <span>{language === "vi" ? "Cửa hàng" : "Store"}</span>}
           </Link>
@@ -282,18 +282,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={toggleLanguage}
+              onClick={switchLanguage}
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-warm-250 bg-white/80 text-[11px] font-bold text-warm-700 hover:bg-white"
               title={language === "vi" ? "Đổi sang Tiếng Anh" : "Switch to Vietnamese"}
             >
               {language === "vi" ? "EN" : "VI"}
             </button>
             <AdminNotificationDropdown />
-            <Link href="/admin/orders" className="hidden h-9 items-center gap-2 rounded-xl border border-warm-250 bg-white/80 px-3 text-[11px] font-bold text-warm-700 hover:bg-white sm:flex">
+            <Link href={localize("/admin/orders")} className="hidden h-9 items-center gap-2 rounded-xl border border-warm-250 bg-white/80 px-3 text-[11px] font-bold text-warm-700 hover:bg-white sm:flex">
               <FileText className="h-4 w-4 text-jotun-teal" />
               {language === "vi" ? "Xem đơn hàng" : "View orders"}
             </Link>
-            <Link href="/" className="flex h-9 items-center gap-2 rounded-xl bg-warm-950 px-3 text-[11px] font-bold text-white hover:bg-warm-850">
+            <Link href={localize("/")} className="flex h-9 items-center gap-2 rounded-xl bg-warm-950 px-3 text-[11px] font-bold text-white hover:bg-warm-850">
               <Store className="h-4 w-4" />
               <span className="hidden sm:inline">{language === "vi" ? "Cửa hàng" : "Storefront"}</span>
             </Link>

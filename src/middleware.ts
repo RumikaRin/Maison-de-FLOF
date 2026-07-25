@@ -9,6 +9,16 @@ import {
   createApiErrorResponse,
   getApiRequestId,
 } from "@/lib/api-error-contract";
+import {
+  DEFAULT_LOCALE,
+  isLocaleExcludedPath,
+  LOCALE_COOKIE,
+  localizedPath,
+  resolveLocale,
+  stripLocalePrefix,
+  unsupportedLocalePrefix,
+  type Locale,
+} from "@/lib/locale";
 
 const authMiddleware = NextAuth(authConfig).auth;
 const runAuthMiddleware = authMiddleware as unknown as (
@@ -62,8 +72,37 @@ function nextWithNonce(requestHeaders: Headers, nonce: string) {
   );
 }
 
+function withLocaleCookie<T extends NextResponse>(
+  response: T,
+  locale: Locale,
+) {
+  response.cookies.set(LOCALE_COOKIE, locale, {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  return response;
+}
+
+function rewriteWithNonce(
+  url: URL,
+  requestHeaders: Headers,
+  nonce: string,
+  locale: Locale,
+) {
+  return withLocaleCookie(
+    withSecurityHeaders(
+      NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
+      nonce,
+    ),
+    locale,
+  );
+}
+
 export default async function middleware(request: NextRequest, event: any) {
-  const { pathname } = request.nextUrl;
+  const originalPathname = request.nextUrl.pathname;
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
@@ -75,6 +114,43 @@ export default async function middleware(request: NextRequest, event: any) {
       { upgradeInsecureRequests: !isolatedE2eMode },
     ),
   );
+
+  const prefixed = stripLocalePrefix(originalPathname);
+  const locale = resolveLocale({
+    pathname: originalPathname,
+    cookie: request.cookies.get(LOCALE_COOKIE)?.value,
+  });
+  const unsupportedPrefix = unsupportedLocalePrefix(originalPathname);
+
+  if (unsupportedPrefix) {
+    const redirectUrl = request.nextUrl.clone();
+    const suffix = originalPathname.slice(unsupportedPrefix.length + 1) || "/";
+    redirectUrl.pathname = localizedPath(suffix, DEFAULT_LOCALE);
+    return withLocaleCookie(
+      withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
+      DEFAULT_LOCALE,
+    );
+  }
+
+  if (prefixed.hadPrefix && isLocaleExcludedPath(prefixed.pathname)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = prefixed.pathname;
+    return withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce);
+  }
+
+  if (!prefixed.hadPrefix && !isLocaleExcludedPath(originalPathname)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = localizedPath(originalPathname, locale);
+    return withLocaleCookie(
+      withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
+      locale,
+    );
+  }
+
+  const pathname = prefixed.hadPrefix
+    ? prefixed.pathname
+    : originalPathname;
+  requestHeaders.set("x-locale", locale);
   
   // Extract client IP address securely
   const ip = getClientIp(request);
@@ -113,16 +189,27 @@ export default async function middleware(request: NextRequest, event: any) {
   // the nonce to framework scripts during rendering.
   const needsAuthGuard =
     pathname.startsWith("/admin") || pathname.startsWith("/profile");
-  if (!needsAuthGuard) return nextWithNonce(requestHeaders, nonce);
+  if (!needsAuthGuard) {
+    if (prefixed.hadPrefix) {
+      const rewriteUrl = request.nextUrl.clone();
+      rewriteUrl.pathname = pathname;
+      return rewriteWithNonce(rewriteUrl, requestHeaders, nonce, locale);
+    }
+    return nextWithNonce(requestHeaders, nonce);
+  }
 
-  const requestWithNonce = new NextRequest(request, { headers: requestHeaders });
+  const authUrl = request.nextUrl.clone();
+  authUrl.pathname = pathname;
+  const requestWithNonce = new NextRequest(authUrl, { headers: requestHeaders });
   const authResponse = await runAuthMiddleware(requestWithNonce, event);
   const isPassThrough =
     !authResponse || authResponse.headers.get("x-middleware-next") === "1";
 
   if (!isPassThrough) return withSecurityHeaders(authResponse, nonce);
 
-  const response = nextWithNonce(requestHeaders, nonce);
+  const response = prefixed.hadPrefix
+    ? rewriteWithNonce(authUrl, requestHeaders, nonce, locale)
+    : nextWithNonce(requestHeaders, nonce);
   for (const cookie of authResponse?.cookies?.getAll?.() ?? []) {
     response.cookies.set(cookie);
   }

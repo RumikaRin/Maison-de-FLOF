@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { stripLocalePrefix } from "@/lib/locale";
 
 export const authConfig = {
   pages: {
@@ -21,8 +22,9 @@ export const authConfig = {
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      const isOnProfile = nextUrl.pathname.startsWith("/profile");
+      const pathname = stripLocalePrefix(nextUrl.pathname).pathname;
+      const isOnAdmin = pathname.startsWith("/admin");
+      const isOnProfile = pathname.startsWith("/profile");
 
       if (isOnAdmin) {
         if (!isLoggedIn) return false;

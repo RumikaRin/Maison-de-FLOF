@@ -16,6 +16,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { shouldEnableVercelTelemetry } from "@/lib/vercel-runtime";
+import { resolveLocale } from "@/lib/locale";
 import "./globals.css";
 
 // A strict per-request CSP nonce requires dynamic rendering so Next.js can
@@ -56,13 +57,18 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+  const locale = resolveLocale({
+    pathname: "/",
+    cookie: requestHeaders.get("x-locale"),
+  });
   const enableVercelTelemetry = shouldEnableVercelTelemetry({
     VERCEL: process.env.VERCEL,
   });
 
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-jotun-ivory grain-overlay`}

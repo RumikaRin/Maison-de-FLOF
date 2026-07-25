@@ -63,6 +63,13 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 - **Chat trực tuyến (Chat Bubble)**: Widget chat hỗ trợ khách hàng tích hợp trên mọi trang.
 - **Đa ngôn ngữ (i18n)**: Hỗ trợ chuyển đổi Tiếng Việt / English.
 
+### Quy ước URL ngôn ngữ và trạng thái giỏ hàng
+
+- Giao diện công khai dùng tiền tố ngôn ngữ chuẩn: `/vi/...` và `/en/...`; URL không có tiền tố được chuyển hướng theo cookie, mặc định là Tiếng Việt.
+- API, callback xác thực, asset tĩnh, `robots.txt` và `sitemap.xml` không dùng tiền tố ngôn ngữ.
+- Nút đổi ngôn ngữ giữ nguyên trang hiện tại, đồng bộ URL, cookie, thuộc tính `html[lang]` và Zustand store.
+- Giỏ hàng hiện được lưu cục bộ trên từng trình duyệt/thiết bị cho phạm vi demo. Đồng bộ giỏ hàng đa thiết bị cần một quyết định sản phẩm và data model riêng, không được ngầm suy diễn từ session đăng nhập.
+
 ### 2. Hệ Thống Quản Trị (Admin Portal)
 Đường dẫn truy cập: `/admin` (Yêu cầu tài khoản có quyền ADMIN hoặc STAFF)
 - **Trang tổng quan (Dashboard)**: Thống kê doanh thu, số lượng đơn hàng, số lượng khách hàng, số lượng sơn đã bán, mức tồn kho cảnh báo dưới hạn mức (minStock), biểu đồ doanh thu theo thời gian sử dụng Chart.js.
