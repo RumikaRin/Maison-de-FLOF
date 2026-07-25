@@ -76,7 +76,7 @@ git commit -m "ci: upgrade official actions to Node 24 runtime"
 
 - [ ] **Step 1: Update evidence**
 
-Record 52 route files, 97 OpenAPI operations, the new HTTP test count, action v5,
+Record 52 route files, 99 OpenAPI operations, the new HTTP test count, action v5,
 and remaining provider/Neon limitations. Do not change `DATA_DICTIONARY.md`
 unless a persisted field changed.
 

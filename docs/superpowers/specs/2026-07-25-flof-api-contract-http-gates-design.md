@@ -14,8 +14,9 @@ restore drill, no live provider write, and no VNPay remediation.
 
 The current repository has:
 
-- 52 `src/app/api/**/route.ts` files exporting 97 HTTP operations:
-  41 GET, 26 POST, 18 PATCH, and 12 DELETE;
+- 52 `src/app/api/**/route.ts` files exporting 99 HTTP operations:
+  42 GET, 27 POST, 18 PATCH, and 12 DELETE; Auth.js exports GET/POST through
+  handler destructuring rather than async function declarations;
 - OpenAPI 3.1 coverage for 9 critical paths;
 - service-level PostgreSQL integration coverage for catalog, checkout, order
   ownership, audit, outbox, review, quote, and authenticated chat;
@@ -92,7 +93,7 @@ response behavior.
 ### Source inventory
 
 Replace the current fixed nine-path validator with a reusable route scanner. The
-scanner returns normalized `{ path, method, file }` records for all 97 operations.
+scanner returns normalized `{ path, method, file }` records for all 99 operations.
 
 Validation fails when:
 
@@ -201,7 +202,7 @@ Update:
 
 ## Acceptance Criteria
 
-- all 52 route files and all 97 exported operations have OpenAPI entries;
+- all 52 route files and all 99 exported operations have OpenAPI entries;
 - the validator rejects both missing and stale operations;
 - every operation has a unique operation ID, summary, response, and correct
   authentication classification;

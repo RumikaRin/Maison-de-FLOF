@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `docs/openapi.yaml` cover all 52 API route files and all 97 exported operations, with source-driven stale/missing detection.
+**Goal:** Make `docs/openapi.yaml` cover all 52 API route files and all 99 exported operations, with source-driven stale/missing detection.
 
 **Architecture:** A reusable scanner discovers Next.js route handlers and normalizes dynamic segments. A sync script adds deterministic minimal contracts for uncovered operations while preserving existing detailed contracts. The validator compares source and OpenAPI in both directions and checks operation metadata, security, and shared schemas.
 
@@ -23,7 +23,7 @@ Add assertions:
 ```ts
 const inventory = await discoverApiOperations();
 assert.equal(new Set(inventory.map(({ file }) => file)).size, 52);
-assert.equal(inventory.length, 97);
+assert.equal(inventory.length, 99);
 assert.ok(
   inventory.some(
     ({ path, method }) =>
@@ -84,8 +84,8 @@ Replace the nine-path assertion with:
 ```ts
 const { document, sourceOperations, documentedOperations } =
   await validateOpenApiCoverage();
-assert.equal(sourceOperations.length, 97);
-assert.equal(documentedOperations.length, 97);
+assert.equal(sourceOperations.length, 99);
+assert.equal(documentedOperations.length, 99);
 assert.equal(document.openapi, "3.1.0");
 ```
 
@@ -176,7 +176,7 @@ Add:
 npm run openapi:sync
 ```
 
-Expected: `docs/openapi.yaml` contains 97 operations without deleting the
+Expected: `docs/openapi.yaml` contains 99 operations without deleting the
 existing detailed nine-path contracts.
 
 - [ ] **Step 3: Add shared schemas**
@@ -192,7 +192,7 @@ npm run test:openapi
 node --experimental-strip-types --test tests/openapi-contract.test.ts
 ```
 
-Expected: Redocly passes and source/document counts are both 97.
+Expected: Redocly passes and source/document counts are both 99.
 
 - [ ] **Step 5: Commit**
 
