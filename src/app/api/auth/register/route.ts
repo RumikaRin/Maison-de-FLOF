@@ -12,6 +12,7 @@ const registerSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
   password: passwordSchema,
+  privacyConsent: z.literal(true),
 });
 
 export async function POST(request: Request) {
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
           name: parsed.data.name,
           email: parsed.data.email,
           password,
+          privacyConsentAt: new Date(),
           roleId: customerRole.id,
           customer: { create: { customerType: "RETAIL" } },
         },

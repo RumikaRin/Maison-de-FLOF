@@ -28,7 +28,7 @@ export function ChatBubble() {
   
   // Guest Form State
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ fullName: "", phone: "", email: "", message: "" });
+  const [form, setForm] = useState({ fullName: "", phone: "", email: "", message: "", privacyConsent: false });
   
   // Live Chat State
   const [messages, setMessages] = useState<Message[]>([]);
@@ -76,7 +76,7 @@ export function ChatBubble() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Không thể gửi tin nhắn");
       toast.success(language === "vi" ? "Đã gửi tin nhắn đến đội ngũ tư vấn." : "Message sent to our team.");
-      setForm({ fullName: "", phone: "", email: "", message: "" });
+      setForm({ fullName: "", phone: "", email: "", message: "", privacyConsent: false });
       setView("options");
       setOpen(false);
     } catch (error) {
@@ -181,6 +181,20 @@ export function ChatBubble() {
                   </div>
                   <p className="text-[9px] text-warm-450">{language === "vi" ? "Nhập số điện thoại hoặc email để chúng tôi phản hồi." : "Enter a phone number or email so we can respond."}</p>
                   <textarea required rows={4} value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} placeholder={language === "vi" ? "Bạn cần hỗ trợ điều gì? *" : "How can we help? *"} className="w-full resize-none rounded-xl border border-warm-200 p-3 text-xs outline-none focus:border-jotun-teal bg-white" />
+                  <label className="flex items-start gap-2 text-[10px] leading-4 text-warm-700">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={form.privacyConsent}
+                      onChange={(event) => setForm({ ...form, privacyConsent: event.target.checked })}
+                      className="mt-0.5 h-3.5 w-3.5 accent-jotun-teal"
+                    />
+                    <span>
+                      {language === "vi"
+                        ? "Tôi đồng ý để FLOF lưu thông tin liên hệ nhằm phản hồi yêu cầu này."
+                        : "I consent to FLOF storing my contact details to answer this request."}
+                    </span>
+                  </label>
                   <button disabled={submitting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-warm-950 px-4 py-3 text-xs font-bold text-white hover:bg-warm-850 disabled:opacity-50">
                     <Send className="h-3.5 w-3.5" />
                     {submitting ? (language === "vi" ? "Đang gửi..." : "Sending...") : (language === "vi" ? "Gửi đến quản trị viên" : "Send to administrator")}

@@ -16,6 +16,7 @@ import { PasswordTab } from "./tabs/PasswordTab";
 import { AddressBookTab } from "./tabs/AddressBookTab";
 import { SavedColorsTab } from "./tabs/SavedColorsTab";
 import { SessionsTab } from "./tabs/SessionsTab";
+import { PrivacyTab } from "./tabs/PrivacyTab";
 
 interface UserSession {
   email: string;
@@ -30,7 +31,7 @@ export function ProfileClient() {
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "history" | "profile" | "password" | "addresses" | "favorites" | "sessions"
+    "history" | "profile" | "password" | "addresses" | "favorites" | "sessions" | "privacy"
   >("history");
   const [wishlistColors, setWishlistColors] = useState<string[]>([]);
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
@@ -404,6 +405,7 @@ export function ProfileClient() {
           )}
 
           {activeTab === "sessions" && <SessionsTab language={language} />}
+          {activeTab === "privacy" && <PrivacyTab language={language} />}
 
           {/* Color Detail Side Panel */}
           <ColorDetailDrawer

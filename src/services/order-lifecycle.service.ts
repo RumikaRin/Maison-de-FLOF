@@ -63,6 +63,7 @@ export async function cancelOrderWithRestock(
       quantity: item.quantity,
       reason: `Hoàn kho do hủy đơn ${order.orderNumber}`,
       referenceId: order.id,
+      referenceType: "ORDER" as const,
     })),
   });
 

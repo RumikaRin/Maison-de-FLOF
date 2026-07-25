@@ -34,6 +34,9 @@ test("guest registers a customer account and can sign in", async ({ page }) => {
   await page
     .getByLabel(/Xác nhận mật khẩu|Confirm Password/)
     .fill(REGISTER_PASSWORD);
+  await page
+    .getByLabel(/Tôi đồng ý|I consent to FLOF processing/i)
+    .check();
   await page.getByRole("button", { name: /Đăng ký tài khoản|Sign Up/i }).click();
 
   await expect(page).toHaveURL(/\/verify-email\?email=/);

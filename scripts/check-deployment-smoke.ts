@@ -11,6 +11,7 @@ export const expectedSmokeRoutes = [
   "/api/products?limit=1",
   "/admin",
   "/api/cron/process-outbox",
+  "/api/cron/apply-retention",
 ] as const;
 
 export function evaluateSecurityHeaders(headers: Headers) {
@@ -51,7 +52,7 @@ function hasExpectedStatus(
       Boolean(location?.includes("/login"))
     );
   }
-  if (route === "/api/cron/process-outbox") return status === 401;
+  if (route.startsWith("/api/cron/")) return status === 401;
   return status >= 200 && status < 400;
 }
 

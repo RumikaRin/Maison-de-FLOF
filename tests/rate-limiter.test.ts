@@ -102,6 +102,18 @@ test("rate limit policy protects credentials login and account registration sepa
   assert.equal(getRateLimitPolicy("/api/auth/session"), null);
 });
 
+test("account deletion has a separate distributed authentication budget", () => {
+  assert.deepEqual(
+    getRateLimitPolicy("/api/profile/delete-account", "DELETE"),
+    {
+      keyPrefix: "delete-account",
+      limiter: "auth",
+      limit: 5,
+      windowMs: 60_000,
+    },
+  );
+});
+
 test("deny failure mode blocks when the distributed backend is not configured", async () => {
   const limiter = new UnifiedRateLimiter(60_000, 10, {
     failureMode: "deny",

@@ -197,6 +197,7 @@ export async function processCheckout(
         quantity: -quantity,
         reason: `Xuất kho cho đơn hàng ${orderNumber}`,
         referenceId: order.id,
+        referenceType: "ORDER",
       })),
     });
 

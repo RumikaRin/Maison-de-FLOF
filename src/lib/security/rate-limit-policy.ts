@@ -5,6 +5,7 @@ export type RateLimitPolicy = {
     | "forgot-password"
     | "reset-password"
     | "resend-verification"
+    | "delete-account"
     | "api"
     | "quote"
     | "guest-chat"
@@ -53,6 +54,9 @@ export function getRateLimitPolicy(
   }
   if (isWrite && pathname === "/api/auth/resend-verification") {
     return policy("resend-verification", "auth", 5);
+  }
+  if (isWrite && pathname === "/api/profile/delete-account") {
+    return policy("delete-account", "auth", 5);
   }
   if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
     return policy("api", "api", 60);

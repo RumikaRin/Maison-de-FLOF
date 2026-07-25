@@ -8,14 +8,14 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - Database: PostgreSQL, schema `public`.
 - ORM: Prisma 6.
 - Khóa chính: tất cả model nghiệp vụ dùng `String @id @default(cuid())`, ngoại trừ `VerificationToken` dùng composite key.
-- Schema hiện có: **32 model**, **11 enum**, **8 migration trong repository**.
+- Schema hiện có: **34 model**, **12 enum**, **11 migration trong repository**.
 - `npx prisma validate`: pass.
 - `prisma migrate status`: database schema up to date.
 - Neon production: 17/17 CHECK constraint từ migration invariant đã installed + validated; hậu kiểm có 0 row vi phạm.
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
-- PostgreSQL test cô lập đã áp dụng đủ 8 migration; 18 DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow và commerce concurrency.
+- PostgreSQL test cô lập đã áp dụng đủ 11 migration; các DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow, commerce concurrency và privacy lifecycle.
 - Migration reconciliation thứ 8 là idempotent. Bằng chứng P0 ghi nhận migration history production đã được reconcile; P1 không thay đổi schema và không mutate Neon.
 
 ## Enums
@@ -25,6 +25,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | RoleType | CUSTOMER, STAFF, ADMIN | Vai trò người dùng |
 | OrderStatus | PENDING, CONFIRMED, PROCESSING, SHIPPING, COMPLETED, CANCELLED | Vòng đời đơn |
 | InventoryType | IMPORT, EXPORT, ADJUSTMENT, AUDIT | Loại giao dịch kho |
+| InventoryReferenceType | ORDER, IMPORT, MANUAL, UNKNOWN | Phân loại nguồn tham chiếu giao dịch kho |
 | CouponType | PERCENTAGE, FIXED | Cách tính giảm giá |
 | NotificationType | ORDER, STOCK, QUOTE, REVIEW, SYSTEM | Loại thông báo |
 | PaintFinish | MATTE, EGGSHELL, SATIN, SEMI_GLOSS, GLOSS | Độ bóng |
@@ -39,7 +40,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | Model | Khóa/field chính | Quan hệ | Constraint/index | Mục đích |
 |---|---|---|---|---|
 | Role | `id`, `name`, `type` | 1-N User | `type` unique | Danh mục vai trò |
-| User | `id`, `email`, `password?`, `name?`, `phone?`, `roleId` | Role; Customer; Address; Review; Account; Session; Blog; Notification; Conversation | email unique; index roleId | Tài khoản đăng nhập |
+| User | `id`, `email`, `password?`, `name?`, `phone?`, `privacyConsentAt?`, `deletionRequestedAt?`, `roleId` | Role; Customer; Address; Review; Account; Session; AuthSession; MfaCredential; Blog; Notification; Conversation | email unique; index roleId | Tài khoản đăng nhập và mốc privacy lifecycle |
 | Account | provider/account/token fields | N-1 User | unique provider+providerAccountId; index userId; cascade | OAuth account Auth.js |
 | Session | `sessionToken`, `expires`, `userId` | N-1 User | token unique; index userId; cascade | Auth.js DB session compatibility; app dùng JWT |
 | VerificationToken | `identifier`, `token`, `expires` | Không FK | token unique; composite PK/unique | Token verification/password reset hash |
@@ -53,7 +54,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | PaintColorLink | `paintId`, `colorId` | N-1 Paint, N-1 PaintColor | unique pair; indexes FKs; cascade | M-N sơn–màu |
 | Dealer | contact/address/province/district/lat/lng/active | Supplier | indexes province/active/supplier | Đại lý phân phối |
 | QuoteRequest | contact/project/area/message/status/adminNote | Customer optional | indexes status/customer | Yêu cầu báo giá |
-| ChatMessage | guest contact/message/page/status/adminNote | Không relation | indexes status/createdAt | Luồng chat/form legacy cho guest |
+| ChatMessage | guest contact/message/page/status/adminNote/consentAt | Không relation; cấm tự động liên kết identity | indexes status/createdAt | Contact request có consent của guest, retention 180 ngày |
 | Order | number/status/totals/coupon/paymentMethod/shipping snapshot | Customer; Address; Coupon; Items; History; Payment; Idempotency | number unique; indexes customer/status/date/address/coupon | Đơn hàng |
 | Payment | orderId/method/status/amount/transaction/refund metadata | 1-1 Order | orderId, transactionCode, refundCode unique; indexes status/date; cascade | Thanh toán/đối soát |
 | CheckoutIdempotency | key/userId/requestHash/orderId | Order optional | key unique; orderId unique; indexes user/date | Chống tạo đơn trùng |
@@ -65,7 +66,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | WishlistColor | customerId/colorId/date | Customer; PaintColor | unique pair; indexes; cascade | Màu yêu thích |
 | Notification | userId/type/title/message/isRead/date | User | index userId; cascade | Thông báo cá nhân admin/staff |
 | Blog | title/slug/summary/content/image/author/isActive | User author | slug unique; index author | Bài viết song ngữ |
-| InventoryTransaction | paintId/type/quantity/reason/referenceId/date | Paint | index paint; cascade | Sổ giao dịch kho |
+| InventoryTransaction | paintId/type/quantity/reason/referenceType/referenceId/date | Paint | indexes paint và referenceType+referenceId; cascade | Sổ giao dịch kho có discriminator nguồn |
 | AuditLog | actorId/email/action/entity/id/before/after/date | Không FK | indexes actor/entity/date | Nhật ký quản trị |
 | EmailOutbox | type/payload/status/error/retry/nextRetry/date | Không FK | index status+nextRetry | Hàng đợi email |
 | Conversation | userId/status/date | User; Messages | userId unique; index status; cascade | Hội thoại authenticated |
@@ -98,9 +99,9 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 ## Khoảng trống dữ liệu
 
 1. `AuditLog.actorId` không có FK; cần ghi rõ retention/immutability policy.
-2. `InventoryTransaction.referenceId` không có FK/type discriminator.
-3. `ChatMessage` và `Conversation/Message` là hai mô hình chat song song, làm reporting và retention phức tạp.
-4. Không có model consent/privacy/retention cho PII trong user, address, quote, chat và audit.
+2. `InventoryTransaction.referenceId` không có FK vật lý; `referenceType` đã loại bỏ mơ hồ loại nguồn nhưng integrity của ID vẫn do application bảo đảm.
+3. `ChatMessage` và `Conversation/Message` là hai lifecycle độc lập theo `docs/security/chat-lifecycle.md`; reporting phải giữ ranh giới và không match identity theo email/phone.
+4. Privacy lifecycle đã có consent/deletion timestamps, export/anonymization và retention cron; thời hạn production vẫn cần legal review theo quốc gia.
 5. Không có bằng chứng backup restore/PITR, masking non-production hoặc data retention job.
 6. ERD trong `public/erd_diagram.png` không khớp dictionary này; dùng `docs/erd.md` làm nguồn tài liệu hiện tại.
 
@@ -116,3 +117,6 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | `20260611180000_payment_idempotency_audit` | Payment, idempotency, audit, outbox và constraint liên quan |
 | `20260724150000_add_data_invariant_checks` | CHECK constraint additive cho catalog, order, payment, coupon, review và inventory; **đã áp dụng, 17/17 validated** |
 | `20260724170000_reconcile_missing_schema_objects` | Tạo idempotent enum `REVIEW` và các bảng/index `EmailOutbox`, `Conversation`, `Message` nếu thiếu; đã áp dụng trên test DB, production đã reconcile theo bằng chứng P0 |
+| `20260726130000_auth_session_registry` | Registry session thu hồi được và `User.sessionVersion` |
+| `20260726140000_admin_mfa` | TOTP MFA credential, ciphertext và recovery hashes |
+| `20260726150000_privacy_and_inventory_reference` | Consent/deletion timestamps, guest consent, inventory reference discriminator và backfill additive |
