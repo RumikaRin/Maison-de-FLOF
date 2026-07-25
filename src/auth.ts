@@ -5,11 +5,29 @@ import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { authConfig } from "@/auth.config";
 import GoogleProvider from "next-auth/providers/google";
-import type { RoleType } from "@prisma/client";
 import { isCredentialEmailVerified } from "@/lib/auth/email-verification";
+import {
+  createRegisteredSession,
+  validateRegisteredSession,
+} from "@/lib/auth/session-registry";
 
-/** Re-check role from DB at least every 5 minutes so demotions take effect. */
-const ROLE_REFRESH_MS = 5 * 60 * 1000;
+function invalidateToken(token: {
+  id?: unknown;
+  email?: unknown;
+  name?: unknown;
+  picture?: unknown;
+  role?: unknown;
+  sessionId?: unknown;
+  sessionVersion?: unknown;
+}) {
+  token.id = undefined;
+  token.email = undefined;
+  token.name = undefined;
+  token.picture = undefined;
+  token.role = undefined;
+  token.sessionId = undefined;
+  token.sessionVersion = undefined;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -29,40 +47,70 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   } as any,
   session: { strategy: "jwt" },
+  events: {
+    async signOut(message) {
+      if (
+        "token" in message &&
+        typeof message.token?.sessionId === "string"
+      ) {
+        await db.authSession.updateMany({
+          where: { id: message.token.sessionId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+      }
+    },
+  },
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user.role as RoleType) || "CUSTOMER";
-        token.roleCheckedAt = Date.now();
+        const currentUser = await db.user.findUnique({
+          where: { id: user.id },
+          include: { role: true },
+        });
+        if (!currentUser) {
+          invalidateToken(token);
+          return token;
+        }
+        const registeredSession = await createRegisteredSession(db, {
+          userId: currentUser.id,
+        });
+        token.id = currentUser.id;
+        token.email = currentUser.email;
+        token.role = currentUser.role.type;
+        token.sessionId = registeredSession.id;
+        token.sessionVersion = currentUser.sessionVersion;
         return token;
       }
 
-      const roleCheckedAt =
-        typeof token.roleCheckedAt === "number" ? token.roleCheckedAt : 0;
-      const shouldRefresh =
-        Boolean(token.id) && Date.now() - roleCheckedAt >= ROLE_REFRESH_MS;
-
-      if (shouldRefresh && typeof token.id === "string") {
-        try {
-          const dbUser = await db.user.findUnique({
-            where: { id: token.id },
-            include: { role: true },
-          });
-          if (!dbUser) {
-            token.role = "CUSTOMER";
-            token.id = undefined;
-          } else {
-            token.role = dbUser.role.type;
-            token.email = dbUser.email;
-          }
-        } catch (error) {
-          console.error("JWT role refresh failed:", error);
-        }
-        token.roleCheckedAt = Date.now();
+      if (
+        typeof token.id !== "string" ||
+        typeof token.sessionId !== "string" ||
+        typeof token.sessionVersion !== "number"
+      ) {
+        invalidateToken(token);
+        return token;
       }
 
+      try {
+        const state = await validateRegisteredSession(db, {
+          sessionId: token.sessionId,
+          userId: token.id,
+          sessionVersion: token.sessionVersion,
+        });
+        if (!state.valid) {
+          invalidateToken(token);
+          return token;
+        }
+        token.email = state.email;
+        token.role = state.role;
+        token.sessionVersion = state.sessionVersion;
+      } catch (error) {
+        console.error("JWT session registry validation failed", {
+          name: error instanceof Error ? error.name : typeof error,
+        });
+        invalidateToken(token);
+      }
       return token;
     },
     async session({ session, token }) {
@@ -72,6 +120,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.role === "ADMIN" || token.role === "STAFF" || token.role === "CUSTOMER"
             ? token.role
             : "CUSTOMER";
+        session.user.sessionId =
+          typeof token.sessionId === "string" ? token.sessionId : "";
       }
       return session;
     },

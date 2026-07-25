@@ -36,6 +36,7 @@ export async function requireUser() {
     id: user.id,
     email: user.email,
     role: user.role.type,
+    sessionId: session.user.sessionId,
   };
 }
 

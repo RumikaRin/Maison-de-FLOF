@@ -105,7 +105,12 @@ export async function PATCH(request: NextRequest) {
       }
       const updatedUser = await tx.user.update({
         where: { id: target.id },
-        data: { roleId: role.id },
+        data: {
+          roleId: role.id,
+          ...(target.roleId === role.id
+            ? {}
+            : { sessionVersion: { increment: 1 } }),
+        },
         include: { role: true },
       });
       await createAuditLog(tx, {

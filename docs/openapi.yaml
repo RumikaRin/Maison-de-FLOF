@@ -2672,6 +2672,80 @@ paths:
             schema:
               type: object
               additionalProperties: true
+  /api/profile/sessions:
+    get:
+      operationId: listProfileSessions
+      summary: List active authenticated sessions owned by the current user
+      responses:
+        "200":
+          description: Sanitized active session metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - id
+                    - createdAt
+                    - lastSeenAt
+                    - expiresAt
+                    - current
+                  properties:
+                    id:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    lastSeenAt:
+                      type: string
+                      format: date-time
+                    expiresAt:
+                      type: string
+                      format: date-time
+                    current:
+                      type: boolean
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    delete:
+      operationId: revokeProfileSessions
+      summary: Revoke one owned session or every session except the current one
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required:
+                    - id
+                  properties:
+                    id:
+                      type: string
+                - type: object
+                  required:
+                    - allOthers
+                  properties:
+                    allOthers:
+                      type: boolean
+                      const: true
+      responses:
+        "200":
+          description: Session revocation result
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
   /api/quote-request:
     post:
       operationId: createQuoteRequest

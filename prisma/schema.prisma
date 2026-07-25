@@ -101,6 +101,7 @@ model User {
   id            String         @id @default(cuid())
   email         String         @unique
   emailVerified DateTime?
+  sessionVersion Int            @default(0)
   password      String?
   name          String?
   phone         String?
@@ -114,6 +115,7 @@ model User {
   blogs         Blog[]
   accounts      Account[]
   sessions      Session[]
+  authSessions  AuthSession[]
   conversation  Conversation?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -149,6 +151,21 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model AuthSession {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  lastSeenAt    DateTime  @default(now())
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  userAgentHash String?
+  ipHash        String?
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
 }
 
 model VerificationToken {

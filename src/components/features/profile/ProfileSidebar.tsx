@@ -112,6 +112,18 @@ export function ProfileSidebar({
         </button>
 
         <button
+          onClick={() => setActiveTab("sessions")}
+          className={cn(
+            "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-2 lg:col-span-1",
+            activeTab === "sessions"
+              ? "bg-warm-900 text-white shadow-sm"
+              : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
+          )}
+        >
+          <span>{language === "vi" ? "Phiên đăng nhập" : "Signed-in Sessions"}</span>
+        </button>
+
+        <button
           onClick={handleLogout}
           className="hidden lg:flex items-center gap-2 px-3.5 py-2.5 lg:p-3 rounded-xl text-red-600 hover:bg-red-500/10 text-left transition-colors duration-200 lg:mt-4 border border-red-500/10 bg-red-500/[0.02] shrink-0 whitespace-nowrap focus:outline-none"
         >
