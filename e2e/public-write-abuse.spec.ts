@@ -9,6 +9,9 @@ test("public write abuse receives the stable rate-limit envelope", async ({
   for (let attempt = 0; attempt < 6; attempt += 1) {
     const response = await request.post("/api/quote-request", {
       data: {},
+      headers: {
+        "x-real-ip": "198.51.100.42",
+      },
     });
     statuses.push(response.status());
     if (response.status() === 429) limitedResponse = response;

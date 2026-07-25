@@ -11,12 +11,12 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - Schema hiện có: **36 model**, **12 enum**, **13 migration trong repository**.
 - `npx prisma validate`: pass.
 - `prisma migrate status`: database schema up to date.
-- Neon production: 17/17 CHECK constraint từ migration invariant đã installed + validated; hậu kiểm có 0 row vi phạm.
+- Neon production: 13/13 migration đã áp dụng ngày 26/07/2026; metadata xác nhận 4 bảng P2/P3 mới, 3 cột User, 2 cột Blog và 4 VisualizerRoom mẫu. 17/17 CHECK constraint từ migration invariant vẫn installed + validated.
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
 - PostgreSQL test cô lập đã áp dụng đủ 13 migration; các DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow, commerce concurrency, privacy lifecycle và ownership của thiết kế phối màu.
-- Migration reconciliation thứ 8 là idempotent. Bằng chứng P0 ghi nhận migration history production đã được reconcile; P1 không thay đổi schema và không mutate Neon.
+- Migration reconciliation thứ 8 là idempotent. Năm migration P2/P3 sau đó đã được rehearsal trên nhánh Neon tạm trước khi deploy production; nhánh tạm đã được xóa sau hậu kiểm.
 
 ## Enums
 
@@ -43,6 +43,8 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 | User | `id`, `email`, `password?`, `name?`, `phone?`, `privacyConsentAt?`, `deletionRequestedAt?`, `roleId` | Role; Customer; Address; Review; Account; Session; AuthSession; MfaCredential; Blog; Notification; Conversation; VisualizerDesign | email unique; index roleId | Tài khoản đăng nhập và mốc privacy lifecycle |
 | Account | provider/account/token fields | N-1 User | unique provider+providerAccountId; index userId; cascade | OAuth account Auth.js |
 | Session | `sessionToken`, `expires`, `userId` | N-1 User | token unique; index userId; cascade | Auth.js DB session compatibility; app dùng JWT |
+| AuthSession | `userId`, `expiresAt`, `revokedAt`, `userAgentHash?`, `ipHash?` | N-1 User | indexes user+revoked, expires; cascade | Registry session thu hồi được, chỉ lưu hash metadata |
+| MfaCredential | `userId`, `secretCiphertext`, `enabledAt?`, `recoveryCodeHashes` | 1-1 User | userId unique; cascade | TOTP MFA; secret mã hóa và recovery code chỉ lưu hash |
 | VerificationToken | `identifier`, `token`, `expires` | Không FK | token unique; composite PK/unique | Token verification/password reset hash |
 | Customer | `userId`, `totalSpent`, `customerType`, company/tax | 1-1 User; Orders; Wishlists; Quotes | userId unique; cascade | Hồ sơ khách mua |
 | Address | shipping fields, `isDefault`, `userId` | N-1 User; 1-N Order | index userId; cascade | Sổ địa chỉ |
@@ -104,7 +106,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 2. `InventoryTransaction.referenceId` không có FK vật lý; `referenceType` đã loại bỏ mơ hồ loại nguồn nhưng integrity của ID vẫn do application bảo đảm.
 3. `ChatMessage` và `Conversation/Message` là hai lifecycle độc lập theo `docs/security/chat-lifecycle.md`; reporting phải giữ ranh giới và không match identity theo email/phone.
 4. Privacy lifecycle đã có consent/deletion timestamps, export/anonymization và retention cron; thời hạn production vẫn cần legal review theo quốc gia.
-5. Không có bằng chứng backup restore/PITR, masking non-production hoặc data retention job.
+5. Neon branch rehearsal đã chứng minh restore/schema migration path; chưa có bằng chứng PITR tại một timestamp lịch sử, masking non-production hoặc legal approval cho retention.
 6. ERD trong `public/erd_diagram.png` không khớp dictionary này; dùng `docs/erd.md` làm nguồn tài liệu hiện tại.
 
 ## Migration catalog

@@ -1,7 +1,7 @@
 # API Catalog — Maison de FLOF
 
 Ngày cập nhật: 26/07/2026
-Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POST, 18 PATCH, 12 DELETE)
+Nguồn chuẩn: 64 file `src/app/api/**/route.ts`, 115 operation (48 GET, 33 POST, 19 PATCH, 15 DELETE)
 
 ## Quy ước quyền
 
@@ -16,7 +16,7 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 - **Admin mutation:** tất cả route mutation hiện gọi audit helper; dữ liệu audit đi qua sanitizer loại password/token/secret/credential.
 - **Admin policy inventory:** `src/lib/admin/admin-api-policy.ts` khai báo đủ 59 method thực tế; `tests/admin-api-policy.test.ts` đối chiếu route tree, guard, audit decision và role-permission matrix.
 - **Error contract:** critical route trả envelope `{ error: { code, message, details? }, requestId }`; client parser vẫn đọc được legacy payload trong giai đoạn chuyển đổi.
-- **OpenAPI:** `docs/openapi.yaml` (OpenAPI 3.1) bao phủ đủ 99/99 operation. `scripts/api-route-inventory.ts` phát hiện cả function export và Auth.js destructured export; validator đối chiếu source ↔ contract hai chiều, kiểm tra `operationId`, response, security và schema dùng chung.
+- **OpenAPI:** `docs/openapi.yaml` (OpenAPI 3.1) bao phủ đủ 115/115 operation. `scripts/api-route-inventory.ts` phát hiện cả function export và Auth.js destructured export; validator đối chiếu source ↔ contract hai chiều, kiểm tra `operationId`, response, security và schema dùng chung.
 
 ## Public/Auth API
 
@@ -24,6 +24,8 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 |---|---|---|---|---|
 | GET/POST | `/api/auth/[...nextauth]` | Public/Auth.js | Auth.js protocol | Login/logout/callback/session |
 | POST | `/api/auth/register` | Public | name, email, password | Tạo User + Customer role CUSTOMER |
+| GET | `/api/auth/verify-email` | Public | token | Consume token hash một lần và đặt `emailVerified` |
+| POST | `/api/auth/resend-verification` | Public | email | Rotate token hash và gửi lại mail xác minh |
 | POST | `/api/auth/forgot-password` | Public | email | Tạo VerificationToken hash và gửi email |
 | POST | `/api/auth/reset-password` | Public | email, token, password | Consume token, cập nhật bcrypt password |
 | GET | `/api/products` | Public | page?, limit? | Danh sách Paint; cache 5 phút |
@@ -49,6 +51,12 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 | GET | `/api/profile` | User | none | Đọc profile user hiện tại |
 | PATCH | `/api/profile` | User | name, phone | Sửa profile hiện tại |
 | POST | `/api/profile/password` | User | current/new password | Đổi mật khẩu |
+| GET/DELETE | `/api/profile/sessions` | User | sessionId khi DELETE | Liệt kê registry session đã sanitize; thu hồi session sở hữu |
+| POST | `/api/profile/mfa/setup` | User | current password | Tạo secret mã hóa và provisioning payload |
+| POST | `/api/profile/mfa/verify` | User | TOTP code | Bật MFA sau khi TOTP hợp lệ |
+| POST | `/api/profile/mfa/disable` | User | current password/TOTP | Tắt MFA và tăng sessionVersion |
+| GET | `/api/profile/data-export` | User | none | Export dữ liệu sở hữu, loại credential/token/secret |
+| DELETE | `/api/profile/delete-account` | User | password + confirmation | Anonymize PII, revoke session, giữ facts bắt buộc |
 | GET | `/api/profile/addresses` | User | none | Liệt kê address theo userId |
 | POST | `/api/profile/addresses` | User | address fields | Tạo address/default trong transaction |
 | PATCH | `/api/profile/addresses` | User | id + address fields | Sửa address có ownership |
@@ -64,6 +72,9 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 | POST | `/api/reviews` | User | paintId, rating, comment | Upsert review nếu có order completed |
 | GET | `/api/chat/conversation` | User | none | Hội thoại và messages của user |
 | POST | `/api/chat/conversation` | User | content | Tạo/reopen conversation và message |
+| GET | `/api/visualizer/rooms` | Public | none | Danh sách room active theo sort order |
+| GET/POST | `/api/visualizer/designs` | User | roomId/name/palette khi POST | List/create thiết kế theo owner |
+| GET/PATCH/DELETE | `/api/visualizer/designs/[id]` | User | id + name/palette | Read/update/delete với ownership |
 
 ## Admin/Staff API
 
@@ -93,8 +104,8 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 | POST | `/api/admin/media` | Staff | upload data | Upload Cloudinary |
 | DELETE | `/api/admin/media?publicId=` | `MEDIA_DELETE` | publicId | Xóa Cloudinary asset |
 | GET/POST/PATCH/DELETE | `/api/admin/users` | Admin | user/role/id | CRUD User và role |
-| GET | `/api/admin/audit-logs` | Admin | entityType?, entityId? | 200 audit log gần nhất |
-| GET | `/api/admin/notifications` | Staff | type?, limit? | Notifications của user hiện tại |
+| GET | `/api/admin/audit-logs` | Admin | page?, limit?, actor/action/entity/date | Audit phân trang/lọc; diff đã sanitize |
+| GET | `/api/admin/notifications` | Staff | type?, limit?, If-None-Match? | Notifications private; ETag/304/no-store |
 | PATCH | `/api/admin/notifications/[id]/read` | Staff | id path | Mark one read có ownership |
 | POST | `/api/admin/notifications/mark-all-read` | Staff | none | Mark all của user hiện tại |
 
@@ -116,6 +127,7 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 - `e2e/public-write-abuse.spec.ts`: quote/chat bị giới hạn bởi public-write policy; unit test kiểm tra đúng policy và failure mode.
 - `tests/integration/commerce-concurrency.integration.test.ts`: idempotency, stock và coupon race trên PostgreSQL.
 - `e2e/load-gate.spec.ts`: bốn scenario bounded/non-mutating; p95 local lần xác minh gần nhất lần lượt 68/21/18/15 ms, không có status ngoài dự kiến hoặc 5xx.
+- `e2e/privacy-api-http.spec.ts`, `e2e/session-revocation.spec.ts`, `e2e/admin-mfa.spec.ts`, `e2e/visualizer.spec.ts`: ownership/privacy/session/MFA/visualizer xuyên HTTP, UI và PostgreSQL.
 
 ## Cron API
 
@@ -123,11 +135,12 @@ Nguồn chuẩn: 52 file `src/app/api/**/route.ts`, 99 operation (42 GET, 27 POS
 |---|---|---|---|
 | GET | `/api/cron/expire-unpaid-orders` | Bearer CRON_SECRET | Hủy order VNPay quá hạn, hoàn kho/coupon, ghi history |
 | GET | `/api/cron/process-outbox` | Bearer CRON_SECRET | Gửi tối đa 10 email; chỉ đánh dấu SENT khi provider thành công, nếu lỗi chuyển FAILED/retry |
+| GET | `/api/cron/apply-retention` | Bearer CRON_SECRET | Xóa dữ liệu transient quá hạn theo policy; idempotent |
 
 ## Contract và security gaps
 
 1. VNPay là mô phỏng ngoài phạm vi; không được dùng callback hiện tại với merchant production.
-2. OpenAPI đã bao phủ 99/99 operation nhưng chưa có versioning/generated client; các operation `provider` và `simulated` không phải bằng chứng live integration.
+2. OpenAPI đã bao phủ 115/115 operation nhưng chưa có versioning/generated client; các operation `provider` và `simulated` không phải bằng chứng live integration.
 3. Critical path đã dùng error envelope thống nhất; các route còn lại vẫn có payload legacy hoặc redirect dù đã có inventory contract.
 4. Nhiều list admin chưa có cursor/pagination; có hard cap 100/200 hoặc trả toàn bộ.
 5. Audit decision bao phủ đủ 59 admin method; catalog/review/quote/chat service mới đặt mutation và audit trong transaction, nhưng chưa chứng minh tính atomic ở mọi mutation cũ.
