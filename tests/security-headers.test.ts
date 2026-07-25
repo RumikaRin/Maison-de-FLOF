@@ -23,3 +23,12 @@ test("development CSP permits eval for the Next.js development runtime", () => {
   assert.equal(policy.includes("'unsafe-eval'"), true);
   assert.equal(policy.includes("'unsafe-inline'"), true);
 });
+
+test("isolated HTTP test mode can disable insecure request upgrades", () => {
+  const policy = buildContentSecurityPolicy("production", "test-nonce", {
+    upgradeInsecureRequests: false,
+  });
+
+  assert.equal(policy.includes("upgrade-insecure-requests"), false);
+  assert.equal(policy.includes("'unsafe-eval'"), false);
+});

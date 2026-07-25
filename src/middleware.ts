@@ -29,6 +29,9 @@ const authLimiter = new UnifiedRateLimiter(
 const apiLimiter = new UnifiedRateLimiter(60 * 1000, isolatedE2eMode ? 1000 : 60, {
   failureMode: "memory",
 });
+const publicWriteLimiter = new UnifiedRateLimiter(60 * 1000, 5, {
+  failureMode: "memory",
+});
 
 function withSecurityHeaders<T extends Response>(response: T, nonce: string) {
   response.headers.set(
@@ -36,6 +39,7 @@ function withSecurityHeaders<T extends Response>(response: T, nonce: string) {
     buildContentSecurityPolicy(
       process.env.NODE_ENV === "production" ? "production" : "development",
       nonce,
+      { upgradeInsecureRequests: !isolatedE2eMode },
     ),
   );
   return response;
@@ -60,6 +64,7 @@ export default async function middleware(request: NextRequest, event: any) {
     buildContentSecurityPolicy(
       process.env.NODE_ENV === "production" ? "production" : "development",
       nonce,
+      { upgradeInsecureRequests: !isolatedE2eMode },
     ),
   );
   
@@ -69,7 +74,12 @@ export default async function middleware(request: NextRequest, event: any) {
   // 1. Rate Limit for sensitive auth endpoints and general API routes
   const rateLimitPolicy = getRateLimitPolicy(pathname);
   if (rateLimitPolicy) {
-    const limiter = rateLimitPolicy.limiter === "auth" ? authLimiter : apiLimiter;
+    const limiter =
+      rateLimitPolicy.limiter === "auth"
+        ? authLimiter
+        : rateLimitPolicy.limiter === "publicWrite"
+          ? publicWriteLimiter
+          : apiLimiter;
     const rateCheck = await limiter.checkLimit(`${rateLimitPolicy.keyPrefix}_${ip}`);
     if (!rateCheck.success) {
       const backendUnavailable =

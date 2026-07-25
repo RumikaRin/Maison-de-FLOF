@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { TEST_FIXTURES } from "../../scripts/test-db-fixtures.ts";
+import { P1_FIXTURES, TEST_FIXTURES } from "../../scripts/test-db-fixtures.ts";
 
 export async function login(
   page: Page,
@@ -19,4 +19,8 @@ export async function loginAsCustomer(page: Page) {
 
 export async function loginAsAdmin(page: Page) {
   await login(page, TEST_FIXTURES.adminEmail, /\/admin$/);
+}
+
+export async function loginAsSecondCustomer(page: Page) {
+  await login(page, P1_FIXTURES.customerTwoEmail, /\/profile$/);
 }

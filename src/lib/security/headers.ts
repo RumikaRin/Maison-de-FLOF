@@ -3,6 +3,7 @@ type RuntimeEnvironment = "development" | "production" | "test";
 export function buildContentSecurityPolicy(
   environment: RuntimeEnvironment,
   nonce?: string,
+  options: { upgradeInsecureRequests?: boolean } = {},
 ) {
   const scriptSources = ["'self'"];
   if (nonce) scriptSources.push(`'nonce-${nonce}'`, "'strict-dynamic'");
@@ -10,7 +11,7 @@ export function buildContentSecurityPolicy(
     scriptSources.push("'unsafe-inline'", "'unsafe-eval'");
   }
 
-  return [
+  const directives = [
     "default-src 'self'",
     `script-src ${scriptSources.join(" ")}`,
     "style-src 'self' 'unsafe-inline'",
@@ -23,6 +24,9 @@ export function buildContentSecurityPolicy(
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
-  ].join("; ");
+  ];
+  if (options.upgradeInsecureRequests ?? environment === "production") {
+    directives.push("upgrade-insecure-requests");
+  }
+  return directives.join("; ");
 }
