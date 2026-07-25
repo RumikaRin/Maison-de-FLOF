@@ -1,74 +1,129 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { parse } from "yaml";
+import { discoverApiOperations, type ApiOperation } from "./api-route-inventory.ts";
 import { isMainModule } from "./is-main-module.ts";
 
-export const CRITICAL_API_OPERATIONS = {
-  "/api/auth/register": ["post"],
-  "/api/auth/forgot-password": ["post"],
-  "/api/products": ["get"],
-  "/api/colors": ["get"],
-  "/api/coupons/validate": ["post"],
-  "/api/orders": ["get", "post"],
-  "/api/orders/{orderNumber}": ["get", "patch"],
-  "/api/profile": ["get", "patch"],
-  "/api/quote-request": ["post"],
-} as const;
+const HTTP_METHODS = new Set(["get", "post", "patch", "delete"]);
 
-const CRITICAL_API_ROUTE_FILES: Record<
-  keyof typeof CRITICAL_API_OPERATIONS,
-  string
-> = {
-  "/api/auth/register": "src/app/api/auth/register/route.ts",
-  "/api/auth/forgot-password": "src/app/api/auth/forgot-password/route.ts",
-  "/api/products": "src/app/api/products/route.ts",
-  "/api/colors": "src/app/api/colors/route.ts",
-  "/api/coupons/validate": "src/app/api/coupons/validate/route.ts",
-  "/api/orders": "src/app/api/orders/route.ts",
-  "/api/orders/{orderNumber}": "src/app/api/orders/[orderNumber]/route.ts",
-  "/api/profile": "src/app/api/profile/route.ts",
-  "/api/quote-request": "src/app/api/quote-request/route.ts",
+type OpenApiOperation = {
+  operationId?: string;
+  summary?: string;
+  security?: Array<Record<string, unknown>>;
+  responses?: Record<string, unknown>;
 };
+
+type OpenApiDocument = {
+  openapi?: string;
+  paths?: Record<string, Record<string, unknown>>;
+  components?: {
+    schemas?: Record<string, unknown>;
+    securitySchemes?: Record<string, unknown>;
+  };
+};
+
+function operationKey(operation: Pick<ApiOperation, "path" | "method">) {
+  return `${operation.method.toUpperCase()} ${operation.path}`;
+}
+
+function documentedApiOperations(document: OpenApiDocument) {
+  return Object.entries(document.paths ?? {}).flatMap(([apiPath, item]) =>
+    Object.entries(item)
+      .filter(([method]) => HTTP_METHODS.has(method))
+      .map(([method, operation]) => ({
+        path: apiPath,
+        method: method as ApiOperation["method"],
+        operation: operation as OpenApiOperation,
+      })),
+  );
+}
+
+function requiresSession(pathname: string, method: ApiOperation["method"]) {
+  if (pathname.startsWith("/api/admin/")) return true;
+  if (pathname === "/api/admin") return true;
+  if (pathname.startsWith("/api/profile")) return true;
+  if (pathname === "/api/orders") return true;
+  if (pathname === "/api/orders/{orderNumber}") return true;
+  if (pathname === "/api/reviews" && method === "post") return true;
+  return pathname === "/api/chat/conversation";
+}
+
+function hasSessionCookie(operation: OpenApiOperation) {
+  return Boolean(
+    operation.security?.some((requirement) =>
+      Object.prototype.hasOwnProperty.call(requirement, "sessionCookie"),
+    ),
+  );
+}
 
 export async function validateOpenApiCoverage(
   openApiPath = "docs/openapi.yaml",
 ) {
-  const document = parse(await readFile(openApiPath, "utf8")) as {
-    openapi?: string;
-    paths?: Record<string, Record<string, unknown>>;
-    components?: { schemas?: Record<string, unknown> };
-  };
+  const document = parse(await readFile(openApiPath, "utf8")) as OpenApiDocument;
+  const sourceOperations = await discoverApiOperations();
+  const documentedOperations = documentedApiOperations(document);
 
-  for (const [path, methods] of Object.entries(CRITICAL_API_OPERATIONS)) {
-    assert.ok(document.paths?.[path], `OpenAPI path missing: ${path}`);
-    const routeSource = await readFile(
-      CRITICAL_API_ROUTE_FILES[path as keyof typeof CRITICAL_API_OPERATIONS],
-      "utf8",
+  const sourceKeys = new Set(sourceOperations.map(operationKey));
+  const documentedKeys = new Set(documentedOperations.map(operationKey));
+  const missing = [...sourceKeys].filter((key) => !documentedKeys.has(key)).sort();
+  const stale = [...documentedKeys].filter((key) => !sourceKeys.has(key)).sort();
+  assert.deepEqual(
+    missing,
+    [],
+    `OpenAPI missing source operations: ${missing.join(", ")}`,
+  );
+  assert.deepEqual(
+    stale,
+    [],
+    `OpenAPI contains stale operations: ${stale.join(", ")}`,
+  );
+
+  const operationIds = new Set<string>();
+  for (const documented of documentedOperations) {
+    const key = operationKey(documented);
+    assert.ok(documented.operation.operationId, `${key} missing operationId`);
+    assert.ok(documented.operation.summary, `${key} missing summary`);
+    assert.ok(documented.operation.responses, `${key} missing responses`);
+    assert.ok(
+      !operationIds.has(documented.operation.operationId),
+      `Duplicate operationId: ${documented.operation.operationId}`,
     );
-    for (const method of methods) {
+    operationIds.add(documented.operation.operationId);
+    if (requiresSession(documented.path, documented.method)) {
       assert.ok(
-        document.paths?.[path]?.[method],
-        `OpenAPI operation missing: ${method.toUpperCase()} ${path}`,
-      );
-      assert.match(
-        routeSource,
-        new RegExp(`export async function ${method.toUpperCase()}\\b`),
-        `Route source missing: ${method.toUpperCase()} ${path}`,
+        hasSessionCookie(documented.operation),
+        `${key} missing sessionCookie security`,
       );
     }
   }
 
-  for (const schema of ["ApiError", "Pagination", "Product", "Order"]) {
+  for (const schema of [
+    "ApiError",
+    "Pagination",
+    "Product",
+    "Order",
+    "Category",
+    "Review",
+    "QuoteRequest",
+    "Conversation",
+    "Message",
+    "Notification",
+    "AuditLog",
+  ]) {
     assert.ok(
       document.components?.schemas?.[schema],
       `OpenAPI schema missing: ${schema}`,
     );
   }
+  assert.ok(
+    document.components?.securitySchemes?.sessionCookie,
+    "OpenAPI security scheme missing: sessionCookie",
+  );
 
-  return document;
+  return { document, sourceOperations, documentedOperations };
 }
 
 if (isMainModule(import.meta.url, process.argv[1])) {
   await validateOpenApiCoverage();
-  console.log("Critical OpenAPI coverage validated");
+  console.log("Complete OpenAPI coverage validated");
 }

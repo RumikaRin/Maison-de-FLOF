@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { discoverApiOperations } from "../scripts/api-route-inventory.ts";
-import {
-  CRITICAL_API_OPERATIONS,
-  validateOpenApiCoverage,
-} from "../scripts/validate-openapi-coverage.ts";
+import { validateOpenApiCoverage } from "../scripts/validate-openapi-coverage.ts";
 
 test("API inventory discovers every route file and exported operation", async () => {
   const inventory = await discoverApiOperations();
@@ -19,10 +16,11 @@ test("API inventory discovers every route file and exported operation", async ()
   );
 });
 
-test("OpenAPI covers every critical route and reusable contract schema", async () => {
-  const document = await validateOpenApiCoverage();
+test("OpenAPI covers every source operation and reusable contract schema", async () => {
+  const { document, sourceOperations, documentedOperations } =
+    await validateOpenApiCoverage();
 
   assert.equal(document.openapi, "3.1.0");
-  assert.equal(Object.keys(document.paths ?? {}).length, 9);
-  assert.equal(Object.keys(CRITICAL_API_OPERATIONS).length, 9);
+  assert.equal(sourceOperations.length, 99);
+  assert.equal(documentedOperations.length, 99);
 });
