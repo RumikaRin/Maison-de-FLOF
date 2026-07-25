@@ -112,6 +112,11 @@ export async function loadTestFixtures(databaseUrl = process.env.TEST_DATABASE_U
         },
       }),
     ]);
+    await database.role.upsert({
+      where: { type: "STAFF" },
+      update: { name: "Staff" },
+      create: { name: "Staff", type: "STAFF" },
+    });
 
     await Promise.all([
       database.customer.upsert({
