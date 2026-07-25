@@ -53,7 +53,7 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | `npm run test:integration` | PASS | 15 test PostgreSQL: checkout/order/audit/outbox + catalog transaction + review/quote/authenticated-chat lifecycle |
 | `npm run test:e2e` | PASS | 19 Playwright Chromium: 8 axe scans + register/reset/COD + 6 direct HTTP API + CLS gate cho home/products |
 | `npm run test:openapi` | PASS | OpenAPI 3.1 Redocly lint sạch + source ↔ contract coverage 99/99 operation |
-| `npm run test:lighthouse` | PASS | Sau sửa CLS: home 75/99/93/92, products 76/92/93/92, login 80/100/93/91; CLS bằng 0 trên cả ba route |
+| `npm run test:lighthouse` | PASS, 1 warning | Home 68/99/93/92 (performance warning dưới ngưỡng cảnh báo 70), products 76/92/93/92, login 80/100/93/91; CLS bằng 0 trên cả ba route |
 | `npx prisma validate` | PASS | Schema Prisma hợp lệ |
 | Test DB migration deploy | PASS | 8 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
