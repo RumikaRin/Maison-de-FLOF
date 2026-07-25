@@ -1855,6 +1855,8 @@ paths:
       responses:
         "200":
           description: Generic verification request acknowledgement
+        "429":
+          description: Verification resend rate limit exceeded
         "500":
           $ref: "#/components/responses/InternalError"
   /api/auth/reset-password:
@@ -3085,6 +3087,8 @@ components:
                 - NOT_FOUND
                 - CONFLICT
                 - TOO_MANY_REQUESTS
+                - RATE_LIMITED
+                - SERVICE_UNAVAILABLE
                 - INTERNAL_ERROR
             message:
               type: string

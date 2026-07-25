@@ -5,6 +5,7 @@ import {
   verifyCloudinaryLifecycle,
   verifyResendAcceptance,
   verifyUpstashPing,
+  createProviderFailureReport,
 } from "../scripts/verify-provider-readiness.ts";
 
 test("extracts a mailbox without exposing display-name syntax", () => {
@@ -82,4 +83,37 @@ test("deletes a disposable Cloudinary asset even when its identifier is invalid"
     /unexpected public identifier/,
   );
   assert.deepEqual(destroyed, ["unexpected/p0"]);
+});
+
+test("provider failure reports expose only allowlisted names and statuses", () => {
+  const report = createProviderFailureReport(
+    "https://user:password@example.com",
+    {
+      UPSTASH_REDIS_REST_URL: "https://user:password@example.com",
+      RESEND_API_KEY: "re_secret",
+      EMAIL_FROM: "private@example.com",
+    },
+  );
+  assert.deepEqual(report, {
+    provider: "unknown",
+    status: "FAIL",
+    code: "PROVIDER_READINESS_FAILED",
+    missingVariables: [],
+  });
+  const serialized = JSON.stringify(report);
+  assert.equal(serialized.includes("password"), false);
+  assert.equal(serialized.includes("re_secret"), false);
+  assert.equal(serialized.includes("private@example.com"), false);
+});
+
+test("provider failure reports list missing variable names without values", () => {
+  assert.deepEqual(createProviderFailureReport("upstash", {}), {
+    provider: "upstash",
+    status: "FAIL",
+    code: "PROVIDER_READINESS_FAILED",
+    missingVariables: [
+      "UPSTASH_REDIS_REST_URL",
+      "UPSTASH_REDIS_REST_TOKEN",
+    ],
+  });
 });

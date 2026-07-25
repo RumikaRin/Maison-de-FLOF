@@ -5,6 +5,10 @@ import { UnifiedRateLimiter } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { getRateLimitPolicy } from "@/lib/security/rate-limit-policy";
 import { buildContentSecurityPolicy } from "@/lib/security/headers";
+import {
+  createApiErrorResponse,
+  getApiRequestId,
+} from "@/lib/api-error-contract";
 
 const authMiddleware = NextAuth(authConfig).auth;
 const runAuthMiddleware = authMiddleware as unknown as (
@@ -15,23 +19,27 @@ const runAuthMiddleware = authMiddleware as unknown as (
 const isolatedE2eMode =
   process.env.E2E_TEST_MODE === "1" && process.env.VERCEL !== "1";
 
-// Instantiate rate limiters in module scope to persist across requests
-const authLimiter = new UnifiedRateLimiter(
-  60 * 1000,
-  isolatedE2eMode ? 1000 : 10,
-  {
-  failureMode:
-    process.env.NODE_ENV === "production" && !isolatedE2eMode
+const rateLimiters = new Map<string, UnifiedRateLimiter>();
+
+function limiterFor(policy: NonNullable<ReturnType<typeof getRateLimitPolicy>>) {
+  const failureMode =
+    process.env.NODE_ENV === "production" &&
+    !isolatedE2eMode &&
+    policy.limiter !== "api"
       ? "deny"
-      : "memory",
-  },
-);
-const apiLimiter = new UnifiedRateLimiter(60 * 1000, isolatedE2eMode ? 1000 : 60, {
-  failureMode: "memory",
-});
-const publicWriteLimiter = new UnifiedRateLimiter(60 * 1000, 5, {
-  failureMode: "memory",
-});
+      : "memory";
+  const effectiveLimit =
+    isolatedE2eMode && policy.limiter !== "publicWrite" ? 1000 : policy.limit;
+  const key = `${policy.windowMs}:${effectiveLimit}:${failureMode}`;
+  let limiter = rateLimiters.get(key);
+  if (!limiter) {
+    limiter = new UnifiedRateLimiter(policy.windowMs, effectiveLimit, {
+      failureMode,
+    });
+    rateLimiters.set(key, limiter);
+  }
+  return limiter;
+}
 
 function withSecurityHeaders<T extends Response>(response: T, nonce: string) {
   response.headers.set(
@@ -72,34 +80,31 @@ export default async function middleware(request: NextRequest, event: any) {
   const ip = getClientIp(request);
 
   // 1. Rate Limit for sensitive auth endpoints and general API routes
-  const rateLimitPolicy = getRateLimitPolicy(pathname);
+  const rateLimitPolicy = getRateLimitPolicy(pathname, request.method);
   if (rateLimitPolicy) {
-    const limiter =
-      rateLimitPolicy.limiter === "auth"
-        ? authLimiter
-        : rateLimitPolicy.limiter === "publicWrite"
-          ? publicWriteLimiter
-          : apiLimiter;
+    const limiter = limiterFor(rateLimitPolicy);
     const rateCheck = await limiter.checkLimit(`${rateLimitPolicy.keyPrefix}_${ip}`);
     if (!rateCheck.success) {
       const backendUnavailable =
         rateCheck.reason === "BACKEND_UNAVAILABLE";
-      return withSecurityHeaders(new NextResponse(
-        JSON.stringify({
-          error: backendUnavailable
-            ? "Request protection service is temporarily unavailable."
-            : rateLimitPolicy.limiter === "auth"
-              ? "Too many attempts. Please try again later."
-              : "Too many requests. Please slow down.",
-        }),
+      const response = createApiErrorResponse(
         {
           status: backendUnavailable ? 503 : 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": Math.ceil((rateCheck.resetTime - Date.now()) / 1000).toString(),
-          },
+          code: backendUnavailable ? "SERVICE_UNAVAILABLE" : "RATE_LIMITED",
+          message: backendUnavailable
+            ? "Request protection service is temporarily unavailable."
+            : "Too many requests. Please try again later.",
         },
-      ), nonce);
+        getApiRequestId(request),
+      );
+      response.headers.set(
+        "Retry-After",
+        Math.max(
+          0,
+          Math.ceil((rateCheck.resetTime - Date.now()) / 1000),
+        ).toString(),
+      );
+      return withSecurityHeaders(response, nonce);
     }
   }
 

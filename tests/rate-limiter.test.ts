@@ -84,14 +84,20 @@ test("rate limit policy protects credentials login and account registration sepa
   assert.deepEqual(getRateLimitPolicy("/api/auth/callback/credentials"), {
     keyPrefix: "auth",
     limiter: "auth",
+    limit: 10,
+    windowMs: 60_000,
   });
   assert.deepEqual(getRateLimitPolicy("/api/auth/register"), {
     keyPrefix: "register",
     limiter: "auth",
+    limit: 5,
+    windowMs: 60_000,
   });
   assert.deepEqual(getRateLimitPolicy("/api/products"), {
     keyPrefix: "api",
     limiter: "api",
+    limit: 60,
+    windowMs: 60_000,
   });
   assert.equal(getRateLimitPolicy("/api/auth/session"), null);
 });

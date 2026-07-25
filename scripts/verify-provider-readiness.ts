@@ -7,6 +7,42 @@ type ProviderResult = {
   status: "PASS";
 };
 
+type ProviderName = ProviderResult["provider"];
+const PROVIDER_VARIABLES: Record<ProviderName, readonly string[]> = {
+  upstash: ["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"],
+  resend: ["RESEND_API_KEY", "EMAIL_FROM"],
+  cloudinary: [
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+  ],
+};
+
+function safeProviderName(value: string | undefined): ProviderName | "unknown" {
+  return value === "upstash" || value === "resend" || value === "cloudinary"
+    ? value
+    : "unknown";
+}
+
+export function createProviderFailureReport(
+  providerValue: string | undefined,
+  environment: Readonly<Record<string, string | undefined>>,
+) {
+  const provider = safeProviderName(providerValue);
+  const missingVariables =
+    provider === "unknown"
+      ? []
+      : PROVIDER_VARIABLES[provider].filter(
+          (name) => !environment[name]?.trim(),
+        );
+  return {
+    provider,
+    status: "FAIL" as const,
+    code: "PROVIDER_READINESS_FAILED" as const,
+    missingVariables,
+  };
+}
+
 export function parseMailbox(value: string) {
   const match = value.match(/<([^>]+)>/);
   return (match?.[1] ?? value).trim();
@@ -145,11 +181,9 @@ if (isMainModule(import.meta.url, process.argv[1])) {
     console.log(JSON.stringify(await runProviderReadiness()));
   } catch {
     console.error(
-      JSON.stringify({
-        provider: process.env.PROVIDER_CHECK ?? "unknown",
-        status: "FAIL",
-        code: "PROVIDER_READINESS_FAILED",
-      }),
+      JSON.stringify(
+        createProviderFailureReport(process.env.PROVIDER_CHECK, process.env),
+      ),
     );
     process.exitCode = 1;
   }
