@@ -66,7 +66,17 @@ Recorded from the brainstorming session (visual companion demos, 2026-07-27):
    zone, never repeated across zones — like the existing BandEdge wave, which
    stays exclusive to the clay band. Owner selected motifs **1, 2, 3, 5**
    from the demo menu; the ruler-tick motif (4) was rejected.
-7. **Rejected after demo review:** paint-sweep mask reveal, marquee edge
+7. **Interactive dot field (owner request, 3rd round):** the owner supplied
+   the React Bits `DotField` component (canvas dot grid, cursor bulge) to
+   place "where it fits and looks beautiful". It is integrated **adapted,
+   not verbatim** — the original uses JSX `style={{}}` props (blocked by the
+   production CSP and the `no-inline-style` gate) and a `Math.random()`
+   SVG-gradient id (SSR/client hydration mismatch). It upgrades the espresso
+   band's dot constellation from static to interactive (replacing the O5
+   drift dots) and appears once more as a near-invisible paper texture
+   behind Store Overview — two deliberately different tunings so the zones
+   do not read as the same trick.
+8. **Rejected after demo review:** paint-sweep mask reveal, marquee edge
    mask, grayscale colour-return, inverted hover zoom, two-layer depth pair,
    sticky stacking cards for Store Overview, oversized serif CTA finale,
    ruler-tick ornament, and button sheen/shine sweeps (explicitly removed by
@@ -123,7 +133,8 @@ colours, and sit behind content:
 | O1 | Registration marks + Hanoi coordinates line (fine hairline crosses, scale frame, `21.0405° B · 105.8342° Đ`) | Hero corner | Fades in after the M1 cascade, then static |
 | O2 | Two off-centre paint-can lid arcs | Behind the Majestic plate corner | Self-draw via `stroke-dashoffset`, IO-once |
 | O3 | Blueprint room outline (walls, door swing arc, window ticks) | Sage band background | Self-draw via `stroke-dashoffset`, IO-once, ≈ 70 % opacity on-dark ink |
-| O5 | Constellation of real catalogue colour dots | Espresso band background | Ambient drift (slow ± 7 px float, staggered) — the one sanctioned ambient loop besides the marquee |
+| O5 | **Interactive dot field** (adapted React Bits `DotField`): canvas grid of dots in warm on-dark tints, cursor bulge + soft glow | Espresso band background | Canvas rAF, engagement-eased; dots idle as a static constellation, bulge away from the cursor while the pointer moves |
+| O6 | Same component, texture tuning: wide spacing, ~3 % opacity rule-colour dots, no glow, no sparkle, gentle `waveAmplitude` | Store Overview paper backdrop | Reads as paper grain from arm's length; interaction barely perceptible by design |
 
 ## Architecture
 
@@ -181,6 +192,26 @@ props and `<motion.` elements only — both remain absent. `SliceImage`
 markup carries no `style` attribute; per-strip offsets come from
 `nth-child` rules.
 
+### Client component `src/components/ui/dot-field.tsx` (O5/O6)
+
+Vendored from React Bits (MIT), adapted for this codebase — the upstream
+source cannot ship as-is:
+
+- JSX `style={{...}}` props on the container/canvas/svg → Tailwind classes
+  (`absolute inset-0 h-full w-full`, `pointer-events-none`). The only
+  runtime style writes (canvas CSS size, glow opacity) go through CSSOM,
+  which the CSP permits.
+- `Math.random()` gradient id → React `useId()` (SSR-stable, no hydration
+  mismatch).
+- rAF loop gated by an IntersectionObserver: it runs only while the host
+  band is on screen and the tab is visible; it idles entirely under
+  `prefers-reduced-motion` (static dot grid is still painted once) and on
+  touch-only devices (no `mousemove`).
+- Colours come from the section via props mapped to `--fl-*` token values;
+  the default purple gradient is not used anywhere.
+- `aria-hidden`, `pointer-events: none` — decorative canvas, never an
+  interaction target.
+
 ### Markup
 
 - New server helper `CascadeText` renders the hero headline as
@@ -198,6 +229,11 @@ markup carries no `style` attribute; per-strip offsets come from
   reduced motion, or before hydration the photo renders seamless. The
   velocity write targets at most two plates and only while they are on
   screen; the rAF loop is not running while the page is idle.
+- **Dot-field budget:** at most two instances on the page, each rAF-active
+  only while visible; dot counts stay in the low thousands (spacing ≥ 14 px
+  espresso, ≥ 26 px paper texture); DPR capped at 2. Lighthouse performance
+  gate (≥ 0.75) is the arbiter — if it dips, the paper-texture instance
+  (O6) is the first thing cut.
 - **Reduced motion:** from-states never apply; the existing global collapse
   (≤150 ms fade) continues to govern. Playwright e2e runs with
   `reducedMotion: reduce` and is unaffected.
