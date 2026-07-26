@@ -5,6 +5,10 @@ import {
   percentile,
   runBoundedLoadScenario,
 } from "../src/lib/testing/load-gate.ts";
+import {
+  createProductionLoadScenarios,
+  requireProductionBaseUrl,
+} from "../scripts/run-production-load-profile.ts";
 
 test("percentile uses nearest-rank ordering", () => {
   assert.equal(percentile([], 95), 0);
@@ -76,4 +80,39 @@ test("runBoundedLoadScenario respects configured concurrency", async () => {
   assert.equal(result.ok, true);
   assert.equal(result.samples.length, 6);
   assert.equal(maxInFlight, 2);
+});
+
+test("production load profile is HTTPS-only, GET-only, and tightly bounded", async () => {
+  assert.throws(
+    () => requireProductionBaseUrl("http://example.com"),
+    /HTTPS/,
+  );
+  assert.throws(() => requireProductionBaseUrl(undefined), /DEPLOYMENT_BASE_URL/);
+
+  const requestedUrls: string[] = [];
+  const scenarios = createProductionLoadScenarios(
+    requireProductionBaseUrl("https://example.com"),
+    async (input) => {
+      requestedUrls.push(String(input));
+      return new Response(null, { status: 200 });
+    },
+  );
+
+  assert.equal(scenarios.length, 4);
+  assert.ok(
+    scenarios.reduce((total, scenario) => total + scenario.totalRequests, 0) <=
+      40,
+  );
+  for (const scenario of scenarios) {
+    assert.equal(scenario.method, "GET");
+    assert.ok(scenario.path.startsWith("/api/"));
+    assert.ok(scenario.concurrency <= 2);
+    assert.ok(scenario.totalRequests <= 10);
+  }
+  assert.deepEqual(
+    scenarios.map((scenario) => scenario.path),
+    ["/api/products", "/api/colors", "/api/blog", "/api/profile"],
+  );
+  await scenarios[0].execute(0);
+  assert.deepEqual(requestedUrls, ["https://example.com/api/products"]);
 });

@@ -113,8 +113,15 @@ checks against the public production alias:
 ```powershell
 $env:DEPLOYMENT_BASE_URL = "https://maison-de-flof.vercel.app"
 npm run check:deployment-smoke
+npm run check:production-load
 Remove-Item Env:DEPLOYMENT_BASE_URL
 ```
+
+The production load profile performs exactly 40 GET requests (10 each for
+products, colors, blog, and the unauthenticated profile rejection), with
+concurrency capped at 2. It requires an explicit HTTPS origin, creates no
+business records, prints aggregate status/count/p95 evidence only, and exits
+non-zero on any 5xx, unexpected status, or p95 above 2.5 seconds.
 
 Run sanitized provider probes from a clean release checkout:
 
