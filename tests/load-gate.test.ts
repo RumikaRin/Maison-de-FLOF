@@ -99,15 +99,20 @@ test("production load profile is HTTPS-only, GET-only, and tightly bounded", asy
   );
 
   assert.equal(scenarios.length, 4);
-  assert.ok(
-    scenarios.reduce((total, scenario) => total + scenario.totalRequests, 0) <=
-      40,
+  assert.equal(
+    scenarios.reduce(
+      (total, scenario) =>
+        total + scenario.warmupRequests + scenario.totalRequests,
+      0,
+    ),
+    40,
   );
   for (const scenario of scenarios) {
     assert.equal(scenario.method, "GET");
     assert.ok(scenario.path.startsWith("/api/"));
     assert.ok(scenario.concurrency <= 2);
-    assert.ok(scenario.totalRequests <= 10);
+    assert.equal(scenario.warmupRequests, 1);
+    assert.equal(scenario.totalRequests, 9);
   }
   assert.deepEqual(
     scenarios.map((scenario) => scenario.path),
