@@ -28,9 +28,11 @@ test("motion-upgrade block never uses an anonymous view() timeline", async () =>
   const marker = css.indexOf("Motion upgrade");
   assert.ok(marker !== -1, "motion-upgrade block missing");
   const block = css.slice(marker);
+  // Declaration usage only — the `@supports (animation-timeline: view())`
+  // feature-detect query is legitimate and must not trip this gate.
   assert.ok(
-    !/animation-timeline:\s*view\(/.test(block),
-    "anonymous view() found — must use a named view timeline",
+    !/(?<!@supports \()animation-timeline:\s*view\(/.test(block),
+    "anonymous view() declaration found — must use a named view timeline",
   );
 });
 
