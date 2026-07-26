@@ -56,11 +56,21 @@ Recorded from the brainstorming session (visual companion demos, 2026-07-27):
    and Lenis were reviewed and rejected. Zero new dependencies.
 4. **Image motion: effects "curtain", "zoom-out scrub", "mosaic" combined
    per section** (owner: "kết hợp 2,3,4 tùy vào từng phần").
-5. **Rejected after demo review:** paint-sweep mask reveal, marquee edge
+5. **Slice drift (owner request, 2nd demo round):** large photos are cut
+   into **4 vertical strips** that shift up/down alternately with scroll
+   velocity and magnetically reassemble into a seamless image at rest
+   (owner: "lúc scroll ảnh sẽ cắt so le dịch lên xuống khi dừng lại thì ảnh
+   ghép lại bình thường", strip count "cắt 4 phần thôi"). Placement approved:
+   Store Overview lead image + Visualizer Promo stage image.
+6. **Ornament layer (owner request):** one distinctive decorative motif per
+   zone, never repeated across zones — like the existing BandEdge wave, which
+   stays exclusive to the clay band. Owner selected motifs **1, 2, 3, 5**
+   from the demo menu; the ruler-tick motif (4) was rejected.
+7. **Rejected after demo review:** paint-sweep mask reveal, marquee edge
    mask, grayscale colour-return, inverted hover zoom, two-layer depth pair,
-   sticky stacking cards for Store Overview, oversized serif CTA finale, and
-   button sheen/shine sweeps (explicitly removed by the owner: "k dùng vệt
-   sáng ở nút").
+   sticky stacking cards for Store Overview, oversized serif CTA finale,
+   ruler-tick ornament, and button sheen/shine sweeps (explicitly removed by
+   the owner: "k dùng vệt sáng ở nút").
 
 ## Motion inventory
 
@@ -77,6 +87,7 @@ New utilities (names final, all CSS-only, tokens reused from `globals.css`):
 | M7 | `.fl-photo-zoomout` | Large photo relaxes `scale(1.22) → 1.0` linked to scroll progress; `-soft` variant (`1.12 → 1.0`) for low-resolution sources such as the hero's 1280×720 asset; composes with the existing `.fl-photo-parallax` translate on the same named `--fl-photo-plate` timeline | Scroll-linked |
 | M8 | `.fl-band-grow` | Colour-drench band grows from an inset, rounded block to full bleed via `clip-path: inset(0 4% round 16px) → inset(0 round 0)` — clip-path only, zero layout shift | Scroll-linked |
 | M9 | `TypographicLink` underline draw | Underline draws from the left on hover, exits to the right | Hover |
+| M10 | `.fl-slice` + `SliceImage` component | Photo rendered as **4 vertical strips** (each an `overflow: hidden` cell showing its quarter of the same image via a stylesheet-driven `--k` offset — no inline styles in markup). A scroll-velocity tracker lerps one unitless custom property per plate; strips map it to alternating `translateY` amplitudes (≈ −24 / +18 / −14 / +22 px at full velocity). At rest the value decays to 0 and the image reads seamless. Entrance doubles as the effect: strips start offset ± 24 px + faded and assemble on first view | IO entrance, then scroll-velocity |
 
 Existing motion kept unchanged: `.fl-rise` section settle, `.fl-photo-parallax`
 (+ `-soft`), `.fl-hero-cascade` (still used for hero label/subtext/actions;
@@ -90,12 +101,29 @@ the headline upgrades to M1), swatch marquee, 1.03 image hover zoom,
 | 1 · Hero | M1 headline; label/subtext/actions keep line cascade; photo: M7 zoom-out + existing soft parallax; plate-line metadata: M3 |
 | 2 · Promotion (Majestic) | Image: M5 left curtain; headline: M2; SpecLedger: M3 with rule draw; swatch rail: M3 |
 | 3 · Color Explorer | Heading: M2; family strip + swatch grid: M3 (stagger capped); room preview keeps existing crossfade; caption rule: `.fl-rule-draw` |
-| 4 · Visualizer Promo (sage) | Band: M8; stage image: M5 center curtain; 4-room grid: M6 mosaic; benefits ledger: M3 |
-| 5 · Store Overview | Lead image: M7 (composed with existing parallax); buying-path rows: M3 with rule draw; blockquote: M2 |
+| 4 · Visualizer Promo (sage) | Band: M8; stage image: **M10 slice drift** (assemble entrance replaces the curtain); 4-room grid: M6 mosaic; benefits ledger: M3 |
+| 5 · Store Overview | Lead image: **M10 slice drift** (replaces the earlier M7 + parallax allocation); buying-path rows: M3 with rule draw; blockquote: M2 |
 | 6 · Featured Products | Product cards: M4 blur-up stagger; tab switch keeps existing crossfade |
 | 7 · Swatch Marquee | Unchanged |
 | 8 · Clay advice band | Keeps BandEdge wave (no grow — one band, one idea); copy: M2; button: plain |
 | 9 · Expert Blogs (espresso) | Band: M8; featured image: M5 bottom curtain; side rows: M3; headline: M2 |
+
+M7 is therefore used on the hero only (as the `-soft` variant); sliced plates
+(M10) carry no parallax, zoom or curtain — one strong idea per plate.
+
+## Ornament layer
+
+One motif per zone, never repeated (owner-selected 1 / 2 / 3 / 5; the
+existing espresso→clay BandEdge wave remains **exclusive to the clay band**).
+All ornaments are `aria-hidden`, `pointer-events: none`, drawn in token
+colours, and sit behind content:
+
+| # | Motif | Zone | Behaviour |
+|---|---|---|---|
+| O1 | Registration marks + Hanoi coordinates line (fine hairline crosses, scale frame, `21.0405° B · 105.8342° Đ`) | Hero corner | Fades in after the M1 cascade, then static |
+| O2 | Two off-centre paint-can lid arcs | Behind the Majestic plate corner | Self-draw via `stroke-dashoffset`, IO-once |
+| O3 | Blueprint room outline (walls, door swing arc, window ticks) | Sage band background | Self-draw via `stroke-dashoffset`, IO-once, ≈ 70 % opacity on-dark ink |
+| O5 | Constellation of real catalogue colour dots | Espresso band background | Ambient drift (slow ± 7 px float, staggered) — the one sanctioned ambient loop besides the marquee |
 
 ## Architecture
 
@@ -130,6 +158,29 @@ Single module, ~40 lines, no dependencies:
 Mounted once from the homepage client tree (a `useEffect` in `HomeClient`).
 It toggles classes only — no inline styles, CSP-safe, passes existing gates.
 
+### JS (`src/lib/fl-slice.ts`, the slice-drift tracker)
+
+Second small module (~35 lines, no dependencies) for M10:
+
+1. Listens to `scroll` (passive). While scrolling, a rAF loop derives a
+   smoothed, clamped scroll velocity and lerps it toward the live value;
+   when it decays below epsilon the loop stops and writes exactly `0`.
+2. Each frame writes one unitless custom property (`--fl-slice-v`) per
+   sliced plate via **CSSOM** (`element.style.setProperty`). Strip
+   amplitudes and signs live entirely in the stylesheet.
+3. Skips itself under `prefers-reduced-motion` and when
+   `IntersectionObserver`/rAF are unavailable; only plates currently in the
+   viewport are updated.
+
+CSP note: the production policy (`style-src-attr 'none'`) blocks **parsed
+style attributes** (SSR markup, `setAttribute("style")`), which is what the
+`CspImage`/`safeMotion` workarounds exist for. Runtime CSSOM property
+assignment is exempt from CSP by specification and is already how React
+itself applies styles. The `no-inline-style` test scans JSX `style={{}}`
+props and `<motion.` elements only — both remain absent. `SliceImage`
+markup carries no `style` attribute; per-strip offsets come from
+`nth-child` rules.
+
 ### Markup
 
 - New server helper `CascadeText` renders the hero headline as
@@ -141,7 +192,12 @@ It toggles classes only — no inline styles, CSP-safe, passes existing gates.
 ## Guardrails
 
 - **Run-once:** every IO entrance fires once and never re-triggers on
-  scroll-back. Scroll-linked effects (M7/M8) are continuous by design.
+  scroll-back. Scroll-linked/velocity effects (M7/M8/M10) and the O5 ambient
+  drift are continuous by design.
+- **Slice safety:** strip cells default to zero offset — with no JS, with
+  reduced motion, or before hydration the photo renders seamless. The
+  velocity write targets at most two plates and only while they are on
+  screen; the rAF loop is not running while the page is idle.
 - **Reduced motion:** from-states never apply; the existing global collapse
   (≤150 ms fade) continues to govern. Playwright e2e runs with
   `reducedMotion: reduce` and is unaffected.
@@ -160,8 +216,10 @@ It toggles classes only — no inline styles, CSP-safe, passes existing gates.
    `design-tokens`), `npm run test:bundle` stay green.
 2. Headless Chromium script (pattern from the 2026-07-27 parallax fix):
    assert `is-in` applied after scroll, M7/M8 timeline progress actually
-   tracks scroll, zero horizontal overflow at 320/768/1440 px, all-static
-   under `reducedMotion: reduce`, zero console errors.
+   tracks scroll, M10 strips offset during synthetic wheel scroll and return
+   to exactly 0 within ~600 ms of stopping (screenshot diff of the seam),
+   zero horizontal overflow at 320/768/1440 px, all-static under
+   `reducedMotion: reduce`, zero console errors.
 3. Screenshots at rest and mid-entrance for owner review.
 4. Existing e2e suite (`atelier-redesign.spec.ts` among others) passes.
 
