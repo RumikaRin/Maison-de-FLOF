@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/session-registry";
 import { writeOperationalLog } from "@/lib/operations/log";
 import { verifyMfaForLogin } from "@/services/mfa.service";
+import { isGoogleProviderConfigured } from "@/lib/auth/google-provider-policy";
 
 function invalidateToken(token: {
   id?: unknown;
@@ -129,12 +130,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking:
-        process.env.AUTH_ALLOW_DANGEROUS_EMAIL_LINKING === "true",
-    }),
+    ...(isGoogleProviderConfigured(process.env)
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking:
+              process.env.AUTH_ALLOW_DANGEROUS_EMAIL_LINKING === "true",
+          }),
+        ]
+      : []),
     Credentials({
       name: "credentials",
       credentials: {
