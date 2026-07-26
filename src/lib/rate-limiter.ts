@@ -1,4 +1,5 @@
 import { writeOperationalLog } from "./operations/log.ts";
+import { resolveRedisEnvironment } from "./redis-environment.ts";
 
 /**
  * Unified Rate Limiter.
@@ -31,8 +32,9 @@ export class UnifiedRateLimiter {
     this.failureMode = options.failureMode ?? "memory";
     
     // Upstash Redis config
-    this.redisUrl = options.redisUrl ?? process.env.UPSTASH_REDIS_REST_URL;
-    this.redisToken = options.redisToken ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+    const redisEnvironment = resolveRedisEnvironment(process.env);
+    this.redisUrl = options.redisUrl ?? redisEnvironment?.url;
+    this.redisToken = options.redisToken ?? redisEnvironment?.token;
     this.useRedis = Boolean(this.redisUrl && this.redisToken);
   }
 
