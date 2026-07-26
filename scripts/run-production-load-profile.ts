@@ -14,6 +14,7 @@ export type ProductionLoadScenario = LoadScenario & {
   name: string;
   method: "GET";
   path: string;
+  warmupRequests: 1;
 };
 
 export function requireProductionBaseUrl(value: string | undefined): URL {
@@ -50,7 +51,8 @@ export function createProductionLoadScenarios(
   return definitions.map((definition) => ({
     ...definition,
     method: "GET" as const,
-    totalRequests: 10,
+    warmupRequests: 1 as const,
+    totalRequests: 9,
     concurrency: 2,
     maxP95Ms: 2_500,
     maxUnexpectedRatio: 0,
@@ -77,9 +79,12 @@ export async function runProductionLoadProfile(
   let allPassed = true;
 
   for (const scenario of scenarios) {
+    const warmup = await scenario.execute(-1);
     const result = await runBoundedLoadScenario(scenario);
+    const warmupPassed =
+      scenario.expectedStatuses.includes(warmup.status) && warmup.status < 500;
     const statuses = Object.entries(
-      result.samples.reduce<Record<string, number>>((counts, sample) => {
+      [{ status: warmup.status }, ...result.samples].reduce<Record<string, number>>((counts, sample) => {
         const key = String(sample.status);
         counts[key] = (counts[key] ?? 0) + 1;
         return counts;
@@ -88,17 +93,18 @@ export async function runProductionLoadProfile(
       .sort(([left], [right]) => Number(left) - Number(right))
       .map(([status, count]) => `${status}:${count}`)
       .join(",");
-    const status = result.ok ? "PASS" : "FAIL";
+    const passed = warmupPassed && result.ok;
+    const status = passed ? "PASS" : "FAIL";
     console.log(
       JSON.stringify({
         scenario: scenario.name,
         status,
-        requests: result.samples.length,
+        requests: scenario.warmupRequests + result.samples.length,
         p95Ms: result.p95Ms,
         statuses,
       }),
     );
-    allPassed = allPassed && result.ok;
+    allPassed = allPassed && passed;
   }
 
   return allPassed;

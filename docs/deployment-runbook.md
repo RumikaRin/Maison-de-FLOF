@@ -118,10 +118,13 @@ Remove-Item Env:DEPLOYMENT_BASE_URL
 ```
 
 The production load profile performs exactly 40 GET requests (10 each for
-products, colors, blog, and the unauthenticated profile rejection), with
-concurrency capped at 2. It requires an explicit HTTPS origin, creates no
-business records, prints aggregate status/count/p95 evidence only, and exits
-non-zero on any 5xx, unexpected status, or p95 above 2.5 seconds.
+products, colors, blog, and the unauthenticated profile rejection). Each route
+uses one sequential warm-up request whose status must pass, followed by nine
+measured requests with concurrency capped at 2. This separates deploy
+cold-start readiness from steady-state p95 without hiding a failed warm-up. It
+requires an explicit HTTPS origin, creates no business records, prints
+aggregate status/count/p95 evidence only, and exits non-zero on any 5xx,
+unexpected status, or measured p95 above 2.5 seconds.
 
 Run sanitized provider probes from a clean release checkout:
 
