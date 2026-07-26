@@ -124,6 +124,20 @@ export function ProfileSidebar({
           <span>{language === "vi" ? "Phiên đăng nhập" : "Signed-in Sessions"}</span>
         </button>
 
+        {user.role === "ADMIN" && (
+          <button
+            onClick={() => setActiveTab("security")}
+            className={cn(
+              "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-2 lg:col-span-1",
+              activeTab === "security"
+                ? "bg-warm-900 text-white shadow-sm"
+                : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900",
+            )}
+          >
+            <span>{language === "vi" ? "Bảo mật" : "Security"}</span>
+          </button>
+        )}
+
         {user.role === "CUSTOMER" && (
           <button
             onClick={() => setActiveTab("privacy")}

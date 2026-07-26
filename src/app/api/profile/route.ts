@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
     const sessionUser = await requireUser();
     const user = await db.user.findUnique({
       where: { email: sessionUser.email },
-      include: { role: true },
+      include: {
+        role: true,
+        mfaCredential: { select: { enabledAt: true } },
+      },
     });
     if (!user) throw new ApiError(404, "Không tìm thấy tài khoản");
 
@@ -22,6 +25,8 @@ export async function GET(request: NextRequest) {
       name: user.name || "",
       phone: user.phone || "",
       role: user.role.type,
+      mfaEnabled:
+        user.role.type === "ADMIN" && Boolean(user.mfaCredential?.enabledAt),
     });
   } catch (error) {
     return apiErrorResponse(error, request);
@@ -37,13 +42,18 @@ export async function PATCH(request: NextRequest) {
     const user = await db.user.update({
       where: { email: sessionUser.email },
       data: parsed.data,
-      include: { role: true },
+      include: {
+        role: true,
+        mfaCredential: { select: { enabledAt: true } },
+      },
     });
     return NextResponse.json({
       email: user.email,
       name: user.name || "",
       phone: user.phone || "",
       role: user.role.type,
+      mfaEnabled:
+        user.role.type === "ADMIN" && Boolean(user.mfaCredential?.enabledAt),
     });
   } catch (error) {
     return apiErrorResponse(error, request);
