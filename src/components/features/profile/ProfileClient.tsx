@@ -17,6 +17,7 @@ import { AddressBookTab } from "./tabs/AddressBookTab";
 import { SavedColorsTab } from "./tabs/SavedColorsTab";
 import { SessionsTab } from "./tabs/SessionsTab";
 import { PrivacyTab } from "./tabs/PrivacyTab";
+import { SecurityTab } from "./tabs/SecurityTab";
 import { AsyncState } from "@/components/ui/AsyncState";
 import type {
   FavoriteProduct,
@@ -30,6 +31,7 @@ interface UserSession {
   email: string;
   name: string;
   role: "ADMIN" | "STAFF" | "CUSTOMER";
+  mfaEnabled: boolean;
 }
 
 export function ProfileClient() {
@@ -450,6 +452,17 @@ export function ProfileClient() {
           )}
 
           {activeTab === "sessions" && <SessionsTab language={language} />}
+          {activeTab === "security" && user.role === "ADMIN" && (
+            <SecurityTab
+              language={language}
+              mfaEnabled={user.mfaEnabled}
+              onMfaStatusChange={(mfaEnabled) =>
+                setUser((current) =>
+                  current ? { ...current, mfaEnabled } : current,
+                )
+              }
+            />
+          )}
           {activeTab === "privacy" && <PrivacyTab language={language} />}
 
           {/* Color Detail Side Panel */}

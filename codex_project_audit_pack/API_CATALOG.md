@@ -52,9 +52,9 @@ Nguồn chuẩn: 64 file `src/app/api/**/route.ts`, 115 operation (48 GET, 33 PO
 | PATCH | `/api/profile` | User | name, phone | Sửa profile hiện tại |
 | POST | `/api/profile/password` | User | current/new password | Đổi mật khẩu |
 | GET/DELETE | `/api/profile/sessions` | User | sessionId khi DELETE | Liệt kê registry session đã sanitize; thu hồi session sở hữu |
-| POST | `/api/profile/mfa/setup` | User | current password | Tạo secret mã hóa và provisioning payload |
-| POST | `/api/profile/mfa/verify` | User | TOTP code | Bật MFA sau khi TOTP hợp lệ |
-| POST | `/api/profile/mfa/disable` | User | current password/TOTP | Tắt MFA và tăng sessionVersion |
+| POST | `/api/profile/mfa/setup` | Admin | none | Tạo secret mã hóa và provisioning payload |
+| POST | `/api/profile/mfa/verify` | Admin | TOTP code | Bật MFA sau khi TOTP hợp lệ, trả recovery code một lần |
+| POST | `/api/profile/mfa/disable` | Admin | current password/TOTP hoặc recovery code | Tắt MFA và tăng sessionVersion |
 | GET | `/api/profile/data-export` | User | none | Export dữ liệu sở hữu, loại credential/token/secret |
 | DELETE | `/api/profile/delete-account` | User | password + confirmation | Anonymize PII, revoke session, giữ facts bắt buộc |
 | GET | `/api/profile/addresses` | User | none | Liệt kê address theo userId |
@@ -126,8 +126,9 @@ Nguồn chuẩn: 64 file `src/app/api/**/route.ts`, 115 operation (48 GET, 33 PO
 - `e2e/bank-transfer-review.spec.ts`: checkout chuyển khoản, admin xác nhận payment và verified-purchase review qua browser/API/database.
 - `e2e/public-write-abuse.spec.ts`: quote/chat bị giới hạn bởi public-write policy; unit test kiểm tra đúng policy và failure mode.
 - `tests/integration/commerce-concurrency.integration.test.ts`: idempotency, stock và coupon race trên PostgreSQL.
-- `e2e/load-gate.spec.ts`: bốn scenario bounded/non-mutating; p95 local lần xác minh gần nhất lần lượt 68/21/18/15 ms, không có status ngoài dự kiến hoặc 5xx.
-- `e2e/privacy-api-http.spec.ts`, `e2e/session-revocation.spec.ts`, `e2e/admin-mfa.spec.ts`, `e2e/visualizer.spec.ts`: ownership/privacy/session/MFA/visualizer xuyên HTTP, UI và PostgreSQL.
+- `e2e/load-gate.spec.ts`: bốn scenario bounded/non-mutating; p95 local lần xác minh gần nhất lần lượt 58/21/16/18 ms, không có status ngoài dự kiến hoặc 5xx.
+- `scripts/run-production-load-profile.ts`: 40 GET canonical, concurrency 2; p95 production products/colors/blog/profile 2262/776/758/398 ms, đúng toàn bộ status và không có 5xx.
+- `e2e/privacy-api-http.spec.ts`, `e2e/session-revocation.spec.ts`, `e2e/admin-mfa.spec.ts`, `e2e/visualizer.spec.ts`: ownership/privacy/session/MFA setup-recovery-login-disable/visualizer xuyên HTTP, UI và PostgreSQL.
 
 ## Cron API
 
@@ -144,5 +145,5 @@ Nguồn chuẩn: 64 file `src/app/api/**/route.ts`, 115 operation (48 GET, 33 PO
 3. Critical path đã dùng error envelope thống nhất; các route còn lại vẫn có payload legacy hoặc redirect dù đã có inventory contract.
 4. Nhiều list admin chưa có cursor/pagination; có hard cap 100/200 hoặc trả toàn bộ.
 5. Audit decision bao phủ đủ 59 admin method; catalog/review/quote/chat service mới đặt mutation và audit trong transaction, nhưng chưa chứng minh tính atomic ở mọi mutation cũ.
-6. Register, reset-password, auth middleware, ownership, checkout, public catalog/profile và admin catalog/operations đã có direct HTTP evidence; Google OAuth và external provider live vẫn chưa xác minh.
+6. Register, reset-password, auth middleware, ownership, checkout, public catalog/profile và admin catalog/operations đã có direct HTTP evidence; Upstash live đã xác minh, Google OAuth/Resend/Cloudinary vẫn chưa có live acceptance.
 7. Cron dùng GET cho side effect; nên cân nhắc POST và bổ sung lease chống concurrent worker/replay.

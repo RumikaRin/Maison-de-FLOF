@@ -1,4 +1,8 @@
 import { isMainModule } from "./is-main-module.ts";
+import {
+  REDIS_ENVIRONMENT_REQUIREMENTS,
+  resolveRedisEnvironment,
+} from "../src/lib/redis-environment.ts";
 
 export const REQUIRED_PRODUCTION_VARIABLES = [
   "DATABASE_URL",
@@ -7,8 +11,6 @@ export const REQUIRED_PRODUCTION_VARIABLES = [
   "AUTH_MFA_ENCRYPTION_KEY",
   "NEXT_PUBLIC_APP_URL",
   "CRON_SECRET",
-  "UPSTASH_REDIS_REST_URL",
-  "UPSTASH_REDIS_REST_TOKEN",
   "RESEND_API_KEY",
   "EMAIL_FROM",
   "CLOUDINARY_CLOUD_NAME",
@@ -19,9 +21,13 @@ export const REQUIRED_PRODUCTION_VARIABLES = [
 type Environment = Readonly<Record<string, string | undefined>>;
 
 export function getMissingProductionVariables(environment: Environment) {
-  return REQUIRED_PRODUCTION_VARIABLES.filter(
+  const missing: string[] = REQUIRED_PRODUCTION_VARIABLES.filter(
     (name) => !environment[name]?.trim(),
   );
+  if (!resolveRedisEnvironment(environment)) {
+    missing.push(...REDIS_ENVIRONMENT_REQUIREMENTS);
+  }
+  return missing;
 }
 
 if (isMainModule(import.meta.url, process.argv[1])) {

@@ -1,6 +1,10 @@
 import { v2 as cloudinary } from "cloudinary";
 import { Resend } from "resend";
 import { isMainModule } from "./is-main-module.ts";
+import {
+  REDIS_ENVIRONMENT_REQUIREMENTS,
+  resolveRedisEnvironment,
+} from "../src/lib/redis-environment.ts";
 
 type ProviderResult = {
   provider: "upstash" | "resend" | "cloudinary";
@@ -9,7 +13,7 @@ type ProviderResult = {
 
 type ProviderName = ProviderResult["provider"];
 const PROVIDER_VARIABLES: Record<ProviderName, readonly string[]> = {
-  upstash: ["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"],
+  upstash: REDIS_ENVIRONMENT_REQUIREMENTS,
   resend: ["RESEND_API_KEY", "EMAIL_FROM"],
   cloudinary: [
     "CLOUDINARY_CLOUD_NAME",
@@ -29,9 +33,12 @@ export function createProviderFailureReport(
   environment: Readonly<Record<string, string | undefined>>,
 ) {
   const provider = safeProviderName(providerValue);
-  const missingVariables =
-    provider === "unknown"
-      ? []
+  const missingVariables = provider === "unknown"
+    ? []
+    : provider === "upstash"
+      ? resolveRedisEnvironment(environment)
+        ? []
+        : [...REDIS_ENVIRONMENT_REQUIREMENTS]
       : PROVIDER_VARIABLES[provider].filter(
           (name) => !environment[name]?.trim(),
         );
@@ -115,8 +122,10 @@ async function runProviderReadiness() {
   const provider = requiredVariable("PROVIDER_CHECK");
 
   if (provider === "upstash") {
-    const url = requiredVariable("UPSTASH_REDIS_REST_URL").replace(/\/$/, "");
-    const token = requiredVariable("UPSTASH_REDIS_REST_TOKEN");
+    const redis = resolveRedisEnvironment(process.env);
+    if (!redis) throw new Error("Missing Redis environment pair");
+    const url = redis.url.replace(/\/$/, "");
+    const token = redis.token;
     return verifyUpstashPing(() =>
       fetch(`${url}/pipeline`, {
         method: "POST",

@@ -5,6 +5,7 @@ export type ProfileTab =
   | "addresses"
   | "favorites"
   | "sessions"
+  | "security"
   | "privacy";
 
 export interface ProfileAddress {

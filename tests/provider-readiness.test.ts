@@ -112,8 +112,8 @@ test("provider failure reports list missing variable names without values", () =
     status: "FAIL",
     code: "PROVIDER_READINESS_FAILED",
     missingVariables: [
-      "UPSTASH_REDIS_REST_URL",
-      "UPSTASH_REDIS_REST_TOKEN",
+      "KV_REST_API_URL or UPSTASH_REDIS_REST_URL",
+      "KV_REST_API_TOKEN or UPSTASH_REDIS_REST_TOKEN",
     ],
   });
 });

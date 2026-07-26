@@ -14,6 +14,7 @@ Nguồn chuẩn: `prisma/schema.prisma` và `prisma/migrations/*/migration.sql`
 - Neon production: 13/13 migration đã áp dụng ngày 26/07/2026; metadata xác nhận 4 bảng P2/P3 mới, 3 cột User, 2 cột Blog và 4 VisualizerRoom mẫu. 17/17 CHECK constraint từ migration invariant vẫn installed + validated.
 - ERD chuẩn theo source hiện tại: `docs/erd.md`; `public/erd_diagram.png` chỉ là artifact lịch sử.
 - Mọi payload ghi `AuditLog` đi qua sanitizer trung tâm để loại key nhạy cảm; coverage source đã bao phủ các admin mutation.
+- Profile API chỉ công bố boolean `mfaEnabled` cho admin; không select hoặc trả `secretCiphertext` hay `recoveryCodeHashes`.
 - `EmailOutbox` chỉ chuyển `SENT` sau khi provider trả thành công; lỗi cấu hình/provider đi vào trạng thái retry/`FAILED`.
 - PostgreSQL test cô lập đã áp dụng đủ 13 migration; các DB integration test chứng minh checkout atomic/idempotent/rollback, ownership order, audit persistence, outbox retry, catalog/workflow, commerce concurrency, privacy lifecycle và ownership của thiết kế phối màu.
 - Migration reconciliation thứ 8 là idempotent. Năm migration P2/P3 sau đó đã được rehearsal trên nhánh Neon tạm trước khi deploy production; nhánh tạm đã được xóa sau hậu kiểm.

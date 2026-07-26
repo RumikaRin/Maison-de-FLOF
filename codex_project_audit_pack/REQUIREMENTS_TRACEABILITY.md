@@ -18,10 +18,10 @@ Nguồn yêu cầu khả dụng: `README.md`, `PROJECT_ROADMAP_VI.md`, source co
 |---|---|---|---|---|---|---|---|---|
 | AUTH-01 | Đăng ký và xác minh email | Guest | `/register`, `/verify-email` | register/resend/verify API | Role, User, Customer, VerificationToken | token unit + auth lifecycle E2E | Đạt có giới hạn | Credentials bị chặn trước `emailVerified`; provider mailbox live chưa xác minh |
 | AUTH-02 | Đăng nhập Credentials và session thu hồi được | User | `/login`, profile Sessions | Auth.js + `/api/profile/sessions` | User, Role, AuthSession | session registry unit + revoke/demotion E2E | Đạt | Cookie, registry, revoke session khác và invalidate khi đổi role đã chứng minh |
-| AUTH-03 | Đăng nhập Google | User | `/login` | Auth.js Google provider | User, Account, Customer, Role | VNPay/auth config không bao phủ OAuth | Một phần | Chưa xác minh OAuth production |
+| AUTH-03 | Đăng nhập Google | User | `/login`, `/register` khi provider sẵn sàng | Auth.js Google provider có policy đủ cặp credential | User, Account, Customer, Role | provider-policy unit + credential-only UI E2E | Một phần | UI ẩn an toàn khi thiếu cấu hình; chưa xác minh OAuth consent production |
 | AUTH-04 | Quên/đặt lại mật khẩu | User | `/forgot-password`, `/reset-password` | `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` | User, VerificationToken | password/email unit + reset/login E2E | Đạt có giới hạn | Token consume và mật khẩu mới đã chứng minh; chưa provider live |
 | AUTH-05 | Phân quyền admin/staff/customer | All roles | `/admin`, `/profile` | middleware, `requirePermission` | User, Role, AuthSession | permissions unit + customer/admin E2E + role-demotion revoke | Đạt | API guard và sessionVersion loại bỏ cửa sổ role cache cũ |
-| AUTH-06 | MFA TOTP cho quản trị viên đã bật | Admin | `/profile` security | setup/verify/disable MFA APIs + credentials callback | MfaCredential, User | RFC 6238/encryption unit + admin MFA E2E | Đạt có giới hạn | TOTP và recovery hash an toàn; chưa xác minh recovery UX/manual runbook |
+| AUTH-06 | MFA TOTP cho quản trị viên đã bật | Admin | `/profile` Security | setup/verify/disable MFA APIs + credentials callback | MfaCredential, User | RFC 6238/encryption unit + setup/recovery/login/disable MFA UI E2E | Đạt | UI chỉ dành cho admin; secret mã hóa, recovery hash và lifecycle xuyên tầng đã chứng minh |
 | CAT-01 | Xem/tìm/lọc sản phẩm | Guest | `/products` | `GET /api/products` | Paint, Category, Supplier, PaintColorLink | fallback/pagination unit + public HTTP/Prisma + axe/Lighthouse | Đạt có giới hạn | Database path và fallback provenance đã chứng minh; chưa RUM production |
 | CAT-02 | Xem chi tiết sản phẩm | Guest | `/products/[slug]` | `GET /api/products/[slug]` | Paint, Review, PaintColorLink | public HTTP/Prisma + browser smoke | Đạt có giới hạn | Route/data path đã chứng minh; chưa SEO rich-result production |
 | COLOR-01 | Xem mã màu/bộ sưu tập | Guest | `/colors` | `GET /api/colors`, `GET /api/color-collections` | PaintColor, ColorCollection | public HTTP/Prisma + axe/AX + cross-browser smoke | Đạt có giới hạn | Fallback được cảnh báo; screen reader thủ công chưa xác minh |
@@ -56,18 +56,18 @@ Nguồn yêu cầu khả dụng: `README.md`, `PROJECT_ROADMAP_VI.md`, source co
 | I18N-01 | Route tiếng Việt/English | All | `/vi/**`, `/en/**`, language toggle | locale middleware/navigation helpers | Không có | locale unit + route/switch E2E | Đạt có giới hạn | API/static asset excluded đúng; dịch nội dung DB vẫn phụ thuộc field EN |
 | SEO-01 | Metadata/robots/sitemap | Search engine | public pages | `robots.ts`, `sitemap.ts` | Blog, Paint | Build + Lighthouse SEO 91–92 | Đạt có giới hạn | Local production đạt gate; chưa Search Console/RUM |
 | SEC-01 | Security headers/CSP | All | N/A | nonce middleware + security header builder | N/A | CSP unit + production nonce + Chromium/Firefox/WebKit/mobile smoke + AX | Đạt có giới hạn | WebKit HTTP test mode đã xử lý upgrade policy; style inline vẫn được phép |
-| SEC-02 | Rate limit | All/API clients | N/A | middleware + UnifiedRateLimiter + public-write policy | Upstash production | fail-closed/memory unit + quote/chat abuse HTTP + bounded rejection load | Đạt có giới hạn | Local policy pass; Upstash live vẫn chưa xác minh |
-| TEST-01 | Automated quality gate | Developer | N/A | GitHub Actions | PostgreSQL 18 test service | 142 unit + 24 DB integration + 72 E2E + coverage/load/OpenAPI 115/115/bundle/Lighthouse | Đạt có giới hạn | Local gate xanh; manual screen reader và production load/RUM chưa có |
-| DEPLOY-01 | Deploy production có migration/rollback/monitoring | Operator | N/A | GitHub Actions + deployment runbook | Neon + external services | local gate + Neon 13/13 + PR quality + Vercel exact SHA + smoke/log scan | Đạt có giới hạn | Core release proof đạt; providers, alert delivery và DR RTO/RPO vẫn manual |
+| SEC-02 | Rate limit | All/API clients | N/A | middleware + UnifiedRateLimiter + public-write policy | Upstash production | fail-closed/memory unit + quote/chat abuse HTTP + bounded rejection load + live PING | Đạt | Vercel Marketplace Upstash Free `sin1` Available và sanitized PING PASS |
+| TEST-01 | Automated quality gate | Developer | N/A | GitHub Actions | PostgreSQL 18 test service | 152 unit + 24 DB integration + 73 E2E + coverage/local+production load/OpenAPI 115/115/bundle/Lighthouse | Đạt có giới hạn | Automated gate xanh; manual screen reader và RUM đủ mẫu chưa có |
+| DEPLOY-01 | Deploy production có migration/rollback/monitoring | Operator | N/A | GitHub Actions + deployment runbook | Neon + Upstash + external services | local gate + Neon 13/13 + Upstash PING + production load + Vercel exact SHA/smoke/log | Đạt có giới hạn | Analytics/Speed Insights đã bật; Resend/Cloudinary, alert delivery và DR RTO/RPO vẫn manual |
 
 ## Tổng hợp traceability
 
 | Trạng thái | Số requirement |
 |---|---:|
-| Đạt | 5 |
-| Đạt có giới hạn | 34 |
+| Đạt | 7 |
+| Đạt có giới hạn | 32 |
 | Một phần | 2 |
 | Chưa đạt | 1 |
 | Chưa xác minh | 0 |
 
-`CHECK-02` vẫn chưa đạt nhưng đã được người dùng loại khỏi phạm vi vì VNPay chỉ là giả lập. Với phạm vi còn lại, email ownership, session revocation, admin MFA, privacy, visualizer persistence, related blog, locale routes, governed audit, bounded polling, responsive/accessibility và performance budget đều có evidence. OpenAPI đối chiếu đủ 64 route file/115 operation. Khoảng trống lớn nhất còn lại là provider/OAuth/alert production, screen reader thủ công, RUM/load production và PRD/UAT chính thức.
+`CHECK-02` vẫn chưa đạt nhưng đã được người dùng loại khỏi phạm vi vì VNPay chỉ là giả lập. Với phạm vi còn lại, email ownership, session revocation, admin MFA UI, privacy, visualizer persistence, related blog, locale routes, governed audit, bounded polling, responsive/accessibility, Upstash và local/production load budget đều có evidence. OpenAPI đối chiếu đủ 64 route file/115 operation. Khoảng trống lớn nhất còn lại là Google/Resend/Cloudinary/alert production, screen reader thủ công, RUM đủ mẫu và PRD/UAT chính thức.

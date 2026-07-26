@@ -37,25 +37,29 @@ test("enabled administrator MFA rejects password-only login and accepts TOTP", a
   await setupPage.getByRole("button", { name: /Đăng nhập|Login/i }).click();
   await expect(setupPage).toHaveURL(/\/admin$/);
 
-  const setup = await setupPage.evaluate(async () => {
-    const response = await fetch("/api/profile/mfa/setup", { method: "POST" });
-    return { status: response.status, body: await response.json() };
-  });
-  expect(setup.status).toBe(200);
-  expect(setup.body.secret).toMatch(/^[A-Z2-7]+$/);
-  expect(setup.body.otpauthUri).toMatch(/^otpauth:\/\/totp\//);
+  await setupPage.goto("/profile");
+  await setupPage.getByRole("button", { name: /Bảo mật|Security/i }).click();
+  await setupPage
+    .getByRole("button", { name: /Thiết lập MFA|Set up MFA/i })
+    .click();
 
-  const code = generateTotpCode(decodeBase32(setup.body.secret));
-  const enabled = await setupPage.evaluate(async (totpCode) => {
-    const response = await fetch("/api/profile/mfa/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: totpCode }),
-    });
-    return { status: response.status, body: await response.json() };
-  }, code);
-  expect(enabled.status).toBe(200);
-  expect(enabled.body.recoveryCodes).toHaveLength(10);
+  const secret = (await setupPage.locator("output").first().textContent())?.trim();
+  const otpauthUri = (await setupPage.locator("output").nth(1).textContent())?.trim();
+  expect(secret).toMatch(/^[A-Z2-7]+$/);
+  expect(otpauthUri).toMatch(/^otpauth:\/\/totp\//);
+
+  const code = generateTotpCode(decodeBase32(secret!));
+  await setupPage.getByLabel(/Mã 6 chữ số|6-digit code/i).fill(code);
+  await setupPage
+    .getByRole("button", { name: /Xác minh và bật MFA|Verify and enable MFA/i })
+    .click();
+  await expect(setupPage.locator('span[role="status"]')).toContainText(
+    /MFA đang bật|MFA enabled/i,
+  );
+  const recoveryCodes = setupPage.getByRole("list", {
+    name: /Mã khôi phục|Recovery codes/i,
+  }).getByRole("listitem");
+  await expect(recoveryCodes).toHaveCount(10);
   await setupContext.close();
 
   const loginContext = await browser.newContext();
@@ -72,7 +76,7 @@ test("enabled administrator MFA rejects password-only login and accepts TOTP", a
     const mfaInput = loginPage.getByLabel(/Mã xác thực|Authentication code/i);
     await expect(mfaInput).toBeVisible();
     await mfaInput.fill(
-      generateTotpCode(decodeBase32(setup.body.secret)),
+      generateTotpCode(decodeBase32(secret!)),
     );
     await loginPage.getByRole("button", { name: /Đăng nhập|Login/i }).click();
     await expect(loginPage).toHaveURL(/\/admin$/);
@@ -84,7 +88,6 @@ test("enabled administrator MFA rejects password-only login and accepts TOTP", a
       });
       const storedHashes = credential.recoveryCodeHashes as string[];
       expect(storedHashes).toHaveLength(10);
-      expect(storedHashes).not.toContain(enabled.body.recoveryCodes[0]);
       await expect(
         verificationDatabase.auditLog.count({
           where: { actorId: adminId, action: "MFA_ENABLED" },
@@ -92,6 +95,33 @@ test("enabled administrator MFA rejects password-only login and accepts TOTP", a
       ).resolves.toBeGreaterThan(0);
     } finally {
       await verificationDatabase.$disconnect();
+    }
+
+    await loginPage.goto("/profile");
+    await loginPage.getByRole("button", { name: /Bảo mật|Security/i }).click();
+    await loginPage
+      .getByLabel(/^Mật khẩu$|^Password$/i)
+      .fill(TEST_FIXTURES.password);
+    await loginPage
+      .getByLabel(/Mã xác thực hoặc khôi phục|Authentication or recovery code/i)
+      .fill(generateTotpCode(decodeBase32(secret!)));
+    await loginPage.getByRole("button", { name: /^Tắt MFA$|^Disable MFA$/i }).click();
+    await expect(loginPage.locator('span[role="status"]')).toContainText(
+      /MFA chưa bật|MFA disabled/i,
+    );
+
+    const disabledDatabase = createTestDatabase();
+    try {
+      await expect(
+        disabledDatabase.mfaCredential.findUnique({ where: { userId: adminId } }),
+      ).resolves.toBeNull();
+      await expect(
+        disabledDatabase.auditLog.count({
+          where: { actorId: adminId, action: "MFA_DISABLED" },
+        }),
+      ).resolves.toBeGreaterThan(0);
+    } finally {
+      await disabledDatabase.$disconnect();
     }
   } finally {
     const cleanupDatabase = createTestDatabase();
