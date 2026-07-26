@@ -757,11 +757,14 @@ body:has(.fullscreen-loader) main {
 }
 
 /* --- Hero cascade — design.md § Motion --------------------------------------
-   The hero copy column settles line by line on load: label, headline, subtext,
-   actions each slide down 14px and fade in, 90ms apart (studied from
-   luxury-furniture.aura.build's letter cascade, carried at line level). CSS
-   only; reduced-motion users get the settled column immediately. */
-@media (prefers-reduced-motion: no-preference) {
+   The hero copy column settles on load: label first, then the headline —
+   which carries its own per-letter cascade (M1, `.fl-letters`) and is opted
+   out of this line animation via `.fl-cascade-skip` — then subtext and
+   actions. The trailing delays are tuned so the headline visibly LEADS: the
+   subtext/CTA arrive only after the first headline line has finished its
+   letter run (~800ms), never before. CSS only; reduced-motion users get the
+   settled column immediately. */
+@media screen and (prefers-reduced-motion: no-preference) {
   @keyframes fl-cascade {
     from {
       opacity: 0;
@@ -776,8 +779,8 @@ body:has(.fullscreen-loader) main {
     animation: fl-cascade var(--fl-dur-slow) var(--fl-ease-out) both;
   }
   .fl-hero-cascade > *:nth-child(2) { animation-delay: 90ms; }
-  .fl-hero-cascade > *:nth-child(3) { animation-delay: 180ms; }
-  .fl-hero-cascade > *:nth-child(4) { animation-delay: 270ms; }
+  .fl-hero-cascade > *:nth-child(3) { animation-delay: 750ms; }
+  .fl-hero-cascade > *:nth-child(4) { animation-delay: 920ms; }
 }
 
 /* --- Swatch marquee — design.md § Motion ------------------------------------
