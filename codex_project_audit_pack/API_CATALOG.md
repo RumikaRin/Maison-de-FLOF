@@ -127,7 +127,7 @@ Nguồn chuẩn: 64 file `src/app/api/**/route.ts`, 115 operation (48 GET, 33 PO
 - `e2e/public-write-abuse.spec.ts`: quote/chat bị giới hạn bởi public-write policy; unit test kiểm tra đúng policy và failure mode.
 - `tests/integration/commerce-concurrency.integration.test.ts`: idempotency, stock và coupon race trên PostgreSQL.
 - `e2e/load-gate.spec.ts`: bốn scenario bounded/non-mutating; p95 local lần xác minh gần nhất lần lượt 58/21/16/18 ms, không có status ngoài dự kiến hoặc 5xx.
-- `scripts/run-production-load-profile.ts`: 40 GET canonical, concurrency 2; p95 production products/colors/blog/profile 2262/776/758/398 ms, đúng toàn bộ status và không có 5xx.
+- `scripts/run-production-load-profile.ts`: deployment lạnh dùng 1 warm-up được kiểm tra + 9 mẫu/route, tổng 40 GET canonical, concurrency 2; p95 products/colors/blog/profile 419/176/389/406 ms, đúng toàn bộ status và không có 5xx.
 - `e2e/privacy-api-http.spec.ts`, `e2e/session-revocation.spec.ts`, `e2e/admin-mfa.spec.ts`, `e2e/visualizer.spec.ts`: ownership/privacy/session/MFA setup-recovery-login-disable/visualizer xuyên HTTP, UI và PostgreSQL.
 
 ## Cron API
