@@ -100,18 +100,15 @@
   * {
     @apply border-border;
   }
+  html,
   body {
-    @apply bg-background text-foreground font-sans transition-colors duration-300 relative overflow-x-hidden;
+    /* `clip` (not `hidden`) so sticky/position-fixed descendants keep working. */
+    overflow-x: clip;
   }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    pointer-events: none;
-    opacity: 0.018;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 128px 128px;
+  body {
+    @apply font-sans relative;
+    background-color: var(--fl-paper);
+    color: var(--fl-ink);
   }
   h1, h2, h3 {
     @apply font-serif tracking-wide;
@@ -508,6 +505,427 @@ body:has(.fullscreen-loader) main {
     animation-iteration-count: 1 !important;
   }
 }
+/* ============================================================
+   ATELIER EDITORIAL — locked design system. See design.md.
+   Hallmark · genre: editorial · theme: studied-DNA · designed-as-app
+   Light-only by construction: no `.dark` override exists for --fl-*,
+   so every public surface stays in daylight regardless of the theme class.
+   ============================================================ */
+@layer base {
+  :root {
+    /* Surfaces */
+    --fl-paper: oklch(97.6% 0.006 85);
+    --fl-paper-2: oklch(94.8% 0.01 82);
+    --fl-paper-3: oklch(91.5% 0.012 82);
+    --fl-espresso: oklch(24% 0.016 50);
+
+    /* Ink */
+    --fl-ink: oklch(31% 0.014 55);
+    --fl-ink-2: oklch(52% 0.012 60);
+    --fl-ink-3: oklch(63% 0.01 60);
+    --fl-on-dark: oklch(96.5% 0.008 85);
+
+    /* Photographic-fold scrim. Stock photography has no guaranteed dark
+       region, so the scrim — not luck — is what makes overlaid text legible. */
+    --fl-scrim-1: oklch(24% 0.016 50 / 0.94);
+    --fl-scrim-2: oklch(24% 0.016 50 / 0.62);
+    --fl-scrim-3: oklch(24% 0.016 50 / 0.18);
+
+    /* Rules */
+    --fl-rule: oklch(88% 0.008 82);
+    --fl-rule-strong: oklch(78% 0.01 80);
+    --fl-rule-on-dark: oklch(100% 0 0 / 0.22);
+
+    /* Action */
+    --fl-accent: oklch(45% 0.09 210);
+    --fl-accent-hover: oklch(39% 0.086 210);
+    --fl-accent-ink: oklch(98.5% 0.004 210);
+    --fl-focus: oklch(52% 0.11 210);
+
+    /* Feedback */
+    --fl-danger: oklch(48% 0.15 27);
+    --fl-success: oklch(46% 0.075 150);
+
+    /* Colour-drench bands — real paint values, full-bleed section grounds.
+       Sage is literally Moss Green #8002 (#5C6B5E) from the FLOF catalogue,
+       darkened one step nowhere: the exact shade, so the homepage caption
+       "painted in Moss Green" is a true statement. */
+    --fl-drench-sage: oklch(51.1% 0.027 149);
+    --fl-drench-clay: oklch(42% 0.072 38);
+    --fl-drench-slate: oklch(40% 0.034 238);
+    --fl-drench-ochre: oklch(74% 0.095 80);
+
+    /* Type scale. 14px (--fl-text-sm) is the floor for customer-facing body. */
+    --fl-text-2xs: 0.6875rem;
+    --fl-text-xs: 0.8125rem;
+    --fl-text-sm: 0.875rem;
+    --fl-text-md: 1rem;
+    --fl-text-lg: 1.125rem;
+    --fl-text-xl: 1.375rem;
+    --fl-text-2xl: 1.75rem;
+    --fl-text-3xl: clamp(2rem, 3.4vw, 2.75rem);
+    --fl-display-s: clamp(2.5rem, 5vw, 3.75rem);
+    --fl-display: clamp(3rem, 7vw, 5.5rem);
+
+    /* 4-point spacing scale */
+    --fl-space-3xs: 0.25rem;
+    --fl-space-2xs: 0.5rem;
+    --fl-space-xs: 0.75rem;
+    --fl-space-sm: 1rem;
+    --fl-space-md: 1.5rem;
+    --fl-space-lg: 2rem;
+    --fl-space-xl: 3rem;
+    --fl-space-2xl: 4.5rem;
+    --fl-space-3xl: 7rem;
+    --fl-space-4xl: 10rem;
+
+    /* Shape */
+    --fl-radius-surface: 2px;
+    --fl-radius-control: 3px;
+    --fl-radius-swatch: 0px;
+    /* Pill is ONLY for filter chips and the cart count badge. */
+    --fl-radius-pill: 999px;
+
+    /* Motion — two primitives only */
+    --fl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --fl-ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+    --fl-dur-fast: 160ms;
+    --fl-dur-base: 240ms;
+    --fl-dur-slow: 360ms;
+  }
+}
+
+@layer components {
+  /* --- Hairline rules carry every section boundary -------------------- */
+  .fl-rule {
+    border: 0;
+    border-top: 1px solid var(--fl-rule);
+    margin: 0;
+  }
+  .fl-rule-strong {
+    border-top-color: var(--fl-rule-strong);
+  }
+
+  /* --- Colour-drench bands -------------------------------------------- */
+  /* A band owns its own ink, rules and focus ring. Teal is invisible on a
+     drench and must never be used inside one. */
+  .fl-drench {
+    background-color: var(--fl-band);
+    color: var(--fl-band-ink);
+  }
+  .fl-drench .fl-rule {
+    border-top-color: var(--fl-rule-on-dark);
+  }
+  .fl-drench :focus-visible {
+    outline-color: var(--fl-band-ink);
+  }
+  .fl-drench-sage {
+    --fl-band: var(--fl-drench-sage);
+    --fl-band-ink: var(--fl-on-dark);
+  }
+  .fl-drench-clay {
+    --fl-band: var(--fl-drench-clay);
+    --fl-band-ink: var(--fl-on-dark);
+  }
+  .fl-drench-slate {
+    --fl-band: var(--fl-drench-slate);
+    --fl-band-ink: var(--fl-on-dark);
+  }
+  .fl-drench-ochre {
+    --fl-band: var(--fl-drench-ochre);
+    --fl-band-ink: var(--fl-espresso);
+  }
+  .fl-drench-espresso {
+    --fl-band: var(--fl-espresso);
+    --fl-band-ink: var(--fl-on-dark);
+  }
+
+  /* --- Photographic fold ---------------------------------------------- */
+  /* Text laid directly on a photograph. `.fl-photo-scrim` supplies the dark
+     field the photo cannot be trusted to provide; the label rule below keeps
+     technical metadata readable instead of ghosting into the image. */
+  .fl-photo-fold {
+    position: relative;
+    color: var(--fl-on-dark);
+  }
+  .fl-photo-scrim {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(
+        to top,
+        var(--fl-scrim-1) 0%,
+        var(--fl-scrim-2) 40%,
+        var(--fl-scrim-3) 74%,
+        transparent 100%
+      ),
+      linear-gradient(
+        to right,
+        var(--fl-scrim-2) 0%,
+        var(--fl-scrim-3) 48%,
+        transparent 78%
+      );
+  }
+  .fl-photo-fold .fl-label {
+    color: var(--fl-on-dark);
+    opacity: 0.9;
+  }
+
+  /* --- Colour samples ------------------------------------------------- */
+  /* Every swatch carries a frame. Without it a white or ivory sample
+     disappears into the paper and stops reading as a sample at all. */
+  .fl-swatch {
+    box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.28);
+  }
+  .fl-swatch-selected {
+    box-shadow:
+      inset 0 0 0 1px oklch(0% 0 0 / 0.28),
+      0 0 0 2px var(--fl-ink);
+  }
+
+  /* --- Editorial measure --------------------------------------------- */
+  .fl-measure {
+    max-width: 68ch;
+  }
+  .fl-measure-tight {
+    max-width: 52ch;
+  }
+
+  /* --- Display type --------------------------------------------------- */
+  .fl-display {
+    @apply font-serif;
+    font-style: normal; /* italic headings are banned — design.md */
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    line-height: 1.02;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  /* --- Technical metadata label — never a section heading ------------- */
+  .fl-label {
+    @apply font-sans;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fl-ink-2);
+  }
+  .fl-drench .fl-label {
+    /* Full strength: opacity here would blend the ink into the band and drop
+       11px metadata below the AA floor. Hierarchy comes from size and case. */
+    color: inherit;
+  }
+}
+
+@layer base {
+  /* Focus ring appears instantly — never animated. */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--fl-focus);
+    outline-offset: 2px;
+  }
+}
+
+/* --- Section settle — design.md § Motion, primitive 4 -----------------
+   One restrained entrance per Marketing section: opacity plus a <=8px rise as
+   the section first scrolls into view. CSS scroll-driven only, so it needs no
+   JS and sets no inline style (both forbidden by the nonce CSP). Progressive
+   enhancement: a browser without animation-timeline support, and every
+   reduced-motion user, gets the section fully settled from the start because
+   the whole rule is gated out. Runs once as the section arrives, never again. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Opacity only — a translate on a full-bleed section root establishes a
+       containing block that lets absolutely-positioned images escape the
+       `overflow-x: clip` guard and widen the document on narrow viewports.
+       A crossfade carries the settle just as well and cannot perturb layout. */
+    @keyframes fl-rise {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    .fl-rise {
+      animation: fl-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 2% cover 20%;
+    }
+  }
+}
+
+/* --- Hero cascade — design.md § Motion --------------------------------------
+   The hero copy column settles line by line on load: label, headline, subtext,
+   actions each slide down 14px and fade in, 90ms apart (studied from
+   luxury-furniture.aura.build's letter cascade, carried at line level). CSS
+   only; reduced-motion users get the settled column immediately. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fl-cascade {
+    from {
+      opacity: 0;
+      transform: translateY(-14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .fl-hero-cascade > * {
+    animation: fl-cascade var(--fl-dur-slow) var(--fl-ease-out) both;
+  }
+  .fl-hero-cascade > *:nth-child(2) { animation-delay: 90ms; }
+  .fl-hero-cascade > *:nth-child(3) { animation-delay: 180ms; }
+  .fl-hero-cascade > *:nth-child(4) { animation-delay: 270ms; }
+}
+
+/* --- Swatch marquee — design.md § Motion ------------------------------------
+   One slim strip of real catalogue colours drifting horizontally. The track
+   holds two copies of the list and travels exactly -50%, so the loop is
+   seamless. Pauses on hover; reduced-motion stops it entirely (the first copy
+   still reads as a static index). */
+.fl-marquee {
+  overflow: hidden;
+}
+.fl-marquee-track {
+  display: flex;
+  width: max-content;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fl-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .fl-marquee-track {
+    animation: fl-marquee 48s linear infinite;
+  }
+  .fl-marquee:hover .fl-marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+/* --- Photograph drift — design.md § Motion, primitive 6 ---------------------
+   Two utilities for the same idea: a photograph is never quite static inside
+   its plate. Both are transform-only, on the image (or a bare wrapper) inside
+   an `overflow: hidden` plate — never on a section root, see `.fl-rise`.
+
+   `.fl-photo-rise` — the plate arrives: 1.045 scale easing to rest, once.
+   Kept for photographs that also carry a state crossfade, where a continuous
+   drift would fight the swap.
+
+   `.fl-photo-parallax` — the crop drifts vertically for as long as the plate
+   is on screen. The layout box never moves; only the image inside it does.
+   Two rules make it honest:
+
+   - It is scroll-*linked*, not time-based. The browser derives the painted
+     frame from scroll position (`animation-timeline: view()`), so the drift
+     tracks the wheel exactly and cannot fall out of sync the way a JS rAF
+     loop does. This is what reads as "smooth" — not a longer duration.
+   - `linear` is mandatory. Any easing would make the image accelerate against
+     a constant scroll, which reads as lag rather than depth.
+
+   The image is over-scaled by more headroom than it travels (±4% of its own
+   unscaled height at 1.14 scale leaves 7% of overhang each side), so no edge
+   of the plate is ever exposed. `--fl-parallax-*` are read from the element,
+   so a modifier class can retune them; `-soft` is for photographs whose
+   source resolution cannot afford a 14% crop.
+
+   Never put this on an element that also carries a hover transform — the
+   animation would win and the hover would silently die. Wrap instead: drift
+   on the wrapper, hover zoom on the image, and the two matrices compose.
+
+   **The plate must carry `.fl-photo-plate`.** Both utilities are driven by a
+   *named* timeline rather than the anonymous `view()`, and this is not
+   stylistic. `view()` binds to the subject's nearest ancestor scrollport, and
+   the plate is `overflow: hidden` — which makes the plate itself a scroll
+   container. An image inside one therefore gets a timeline over a box that
+   never scrolls, and the browser pins its progress at 50% forever: the
+   transform applies, nothing ever moves, and nothing warns you. Naming the
+   timeline on the plate makes the *plate* the subject, so the timeline is
+   measured against the document scroller, which is what we meant all along.
+
+   If a plate is missing the class the name does not resolve, the timeline is
+   inactive and the image simply holds the `from` keyframe — still fully
+   covering the plate, just static. Degrades silently but never breaks. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .fl-photo-plate {
+      view-timeline-name: --fl-photo-plate;
+    }
+
+    @keyframes fl-photo-rise {
+      from {
+        transform: scale(1.045);
+      }
+      to {
+        transform: scale(1);
+      }
+    }
+    .fl-photo-rise {
+      animation: fl-photo-rise linear both;
+      animation-timeline: --fl-photo-plate;
+      animation-range: entry 0% cover 45%;
+    }
+
+    @keyframes fl-photo-parallax {
+      from {
+        transform: translate3d(0, calc(-1 * var(--fl-parallax-travel)), 0)
+          scale(var(--fl-parallax-zoom));
+      }
+      to {
+        transform: translate3d(0, var(--fl-parallax-travel), 0)
+          scale(var(--fl-parallax-zoom));
+      }
+    }
+    .fl-photo-parallax {
+      --fl-parallax-travel: 4%;
+      --fl-parallax-zoom: 1.14;
+      animation: fl-photo-parallax linear both;
+      animation-timeline: --fl-photo-plate;
+      animation-range: cover 0% cover 100%;
+    }
+    .fl-photo-parallax-soft {
+      --fl-parallax-travel: 2.5%;
+      --fl-parallax-zoom: 1.09;
+    }
+  }
+}
+
+/* --- Panel entrance — design.md § Motion, primitive 2 (state crossfade) ----
+   Mega-menu, avatar menu and select panels crossfade in with a <=8px slide as
+   they open. Keyframe-driven so it replays each time `hidden`/conditional
+   rendering shows the panel; no JS, no inline style. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fl-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .fl-panel-in {
+    animation: fl-panel-in var(--fl-dur-base) var(--fl-ease-out);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Spatial motion collapses to an opacity crossfade. */
+  .scroll-reveal,
+  .scroll-reveal.active {
+    transition-duration: 150ms !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
 next-route-announcer,
 next-route-announcer > div {
   position: absolute;
@@ -519,4 +937,223 @@ next-route-announcer > div {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* --- Motion upgrade — spec: docs/superpowers/specs/2026-07-27-homepage-motion-upgrade-design.md
+   Entrance from-states are double-gated: `html.fl-js` (added by fl-reveal on
+   mount) AND prefers-reduced-motion: no-preference. No JS, or reduced motion,
+   means no from-state ever applies — the page renders fully settled.
+   Scroll-linked utilities additionally sit behind @supports and use NAMED
+   view timelines only (anonymous view() inside an overflow-hidden plate binds
+   to the plate itself and pins at 50% — see the .fl-photo-plate note above). */
+
+:root {
+  /* Reveal-length duration for curtains/masks. The three design.md duration
+     tokens top out at 360ms, which reads abrupt on a 700px image plate. */
+  --fl-dur-reveal: 640ms;
+}
+
+/* M1 · Hero letter cascade — load-once, pure CSS, no JS gate (must play even
+   before hydration). CascadeText renders one span per letter. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fl-letter-in {
+    from { opacity: 0; transform: translateY(0.5em); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fl-letters > span {
+    display: inline-block;
+    animation: fl-letter-in var(--fl-dur-slow) var(--fl-ease-out) both;
+  }
+  .fl-letters > span:nth-child(1) { animation-delay: 55ms; }
+  .fl-letters > span:nth-child(2) { animation-delay: 110ms; }
+  .fl-letters > span:nth-child(3) { animation-delay: 165ms; }
+  .fl-letters > span:nth-child(4) { animation-delay: 220ms; }
+  .fl-letters > span:nth-child(5) { animation-delay: 275ms; }
+  .fl-letters > span:nth-child(6) { animation-delay: 330ms; }
+  .fl-letters > span:nth-child(7) { animation-delay: 385ms; }
+  .fl-letters > span:nth-child(8) { animation-delay: 440ms; }
+  .fl-letters > span:nth-child(9) { animation-delay: 495ms; }
+  .fl-letters > span:nth-child(10) { animation-delay: 550ms; }
+  .fl-letters > span:nth-child(11) { animation-delay: 605ms; }
+  .fl-letters > span:nth-child(12) { animation-delay: 660ms; }
+  .fl-letters > span:nth-child(13) { animation-delay: 715ms; }
+  .fl-letters > span:nth-child(14) { animation-delay: 770ms; }
+  .fl-letters > span:nth-child(15) { animation-delay: 825ms; }
+  .fl-letters > span:nth-child(16) { animation-delay: 880ms; }
+  .fl-letters > span:nth-child(17) { animation-delay: 935ms; }
+  .fl-letters > span:nth-child(18) { animation-delay: 990ms; }
+  .fl-letters > span:nth-child(19) { animation-delay: 1045ms; }
+  .fl-letters > span:nth-child(20) { animation-delay: 1100ms; }
+  .fl-letters > span:nth-child(21) { animation-delay: 1155ms; }
+  .fl-letters > span:nth-child(22) { animation-delay: 1210ms; }
+  .fl-letters > span:nth-child(23) { animation-delay: 1265ms; }
+  .fl-letters > span:nth-child(24) { animation-delay: 1320ms; }
+  .fl-letters > span:nth-child(25) { animation-delay: 1375ms; }
+  .fl-letters > span:nth-child(26) { animation-delay: 1430ms; }
+  .fl-letters > span:nth-child(27) { animation-delay: 1485ms; }
+  .fl-letters > span:nth-child(28) { animation-delay: 1540ms; }
+  /* Opts an element out of the .fl-hero-cascade line animation so the letter
+     cascade is the only motion it carries. */
+  .fl-hero-cascade > .fl-cascade-skip { animation: none; }
+}
+
+/* M2–M6 · IO entrances. `[data-fl-io]` marks the cluster root; fl-reveal adds
+   `.is-in` once. Rest states are the defaults; from-states only exist under
+   the double gate. */
+.fl-mask-line { overflow: hidden; }
+.fl-curtain-l, .fl-curtain-u, .fl-curtain-x { clip-path: inset(0); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fl-js [data-fl-io] .fl-mask-line > * {
+    transition: transform var(--fl-dur-reveal) var(--fl-ease-out);
+  }
+  .fl-js [data-fl-io] .fl-stagger > * {
+    transition:
+      opacity var(--fl-dur-slow) var(--fl-ease-out),
+      transform var(--fl-dur-slow) var(--fl-ease-out),
+      filter var(--fl-dur-reveal) var(--fl-ease-out);
+  }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(2) { transition-delay: 120ms; }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(3) { transition-delay: 240ms; }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(4) { transition-delay: 360ms; }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(5) { transition-delay: 480ms; }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(6) { transition-delay: 600ms; }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(7) { transition-delay: 720ms; }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(8) { transition-delay: 840ms; }
+  .fl-js [data-fl-io] .fl-stagger > :nth-child(n + 9) { transition-delay: 900ms; }
+  .fl-js [data-fl-io] .fl-blurup {
+    transition:
+      opacity var(--fl-dur-reveal) var(--fl-ease-out),
+      transform var(--fl-dur-reveal) var(--fl-ease-out),
+      filter var(--fl-dur-reveal) var(--fl-ease-out);
+  }
+  .fl-js .fl-curtain-l, .fl-js .fl-curtain-u, .fl-js .fl-curtain-x {
+    transition: clip-path var(--fl-dur-reveal) var(--fl-ease-out);
+  }
+  .fl-js [data-fl-io] .fl-mosaic > :nth-child(2) { transition-delay: 120ms; }
+  .fl-js [data-fl-io] .fl-mosaic > :nth-child(3) { transition-delay: 240ms; }
+  .fl-js [data-fl-io] .fl-mosaic > :nth-child(4) { transition-delay: 360ms; }
+  .fl-rule-draw {
+    transform-origin: left;
+    transition: transform var(--fl-dur-reveal) var(--fl-ease-out);
+  }
+
+  /* from-states */
+  .fl-js [data-fl-io]:not(.is-in) .fl-mask-line > * { transform: translateY(112%); }
+  .fl-js [data-fl-io]:not(.is-in) .fl-stagger > :not(.fl-blurup) {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .fl-js [data-fl-io]:not(.is-in) .fl-blurup {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(8px);
+  }
+  .fl-js [data-fl-io]:not(.is-in) .fl-curtain-l { clip-path: inset(0 100% 0 0); }
+  .fl-js [data-fl-io]:not(.is-in) .fl-curtain-u { clip-path: inset(100% 0 0 0); }
+  .fl-js [data-fl-io]:not(.is-in) .fl-curtain-x { clip-path: inset(0 50% 0 50%); }
+  .fl-js [data-fl-io]:not(.is-in) .fl-rule-draw { transform: scaleX(0); }
+}
+
+/* M7 · Scroll zoom-out + M8 · band-grow — scroll-linked, named timelines. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes fl-photo-zoomout {
+      from { transform: scale(1.22); }
+      to { transform: scale(1); }
+    }
+    .fl-photo-zoomout {
+      animation: fl-photo-zoomout linear both;
+      animation-timeline: --fl-photo-plate;
+      animation-range: cover 0% cover 85%;
+    }
+    @keyframes fl-photo-zoomout-soft {
+      from { transform: scale(1.12); }
+      to { transform: scale(1); }
+    }
+    .fl-photo-zoomout-soft { animation-name: fl-photo-zoomout-soft; }
+
+    /* clip-path only — zero layout shift; content is never distorted. */
+    @keyframes fl-band-grow {
+      from { clip-path: inset(0 4% round 16px); }
+      to { clip-path: inset(0 round 0); }
+    }
+    .fl-band-grow {
+      view-timeline-name: --fl-band;
+      animation: fl-band-grow linear both;
+      animation-timeline: --fl-band;
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+
+/* M10 · Slice drift — 4 vertical strips of one photo. Strip offsets are
+   stylesheet-only; fl-slice.ts writes a single unitless --fl-slice-v via
+   CSSOM. With no JS or reduced motion the calc() collapses to 0 and the
+   photo is seamless. */
+.fl-slice { display: flex; }
+.fl-slice-strip { position: relative; flex: 1 1 0%; overflow: hidden; }
+.fl-slice-strip .fl-slice-img { width: 400%; max-width: none; left: 0; }
+.fl-slice-strip:nth-child(2) .fl-slice-img { left: -100%; }
+.fl-slice-strip:nth-child(3) .fl-slice-img { left: -200%; }
+.fl-slice-strip:nth-child(4) .fl-slice-img { left: -300%; }
+.fl-slice-strip:nth-child(1) { --fl-strip-amp: -24px; }
+.fl-slice-strip:nth-child(2) { --fl-strip-amp: 18px; }
+.fl-slice-strip:nth-child(3) { --fl-strip-amp: -14px; }
+.fl-slice-strip:nth-child(4) { --fl-strip-amp: 22px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fl-js .fl-slice-strip {
+    transform: translateY(calc(var(--fl-slice-v, 0) * var(--fl-strip-amp)));
+    will-change: transform;
+  }
+  .fl-js [data-fl-io]:not(.is-in) .fl-slice-strip { opacity: 0; }
+  /* Entrance is a one-shot keyframe (not a transition) so later --fl-slice-v
+     updates apply instantly instead of lagging behind a 640ms transition. */
+  @keyframes fl-strip-in {
+    from { opacity: 0; transform: translateY(var(--fl-strip-amp)); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fl-js [data-fl-io].is-in .fl-slice-strip {
+    animation: fl-strip-in var(--fl-dur-reveal) var(--fl-ease-out) backwards;
+  }
+  .fl-js [data-fl-io].is-in .fl-slice-strip:nth-child(2) { animation-delay: 90ms; }
+  .fl-js [data-fl-io].is-in .fl-slice-strip:nth-child(3) { animation-delay: 180ms; }
+  .fl-js [data-fl-io].is-in .fl-slice-strip:nth-child(4) { animation-delay: 270ms; }
+}
+
+/* Ornaments · O1–O3 — decorative SVG strokes that self-draw once on entry.
+   Each ornament sets --fl-draw-len per path via a scoping class. */
+.fl-draw {
+  stroke-dasharray: var(--fl-draw-len);
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fl-js .fl-draw { transition: stroke-dashoffset 1200ms var(--fl-ease-in-out); }
+  .fl-js [data-fl-io]:not(.is-in) .fl-draw { stroke-dashoffset: var(--fl-draw-len); }
+  .fl-js [data-fl-io] .fl-orn-fade {
+    transition: opacity var(--fl-dur-reveal) var(--fl-ease-out) 900ms;
+  }
+  .fl-js [data-fl-io]:not(.is-in) .fl-orn-fade { opacity: 0; }
+}
+.fl-orn-arc .fl-draw-outer { --fl-draw-len: 302; }
+.fl-orn-arc .fl-draw-inner { --fl-draw-len: 208; }
+.fl-orn-blueprint .fl-draw { --fl-draw-len: 560; }
+
+/* M9 · Underline draw — draws from the left on hover, exits right. Replaces
+   the decoration-thickness hover on TypographicLink. */
+.fl-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: 0% 1px;
+  padding-bottom: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fl-underline { transition: background-size var(--fl-dur-base) var(--fl-ease-out); }
+}
+.group:hover .fl-underline,
+.group:focus-visible .fl-underline {
+  background-position: left bottom;
+  background-size: 100% 1px;
 }
