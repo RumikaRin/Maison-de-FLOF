@@ -260,10 +260,11 @@ Motion-upgrade tokens (2026-07-27, owner-approved expansion — full system in
 section's prose will be reconciled after the homepage acceptance pass):
 
 ```css
---fl-dur-reveal: 640ms;   /* curtain/mask reveals at image-plate scale */
---fl-parallax-travel; --fl-parallax-zoom;  /* photograph-drift knobs (primitive 6) */
---fl-strip-amp;           /* slice-drift strip amplitude, per nth-child */
---fl-draw-len;            /* ornament stroke self-draw length, per ornament */
+--fl-dur-reveal: 640ms;      /* curtain/mask reveals at image-plate scale */
+--fl-parallax-travel: 4%;    /* photograph-drift travel (primitive 6; -soft 2.5%) */
+--fl-parallax-zoom: 1.14;    /* photograph-drift over-scale (primitive 6; -soft 1.09) */
+--fl-strip-amp: -24px;       /* slice-drift strip amplitude — per-strip via nth-child */
+--fl-draw-len: 640;          /* ornament stroke self-draw length — per ornament */
 ```
 
 1. **Hero media load** — one opacity transition on the fold image. Once.
