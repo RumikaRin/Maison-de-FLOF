@@ -8,6 +8,7 @@ import { SessionProvider } from "@/providers/session-provider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
+import { CartSync } from "@/components/layout/CartSync";
 import { CspToaster } from "@/components/ui/csp-toast";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
@@ -71,8 +72,19 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-jotun-ivory grain-overlay`}
+        className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-atelier-paper text-atelier-ink`}
       >
+        {/* Pre-paint fl-js bootstrap (spec M2-M6): sets html.fl-js before the
+            first paint so SSR-visible [data-fl-io] clusters never flash in,
+            hide, then replay once fl-reveal.ts mounts. Nonced per the CSP's
+            script-src 'self' 'nonce-...' 'strict-dynamic'. initFlReveal still
+            sets the class too, as a no-JS-blocked fallback. */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: 'document.documentElement.classList.add("fl-js")',
+          }}
+        />
         <SessionProvider>
           <QueryProvider>
             <ThemeProvider
@@ -82,6 +94,7 @@ export default async function RootLayout({
               nonce={nonce}
             >
               <Header />
+              <CartSync />
               <MainLayoutWrapper>
                 {children}
               </MainLayoutWrapper>

@@ -1,5 +1,8 @@
-"use client";
+/* Hallmark · genre: editorial · macrostructure: 08 Photographic · H6 hero knobs: image=full-bleed, caption=lower-left, text=left-bias
+ * drench order: sage (visualizer) → clay (advice strip) → espresso (journal) — no two adjacent bands share a colour
+ * design-system: design.md · designed-as-app */ "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
 import { useCartStore } from "@/store/cart-store";
@@ -11,7 +14,10 @@ import {
   canAddCatalogItemToCart,
   type CatalogAvailability,
 } from "@/lib/catalog-result";
+import { initFlReveal } from "@/lib/fl-reveal";
+import { initFlSlice } from "@/lib/fl-slice";
 
+import { BandEdge, DrenchBand, SwatchMarquee } from "@/components/ui/editorial";
 import { HeroSection } from "./HeroSection";
 import { PromotionSection } from "./PromotionSection";
 import { ColorExplorerSection } from "./ColorExplorerSection";
@@ -55,6 +61,15 @@ export function HomeClient({
         window.removeEventListener("offline", goOffline);
       };
     }
+  }, []);
+
+  useEffect(() => {
+    const disposeReveal = initFlReveal();
+    const disposeSlice = initFlSlice();
+    return () => {
+      disposeReveal();
+      disposeSlice();
+    };
   }, []);
 
   // Color family picker state
@@ -152,28 +167,26 @@ export function HomeClient({
   };
 
   if (isOffline) {
+    // Intentional editorial empty state: a rule, a line of Playfair, one action.
     return (
-      <div className="relative w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[70vh] flex flex-col items-center justify-center px-6 py-20 text-center gap-6">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
+      <div className="flex min-h-[70vh] w-full flex-col items-center justify-center bg-atelier-paper px-fl-md py-fl-2xl">
         <safeMotion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-          className="relative max-w-md w-full bg-white border border-warm-300 rounded-3xl p-8 sm:p-12 shadow-xl flex flex-col items-center gap-6 z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+          className="flex w-full max-w-md flex-col items-start gap-fl-sm border-t border-atelier-rule-strong pt-fl-md text-left"
         >
-          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-2xl animate-pulse">
-            ⚠️
-          </div>
-          <div className="space-y-2">
-            <h2 className="font-serif font-bold text-xl sm:text-2xl text-warm-900 leading-tight">
-              {language === "vi" ? "Mất kết nối Internet" : "No Internet Connection"}
-            </h2>
-            <p className="text-xs sm:text-sm text-warm-550 leading-relaxed font-light">
-              {language === "vi"
-                ? "Không thể kết nối đến máy chủ Maison de FLOF. Vui lòng kiểm tra kết nối Wifi/4G của bạn và thử lại."
-                : "Unable to connect to Maison de FLOF servers. Please check your Wifi or mobile data and try again."}
-            </p>
-          </div>
+          <p className="fl-label">
+            {language === "vi" ? "Mất kết nối" : "Offline"}
+          </p>
+          <h2 className="fl-display text-fl-2xl text-atelier-ink">
+            {language === "vi" ? "Mất kết nối Internet" : "No internet connection"}
+          </h2>
+          <p className="text-fl-sm text-atelier-ink-2">
+            {language === "vi"
+              ? "Không thể kết nối đến máy chủ Maison de FLOF. Vui lòng kiểm tra kết nối Wifi/4G của bạn và thử lại."
+              : "Unable to connect to Maison de FLOF servers. Please check your Wifi or mobile data and try again."}
+          </p>
           <button
             onClick={() => {
               setIsTabLoading(true);
@@ -182,9 +195,9 @@ export function HomeClient({
                 setIsTabLoading(false);
               }, 600);
             }}
-            className="w-full py-3 bg-warm-900 hover:bg-warm-850 text-white text-xs font-bold rounded-2xl transition-all shadow-md active:scale-98"
+            className="mt-fl-xs inline-flex min-h-11 items-center whitespace-nowrap rounded-control bg-atelier-accent px-fl-lg py-fl-xs text-fl-sm font-medium text-atelier-accent-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-accent-hover md:min-h-10"
           >
-            {language === "vi" ? "Thử lại kết nối" : "Retry Connection"}
+            {language === "vi" ? "Thử lại kết nối" : "Retry connection"}
           </button>
         </safeMotion.div>
       </div>
@@ -192,11 +205,11 @@ export function HomeClient({
   }
 
   return (
-    <div className="relative w-full overflow-hidden bg-jotun-ivory text-warm-900 transition-colors duration-300">
+    <div className="relative w-full bg-atelier-paper text-atelier-ink">
       {!catalogAvailability.commerceAvailable && (
         <div
           role="status"
-          className="mx-auto mt-24 w-[calc(100%-2rem)] max-w-[1360px] rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+          className="mx-auto w-full max-w-[100rem] border-l-2 border-atelier-danger px-[clamp(1rem,4vw,1.5rem)] py-fl-sm text-fl-sm text-atelier-ink"
         >
           {language === "vi"
             ? "Dữ liệu sản phẩm trực tiếp đang tạm gián đoạn. Bạn vẫn có thể tham khảo danh mục, nhưng chức năng mua hàng đang tạm khóa."
@@ -229,6 +242,39 @@ export function HomeClient({
         handleAddToCart={handleAddToCart}
         commerceAvailable={catalogAvailability.commerceAvailable}
       />
+      {/* Advice strip — one sentence, one action, painted. Clay rather than
+          ochre: ochre was the only band needing dark ink, which made its button
+          read as a heavy slab and put a mustard note against the warm mineral
+          palette. Clay sits in the same warm family as the paper. The band
+          arrives as a painted wave (BandEdge) — the page's single Tier-B
+          enrichment. */}
+      {/* Colour index drift — real shades only, the page's one marquee. */}
+      <SwatchMarquee
+        className="bg-atelier-paper-2"
+        items={colorCatalog.slice(0, 14).map((color) => ({
+          code: color.code,
+          name: language === "vi" ? color.name : color.nameEn || color.name,
+          hex: color.hex,
+        }))}
+      />
+      <div className="fl-rise">
+      <BandEdge color="clay" className="bg-atelier-paper-2" />
+      <DrenchBand color="clay" className="py-fl-2xl md:py-fl-3xl">
+        <div className="mx-auto flex w-full max-w-[100rem] flex-col gap-fl-sm px-[clamp(1rem,4vw,1.5rem)] md:flex-row md:items-end md:justify-between">
+          <p className="fl-display max-w-2xl text-fl-2xl">
+            {language === "vi"
+              ? "Công trình lớn cần một bảng màu được tính toán. Đội ngũ FLOF phản hồi trong 24 giờ."
+              : "A larger project deserves a considered palette. The FLOF team replies within 24 hours."}
+          </p>
+          <Link
+            href="/quote-request"
+            className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-control bg-atelier-on-dark px-fl-lg py-fl-xs text-fl-sm font-medium text-atelier-espresso transition-opacity duration-fl-fast ease-fl-out hover:opacity-90 md:min-h-10"
+          >
+            {language === "vi" ? "Đặt lịch tư vấn" : "Book a consultation"}
+          </Link>
+        </div>
+      </DrenchBand>
+      </div>
       <ExpertBlogsSection blogs={blogs} />
     </div>
   );
