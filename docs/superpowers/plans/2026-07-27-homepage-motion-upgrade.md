@@ -1252,6 +1252,23 @@ git add -A && git commit -m "fix: motion verification adjustments"
 
 ---
 
+## Errata (post-review, 2026-07-27 — supersedes conflicting text above)
+
+Quality review of Tasks 1+2 amended the Task 2 CSS in-place:
+
+- Stagger/blurup entrances are **one-shot keyframes** (`fl-rise-in`, `fl-blurup-in`) triggered by `.is-in` with `animation-delay` stagger — NOT transitions. Stagger children may therefore keep their own Tailwind transition utilities (Task 7 chip rows are safe).
+- All media queries in the motion block are `@media screen and (prefers-reduced-motion: no-preference)` — print renders fully settled.
+- `.fl-mask-line` carries `padding-block: 0.15em; margin-block: -0.15em` (Vietnamese stacked diacritics); from-state is `translateY(130%)`.
+- `.fl-letters > span` has `white-space: pre` (word gaps survive) + an `n + 29` delay catch-all.
+- Curtain rest state is gated under `.fl-js` (no-JS carries no clip). Never put curtains on focusable elements.
+- Draw lengths: arcs 320/220, blueprint 640. `will-change` scoped to `.is-in`.
+
+**Task 3 amendments (mandatory):**
+- `fl-reveal` must NOT `unobserve` after the first intersection. Keep the observer alive and re-add `is-in` whenever an observed element intersects without it — React re-rendering a dynamic `className` can silently wipe imperatively-added classes.
+- Additionally: add a pre-paint `fl-js` bootstrap — a one-line nonced inline script rendered as the FIRST child of `<body>` in `src/app/layout.tsx` (`document.documentElement.classList.add("fl-js")`), nonce read the same way the layout/announcer already obtains it (`x-nonce` request header). This prevents the hydration blink where SSR-visible clusters paint, hide, then replay. `initFlReveal` keeps setting the class as a fallback.
+
+**Task 11 amendment:** never `git add -A` — stage explicit paths only (the branch carries unrelated uncommitted work).
+
 ## Self-review notes (already applied)
 
 - Spec coverage: M1→T4, M2/M3→T4/6/7/8, M4→T7, M5→T6/8, M6→T8, M7→T4 (hero only), M8→T8, M9→T9, M10→T5, O1→T4, O2→T6, O3→T8, O5/O6→T10, guardrails→T2 gates + T11 checks. Rejected items appear nowhere.
