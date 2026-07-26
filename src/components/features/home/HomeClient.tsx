@@ -63,14 +63,17 @@ export function HomeClient({
     }
   }, []);
 
+  // Re-init after offline recovery: the offline branch unmounts the whole
+  // section tree, and fl-reveal/fl-slice query their targets once at init.
   useEffect(() => {
+    if (isOffline) return;
     const disposeReveal = initFlReveal();
     const disposeSlice = initFlSlice();
     return () => {
       disposeReveal();
       disposeSlice();
     };
-  }, []);
+  }, [isOffline]);
 
   // Color family picker state
   const [selectedFamily, setSelectedFamily] = useState<string>("white");

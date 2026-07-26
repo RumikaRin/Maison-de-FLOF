@@ -945,7 +945,10 @@ next-route-announcer > div {
    means no from-state ever applies — the page renders fully settled.
    Scroll-linked utilities additionally sit behind @supports and use NAMED
    view timelines only (anonymous view() inside an overflow-hidden plate binds
-   to the plate itself and pins at 50% — see the .fl-photo-plate note above). */
+   to the plate itself and pins at 50% — see the .fl-photo-plate note above).
+   Any [data-fl-io] markup on a page that never mounts initFlReveal renders
+   invisible once fl-js is set (the layout bootstrap sets it globally) — keep
+   the attribute on pages that mount the orchestrator. */
 
 :root {
   /* Reveal-length duration for curtains/masks. The three design.md duration
@@ -1035,6 +1038,12 @@ next-route-announcer > div {
   .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(7) { animation-delay: 720ms; }
   .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(8) { animation-delay: 840ms; }
   .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(n + 9) { animation-delay: 900ms; }
+  /* Re-mounted children under an .is-in host replay entrance keyframes (e.g.
+     tab panes keyed per tab). A section can opt a subtree out after its first
+     interaction via .fl-noreplay on the pane wrapper. */
+  .fl-js [data-fl-io].is-in .fl-noreplay :is(.fl-blurup, .fl-stagger > *) {
+    animation: none;
+  }
   /* Curtains: rest + transition live under the gate so no-JS/reduced-motion/
      print carry no clip-path at all. Never place curtains on focusable
      elements — the clip would crop focus outlines. */

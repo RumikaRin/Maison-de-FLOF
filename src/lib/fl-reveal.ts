@@ -2,12 +2,16 @@
    inline styles. Without this module the page renders fully settled, because
    every from-state in globals.css is gated behind `html.fl-js`.
 
-   The observer is kept alive for the whole session (never unobserved) and
-   re-adds `.is-in` on every intersection, even if the target already has it.
-   React re-rendering a dynamic `className` prop can silently wipe an
-   imperatively-added class; a one-shot "observe once then disconnect"
-   approach would leave that cluster invisible forever after such a
-   re-render. Re-adding the class is idempotent and cheap. */
+   The observer is kept alive for the whole session (never unobserved) so
+   that if React re-rendering a dynamic `className` prop wipes an
+   imperatively-added `is-in`, the class is restored the next time the
+   element re-crosses the intersection threshold — IO callbacks fire on
+   crossings, not continuously, so a wipe while the element sits statically
+   in view is NOT healed. Host components are therefore expected to keep
+   their `[data-fl-io]` elements on static className strings. A one-shot
+   "observe once then disconnect" approach would leave a wiped cluster
+   invisible forever; re-adding the class on each crossing is idempotent
+   and cheap. */
 
 export function initFlReveal(): () => void {
   if (typeof window === "undefined") return () => {};

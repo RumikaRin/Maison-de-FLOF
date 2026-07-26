@@ -2,6 +2,14 @@
    DOM part writes exactly one custom property per plate via CSSOM, which the
    production CSP permits (style-src-attr blocks parsed attributes, not CSSOM). */
 
+/* Shared by decayVelocity's snap-to-zero AND the rAF loop's stop checks —
+   the loop's termination proof depends on both using the same threshold. */
+export const EPSILON = 0.001;
+
+/* Per-frame multiplier applied to the scroll-velocity target so it decays
+   toward rest between scroll events. */
+const TARGET_DECAY = 0.82;
+
 export function clampVelocity(deltaPx: number, maxPx = 60): number {
   return Math.max(-1, Math.min(1, deltaPx / maxPx));
 }
@@ -10,7 +18,7 @@ export function decayVelocity(
   current: number,
   target: number,
   lerp = 0.14,
-  epsilon = 0.001,
+  epsilon = EPSILON,
 ): number {
   const next = current + (target - current) * lerp;
   return Math.abs(next) < epsilon && Math.abs(target) < epsilon ? 0 : next;
@@ -46,12 +54,18 @@ export function initFlSlice(): () => void {
   let running = false;
 
   const step = () => {
+    if (visible.size === 0) {
+      value = 0;
+      target = 0;
+      running = false;
+      return;
+    }
     value = decayVelocity(value, target);
-    target *= 0.82;
+    target *= TARGET_DECAY;
     for (const plate of visible) {
       plate.style.setProperty("--fl-slice-v", value.toFixed(4));
     }
-    if (value === 0 && Math.abs(target) < 0.001) {
+    if (value === 0 && Math.abs(target) < EPSILON) {
       running = false;
       return;
     }
@@ -73,5 +87,6 @@ export function initFlSlice(): () => void {
     window.removeEventListener("scroll", onScroll);
     cancelAnimationFrame(raf);
     io.disconnect();
+    plates.forEach((p) => p.style.removeProperty("--fl-slice-v"));
   };
 }
