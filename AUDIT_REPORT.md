@@ -54,7 +54,7 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | `npm run test:integration` | PASS | 24/24 PostgreSQL: commerce concurrency, privacy lifecycle, visualizer ownership và P1 domains |
 | `npm run test:e2e` | PASS | 73/73 Playwright: Chromium full, Firefox/WebKit/mobile smoke, axe/AX, Google availability, MFA UI/privacy/visualizer/audit |
 | `npm run test:load` | PASS | 4/4 bounded scenario; p95 local 58/21/16/18 ms, 0 unexpected và 0 server error |
-| `npm run check:production-load` | PASS | 40 GET production, concurrency 2; p95 products/colors/blog/profile 2262/776/758/398 ms; 0 unexpected và 0 server error |
+| `npm run check:production-load` | PASS | Deployment lạnh: 1 warm-up được kiểm tra + 9 mẫu/route, tổng 40 GET; p95 products/colors/blog/profile 419/176/389/406 ms; 0 unexpected và 0 server error |
 | `npm run test:openapi` | PASS | OpenAPI 3.1 Redocly sạch + source ↔ contract coverage 115/115 operation |
 | `npm run test:bundle` | PASS | Shared gzip 100.6 KiB/115 KiB; 11 route mục tiêu đều dưới 210 KiB |
 | `npm run test:lighthouse` | PASS | 3-run median: home 77/99/96/100, products 79/100/96/100, login 79/100/96/100; CLS 0–0.00033 |
@@ -62,8 +62,8 @@ Kiến trúc là **modular monolith**. Đây là lựa chọn hợp lý cho mộ
 | Test DB migration deploy | PASS | 13 migration; không còn pending migration trên PostgreSQL 18 cô lập |
 | `npm audit --omit=dev --audit-level=high` | PASS | 0 vulnerability |
 | Production CSP smoke | PASS | nonce header khớp 33 script tag; script-src không có `unsafe-inline`/`unsafe-eval` |
-| Vercel Production | PASS | P2/P3 deployment `dpl_33urHk6oW12foaUEjcSycmfS6Hji` READY đúng merge SHA `35f7026`; canonical smoke 11/11 và không có log 5xx trong cửa sổ kiểm tra |
-| GitHub Actions | PASS | PR run `30178933111` (8m46s) và post-merge run `30179199673` (8m49s) xanh đủ PostgreSQL/unit/coverage/integration/build/bundle/E2E/load/OpenAPI/Lighthouse/audit |
+| Vercel Production | PASS | P4 deployment `dpl_Eym75ukCNGoKtgyGHPukRyLC7Gcn` READY đúng merge SHA `cb490f2`; 3 alias, canonical smoke 11/11, cold-first load PASS và 0 log 5xx/20 phút |
+| GitHub Actions | PASS | PR #8 quality `30190018819` (8m45s), correction PR #9 `30190937112` (6m54s) và post-merge `30191140268` (8m15s) đều xanh đủ gate |
 | Neon recovery/migration | PASS | Branch tạm `br-still-mud-aom52blp` rehearsal 5 migration additive; production 13/13; 4 bảng/3 User field/2 Blog field/4 room đã xác nhận; branch tạm đã xóa |
 | Cron và rollback | PASS | Cron không token 401, authorized in-memory 200; Vercel promote known-good rồi restore current, cả hai lần smoke 10/10 |
 | Upstash / Vercel telemetry | PASS có giới hạn | Marketplace Free `sin1` Available, live sanitized PING PASS; Analytics và Speed Insights enabled, chưa đủ thời gian tích lũy RUM |
@@ -268,7 +268,7 @@ Các luồng chính đều có UI và API nối thật. Axe/AX gate đã pass tr
 
 ### Deployment
 
-Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` dùng v5. `main` yêu cầu strict `quality` + `Vercel`, linear history và resolved conversations. Release P2/P3 đã có exact SHA/smoke/log proof; Neon restore/migration và rollback drill hai chiều vẫn pass. Upstash resource/PING, Analytics/Speed Insights và production-safe load đã được xác minh trong P4. Exact P4 PR/CI/Vercel SHA sẽ được ghi sau push/merge; còn thiếu credential thật cho Resend/Cloudinary và bằng chứng alert delivery.
+Build production pass, dependency audit High sạch, Node 24 được khóa trong package/CI và official `checkout`/`setup-node` dùng v5. `main` yêu cầu strict `quality` + `Vercel`, linear history và resolved conversations. PR #8 triển khai P4; PR #9 sửa phép đo cold-start sau khi hậu kiểm phát hiện lần chạy đầu không ổn định. Final merge SHA `cb490f2`, post-merge CI `30191140268` PASS, production `dpl_Eym75ukCNGoKtgyGHPukRyLC7Gcn` READY, smoke 11/11, cold-first load PASS và log 5xx bằng 0. Upstash remote-only PING PASS; Analytics/Speed Insights đã bật. Còn thiếu credential thật cho Resend/Cloudinary và bằng chứng alert delivery.
 
 ## 6. Ba rủi ro lớn nhất
 
@@ -282,14 +282,14 @@ Build production pass, dependency audit High sạch, Node 24 được khóa tron
 2. Thay credential thật cho Cloudinary rồi chạy upload/delete asset disposable; gửi test alert tới owner.
 3. Cấu hình và xác minh Google OAuth consent; hiện tại UI đã tự ẩn khi credentials thiếu.
 4. Chạy screen-reader thủ công (NVDA/VoiceOver) và lấy legal sign-off cho retention/anonymization.
-5. Sau merge, xác minh exact P4 Vercel SHA/smoke/log; theo dõi RUM/SLO đủ thời gian và diễn tập DR/incident.
+5. Theo dõi RUM/SLO đủ thời gian, thiết lập baseline/cảnh báo và diễn tập DR/incident.
 
 ## 8. Phần chưa đủ dữ liệu để xác minh
 
 - File được yêu cầu `codex_project_audit_pack/CODEX_PROJECT_AUDIT_PROMPT.md` không tồn tại trong repository hoặc `D:\ProjectZ`; audit dùng 10 yêu cầu trong lời nhắn làm baseline.
 - Không có PRD/SRS, acceptance criteria đã ký, KPI/SLA/SLO hoặc biên bản UAT.
 - Không đọc nội dung row-level/PII hoặc production traffic; chỉ chạy aggregate invariant count và metadata constraint/migration.
-- P1 từng xác minh GitHub Actions/Vercel/cron/rollback. Release P2/P3 đã xác minh Neon 13/13; exact P4 remote PR/CI/Vercel SHA chỉ có thể ghi sau push/merge. Chưa xác nhận Cloudinary, Resend, VNPay merchant và Google OAuth production.
+- P1 từng xác minh GitHub Actions/Vercel/cron/rollback; P2/P3 xác minh Neon 13/13; P4 đã có exact PR/CI/Vercel SHA, smoke/load/log và Upstash PING. Chưa xác nhận Cloudinary, Resend, VNPay merchant và Google OAuth production.
 - Lighthouse, axe/AX, Firefox/WebKit/mobile smoke, bounded local load và production-safe load đã có; chưa có screen-reader thủ công, penetration test hoặc RUM đủ mẫu.
 - Đã xác minh TLS trên ba alias Vercel; dự án không gắn custom domain. Chưa xác minh webhook VNPay thật, email deliverability, lần chạy cron theo lịch, alert delivery tới owner hoặc full disaster-recovery RTO/RPO.
 
