@@ -955,13 +955,14 @@ next-route-announcer > div {
 
 /* M1 · Hero letter cascade — load-once, pure CSS, no JS gate (must play even
    before hydration). CascadeText renders one span per letter. */
-@media (prefers-reduced-motion: no-preference) {
+@media screen and (prefers-reduced-motion: no-preference) {
   @keyframes fl-letter-in {
     from { opacity: 0; transform: translateY(0.5em); }
     to { opacity: 1; transform: translateY(0); }
   }
   .fl-letters > span {
     display: inline-block;
+    white-space: pre;
     animation: fl-letter-in var(--fl-dur-slow) var(--fl-ease-out) both;
   }
   .fl-letters > span:nth-child(1) { animation-delay: 55ms; }
@@ -992,6 +993,7 @@ next-route-announcer > div {
   .fl-letters > span:nth-child(26) { animation-delay: 1430ms; }
   .fl-letters > span:nth-child(27) { animation-delay: 1485ms; }
   .fl-letters > span:nth-child(28) { animation-delay: 1540ms; }
+  .fl-letters > span:nth-child(n + 29) { animation-delay: 1595ms; }
   /* Opts an element out of the .fl-hero-cascade line animation so the letter
      cascade is the only motion it carries. */
   .fl-hero-cascade > .fl-cascade-skip { animation: none; }
@@ -1000,34 +1002,44 @@ next-route-announcer > div {
 /* M2–M6 · IO entrances. `[data-fl-io]` marks the cluster root; fl-reveal adds
    `.is-in` once. Rest states are the defaults; from-states only exist under
    the double gate. */
-.fl-mask-line { overflow: hidden; }
-.fl-curtain-l, .fl-curtain-u, .fl-curtain-x { clip-path: inset(0); }
+.fl-mask-line { overflow: hidden; padding-block: 0.15em; margin-block: -0.15em; }
 
-@media (prefers-reduced-motion: no-preference) {
+@media screen and (prefers-reduced-motion: no-preference) {
   .fl-js [data-fl-io] .fl-mask-line > * {
     transition: transform var(--fl-dur-reveal) var(--fl-ease-out);
   }
-  .fl-js [data-fl-io] .fl-stagger > * {
-    transition:
-      opacity var(--fl-dur-slow) var(--fl-ease-out),
-      transform var(--fl-dur-slow) var(--fl-ease-out),
-      filter var(--fl-dur-reveal) var(--fl-ease-out);
+  /* Entrances are one-shot keyframes on .is-in — never transitions — so they
+     cannot occupy the `transition` property or leave stagger delays on a
+     child's own hover transitions. Same pattern as fl-strip-in below. */
+  @keyframes fl-rise-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(2) { transition-delay: 120ms; }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(3) { transition-delay: 240ms; }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(4) { transition-delay: 360ms; }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(5) { transition-delay: 480ms; }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(6) { transition-delay: 600ms; }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(7) { transition-delay: 720ms; }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(8) { transition-delay: 840ms; }
-  .fl-js [data-fl-io] .fl-stagger > :nth-child(n + 9) { transition-delay: 900ms; }
-  .fl-js [data-fl-io] .fl-blurup {
-    transition:
-      opacity var(--fl-dur-reveal) var(--fl-ease-out),
-      transform var(--fl-dur-reveal) var(--fl-ease-out),
-      filter var(--fl-dur-reveal) var(--fl-ease-out);
+  @keyframes fl-blurup-in {
+    from { opacity: 0; transform: translateY(16px); filter: blur(8px); }
+    to { opacity: 1; transform: translateY(0); filter: none; }
   }
+  .fl-js [data-fl-io]:not(.is-in) .fl-stagger > :not(.fl-blurup) { opacity: 0; }
+  .fl-js [data-fl-io]:not(.is-in) .fl-blurup { opacity: 0; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :not(.fl-blurup) {
+    animation: fl-rise-in var(--fl-dur-slow) var(--fl-ease-out) backwards;
+  }
+  .fl-js [data-fl-io].is-in .fl-blurup {
+    animation: fl-blurup-in var(--fl-dur-reveal) var(--fl-ease-out) backwards;
+  }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(2) { animation-delay: 120ms; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(3) { animation-delay: 240ms; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(4) { animation-delay: 360ms; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(5) { animation-delay: 480ms; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(6) { animation-delay: 600ms; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(7) { animation-delay: 720ms; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(8) { animation-delay: 840ms; }
+  .fl-js [data-fl-io].is-in .fl-stagger > :nth-child(n + 9) { animation-delay: 900ms; }
+  /* Curtains: rest + transition live under the gate so no-JS/reduced-motion/
+     print carry no clip-path at all. Never place curtains on focusable
+     elements — the clip would crop focus outlines. */
   .fl-js .fl-curtain-l, .fl-js .fl-curtain-u, .fl-js .fl-curtain-x {
+    clip-path: inset(0);
     transition: clip-path var(--fl-dur-reveal) var(--fl-ease-out);
   }
   .fl-js [data-fl-io] .fl-mosaic > :nth-child(2) { transition-delay: 120ms; }
@@ -1039,16 +1051,7 @@ next-route-announcer > div {
   }
 
   /* from-states */
-  .fl-js [data-fl-io]:not(.is-in) .fl-mask-line > * { transform: translateY(112%); }
-  .fl-js [data-fl-io]:not(.is-in) .fl-stagger > :not(.fl-blurup) {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  .fl-js [data-fl-io]:not(.is-in) .fl-blurup {
-    opacity: 0;
-    transform: translateY(16px);
-    filter: blur(8px);
-  }
+  .fl-js [data-fl-io]:not(.is-in) .fl-mask-line > * { transform: translateY(130%); }
   .fl-js [data-fl-io]:not(.is-in) .fl-curtain-l { clip-path: inset(0 100% 0 0); }
   .fl-js [data-fl-io]:not(.is-in) .fl-curtain-u { clip-path: inset(100% 0 0 0); }
   .fl-js [data-fl-io]:not(.is-in) .fl-curtain-x { clip-path: inset(0 50% 0 50%); }
@@ -1057,7 +1060,7 @@ next-route-announcer > div {
 
 /* M7 · Scroll zoom-out + M8 · band-grow — scroll-linked, named timelines. */
 @supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media screen and (prefers-reduced-motion: no-preference) {
     @keyframes fl-photo-zoomout {
       from { transform: scale(1.22); }
       to { transform: scale(1); }
@@ -1074,6 +1077,7 @@ next-route-announcer > div {
     .fl-photo-zoomout-soft { animation-name: fl-photo-zoomout-soft; }
 
     /* clip-path only — zero layout shift; content is never distorted. */
+    /* 16px transient radius is a deliberate DNA exception — visible only mid-scroll. */
     @keyframes fl-band-grow {
       from { clip-path: inset(0 4% round 16px); }
       to { clip-path: inset(0 round 0); }
@@ -1102,11 +1106,11 @@ next-route-announcer > div {
 .fl-slice-strip:nth-child(3) { --fl-strip-amp: -14px; }
 .fl-slice-strip:nth-child(4) { --fl-strip-amp: 22px; }
 
-@media (prefers-reduced-motion: no-preference) {
+@media screen and (prefers-reduced-motion: no-preference) {
   .fl-js .fl-slice-strip {
     transform: translateY(calc(var(--fl-slice-v, 0) * var(--fl-strip-amp)));
-    will-change: transform;
   }
+  .fl-js [data-fl-io].is-in .fl-slice-strip { will-change: transform; }
   .fl-js [data-fl-io]:not(.is-in) .fl-slice-strip { opacity: 0; }
   /* Entrance is a one-shot keyframe (not a transition) so later --fl-slice-v
      updates apply instantly instead of lagging behind a 640ms transition. */
@@ -1128,7 +1132,7 @@ next-route-announcer > div {
   stroke-dasharray: var(--fl-draw-len);
   stroke-dashoffset: 0;
 }
-@media (prefers-reduced-motion: no-preference) {
+@media screen and (prefers-reduced-motion: no-preference) {
   .fl-js .fl-draw { transition: stroke-dashoffset 1200ms var(--fl-ease-in-out); }
   .fl-js [data-fl-io]:not(.is-in) .fl-draw { stroke-dashoffset: var(--fl-draw-len); }
   .fl-js [data-fl-io] .fl-orn-fade {
@@ -1136,9 +1140,9 @@ next-route-announcer > div {
   }
   .fl-js [data-fl-io]:not(.is-in) .fl-orn-fade { opacity: 0; }
 }
-.fl-orn-arc .fl-draw-outer { --fl-draw-len: 302; }
-.fl-orn-arc .fl-draw-inner { --fl-draw-len: 208; }
-.fl-orn-blueprint .fl-draw { --fl-draw-len: 560; }
+.fl-orn-arc .fl-draw-outer { --fl-draw-len: 320; }
+.fl-orn-arc .fl-draw-inner { --fl-draw-len: 220; }
+.fl-orn-blueprint .fl-draw { --fl-draw-len: 640; }
 
 /* M9 · Underline draw — draws from the left on hover, exits right. Replaces
    the decoration-thickness hover on TypographicLink. */
@@ -1149,7 +1153,7 @@ next-route-announcer > div {
   background-size: 0% 1px;
   padding-bottom: 2px;
 }
-@media (prefers-reduced-motion: no-preference) {
+@media screen and (prefers-reduced-motion: no-preference) {
   .fl-underline { transition: background-size var(--fl-dur-base) var(--fl-ease-out); }
 }
 .group:hover .fl-underline,
