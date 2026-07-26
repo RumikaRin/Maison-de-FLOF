@@ -1267,6 +1267,21 @@ Quality review of Tasks 1+2 amended the Task 2 CSS in-place:
 - `fl-reveal` must NOT `unobserve` after the first intersection. Keep the observer alive and re-add `is-in` whenever an observed element intersects without it — React re-rendering a dynamic `className` can silently wipe imperatively-added classes.
 - Additionally: add a pre-paint `fl-js` bootstrap — a one-line nonced inline script rendered as the FIRST child of `<body>` in `src/app/layout.tsx` (`document.documentElement.classList.add("fl-js")`), nonce read the same way the layout/announcer already obtains it (`x-nonce` request header). This prevents the hydration blink where SSR-visible clusters paint, hide, then replay. `initFlReveal` keeps setting the class as a fallback.
 
+**Task 7 amendment (tab-replay guard):** entrance keyframes replay whenever
+children re-mount under an already-`.is-in` host — and FeaturedProducts
+re-mounts its pane per tab (`AnimatePresence` + `key={activeTab}`). Every tab
+click would replay blur-up + up-to-900ms stagger delays after the crossfade.
+Guard: the CSS ships `.fl-noreplay` (subtree opt-out under an `.is-in` host);
+FeaturedProductsSection adds `const [hasInteracted, setHasInteracted] =
+useState(false)`, sets it in the tab click handler, and puts
+`cn(hasInteracted && "fl-noreplay")` on the stable wrapper AROUND the keyed
+pane. First view animates; tab switches only crossfade. Do NOT move
+`data-fl-io` inside the keyed pane (a re-mounted host is never observed).
+
+**Task 3 addendum (applied):** HomeClient's motion effect depends on
+`isOffline` and re-inits on recovery — the offline branch unmounts the whole
+section tree and a query-once orchestrator would otherwise never re-observe.
+
 **Task 11 amendment:** never `git add -A` — stage explicit paths only (the branch carries unrelated uncommitted work).
 
 ## Self-review notes (already applied)
