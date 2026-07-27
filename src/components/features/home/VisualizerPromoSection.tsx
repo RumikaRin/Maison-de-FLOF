@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { DrenchBand, Rule, TypographicLink } from "@/components/ui/editorial";
 import { SliceImage } from "@/components/ui/slice-image";
+import { cn } from "@/lib/utils";
 
 const ROOMS = [
   { src: "/living_sage.webp", labelVi: "Phòng khách", labelEn: "Living" },
@@ -43,19 +44,28 @@ export function VisualizerPromoSection() {
   ];
 
   return (
-    <DrenchBand color="sage" id="visualizer-section" className="fl-rise py-fl-3xl md:py-fl-4xl">
-      <div className="mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]">
+    <DrenchBand
+      color="sage"
+      id="visualizer-section"
+      className="fl-rise fl-band-grow relative py-fl-3xl md:py-fl-4xl"
+    >
+      <div
+        className="fl-orn-blueprint relative mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]"
+        data-fl-io
+      >
         <div className="grid grid-cols-1 items-start gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
           {/* Copy column — 4 of 12 */}
           <div className="lg:col-span-4">
             <p className="fl-label">
               {language === "vi" ? "Công cụ số" : "Digital tool"}
             </p>
-            <h2 className="fl-display mt-fl-xs text-fl-display-s">
-              {language === "vi"
-                ? "Thử màu trong phòng thật"
-                : "Test colour in a real room"}
-            </h2>
+            <div className="fl-mask-line mt-fl-xs">
+              <h2 className="fl-display text-fl-display-s">
+                {language === "vi"
+                  ? "Thử màu trong phòng thật"
+                  : "Test colour in a real room"}
+              </h2>
+            </div>
             <p className="fl-measure-tight mt-fl-md text-fl-md ">
               {language === "vi"
                 ? "Thử màu sơn trên không gian mẫu trước khi mua. Tìm tone phù hợp chỉ bằng vài thao tác."
@@ -63,7 +73,7 @@ export function VisualizerPromoSection() {
             </p>
 
             {/* Benefits — compact text ledger */}
-            <dl className="mt-fl-lg">
+            <dl className="fl-stagger mt-fl-lg">
               {benefits.map((benefit) => (
                 <div
                   key={benefit.labelEn}
@@ -113,14 +123,19 @@ export function VisualizerPromoSection() {
             </Link>
 
             {/* Restrained controls — the four rooms as an editorial index row */}
-            <div className="mt-fl-sm grid grid-cols-2 gap-fl-sm sm:grid-cols-4">
-              {ROOMS.map((room) => (
+            <div className="fl-mosaic mt-fl-sm grid grid-cols-2 gap-fl-sm sm:grid-cols-4">
+              {ROOMS.map((room, index) => (
                 <Link
                   key={room.src}
                   href="/color-visualizer"
                   className="group flex flex-col"
                 >
-                  <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-surface">
+                  <span
+                    className={cn(
+                      "relative block aspect-[4/3] w-full overflow-hidden rounded-surface",
+                      index % 2 === 0 ? "fl-curtain-u" : "fl-curtain-l",
+                    )}
+                  >
                     <Image
                       src={room.src}
                       alt={language === "vi" ? room.labelVi : room.labelEn}
@@ -144,6 +159,19 @@ export function VisualizerPromoSection() {
             </p>
           </div>
         </div>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 420 128"
+          className="pointer-events-none absolute bottom-fl-md right-[clamp(1rem,4vw,1.5rem)] hidden w-72 xl:block"
+        >
+          <path
+            className="fl-draw"
+            d="M 90 100 L 90 30 L 250 30 L 250 100 M 90 100 L 330 100 M 250 62 A 26 26 0 0 1 276 88 M 140 30 L 140 22 M 180 30 L 180 22 M 220 30 L 220 22"
+            fill="none"
+            stroke="var(--fl-rule-on-dark)"
+            strokeWidth="1"
+          />
+        </svg>
       </div>
     </DrenchBand>
   );

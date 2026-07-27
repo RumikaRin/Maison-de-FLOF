@@ -51,3 +51,34 @@ test("featured products stagger lead and supporting cards", async () => {
     ),
   );
 });
+
+test("sage visualizer band grows, mosaics room curtains, and draws its blueprint", async () => {
+  const source = await readFile(
+    "src/components/features/home/VisualizerPromoSection.tsx",
+    "utf8",
+  );
+
+  assert.ok(source.includes("fl-rise fl-band-grow relative"));
+  assert.ok(source.includes("fl-orn-blueprint relative"));
+  assert.ok(source.includes("data-fl-io"));
+  assert.ok(source.includes('className="fl-stagger mt-fl-lg"'));
+  assert.ok(source.includes('className="fl-mask-line mt-fl-xs"'));
+  assert.ok(source.includes("fl-mosaic mt-fl-sm"));
+  assert.ok(source.includes("ROOMS.map((room, index)"));
+  assert.ok(source.includes('index % 2 === 0 ? "fl-curtain-u" : "fl-curtain-l"'));
+  assert.ok(source.includes('viewBox="0 0 420 128"'));
+});
+
+test("espresso journal band keeps one image idea and staggers supporting rows", async () => {
+  const source = await readFile(
+    "src/components/features/home/ExpertBlogsSection.tsx",
+    "utf8",
+  );
+
+  assert.ok(source.includes("fl-rise fl-band-grow relative"));
+  assert.ok(source.includes("data-fl-io"));
+  assert.ok(source.includes('className="fl-mask-line mt-fl-xs"'));
+  assert.ok(source.includes("fl-curtain-u"));
+  assert.ok(!source.includes("fl-photo-parallax"));
+  assert.ok(source.includes('className="fl-stagger flex flex-col"'));
+});
