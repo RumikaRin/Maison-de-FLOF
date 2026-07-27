@@ -35,47 +35,49 @@ export function DeleteConfirmModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/45 backdrop-blur-xs z-[100] flex items-center justify-center p-4 cursor-pointer"
+          // Scrim dims only — no blur, no glassmorphism (design.md § Shared chrome).
+          className="fixed inset-0 z-[100] flex cursor-pointer items-center justify-center bg-black/45 p-fl-sm"
         >
           <safeMotion.div
-            initial={{ scale: 0.95, opacity: 0, y: 10 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 10 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-warm-150 w-full max-w-md rounded-2xl shadow-xl p-6 relative cursor-default text-left"
+            // A modal visibly floats above the page — shadow allowed here.
+            className="relative w-full max-w-md cursor-default rounded-surface border border-atelier-rule bg-atelier-paper p-fl-md text-left shadow-xl"
           >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-warm-400 hover:text-warm-900 transition-colors cursor-pointer"
+              className="absolute right-fl-2xs top-fl-2xs flex h-11 w-11 items-center justify-center rounded-control text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 hover:text-atelier-ink md:h-10 md:w-10"
             >
               <X className="h-4 w-4" />
             </button>
 
             {/* Content layout */}
-            <div className="flex gap-4 items-start">
+            <div className="flex items-start gap-fl-sm">
               {/* Warning Icon */}
-              <div className="p-3 bg-red-50 text-red-600 rounded-full shrink-0">
-                <AlertTriangle className="h-5 w-5 animate-pulse" />
+              <div className="shrink-0 rounded-surface bg-atelier-paper-3 p-fl-xs text-atelier-danger">
+                <AlertTriangle className="h-5 w-5" />
               </div>
 
               {/* Text */}
-              <div className="flex flex-col gap-1.5 flex-1">
-                <h3 className="font-serif font-bold text-base text-warm-900 leading-tight">
+              <div className="flex flex-1 flex-col gap-fl-3xs">
+                <h3 className="fl-display text-fl-lg text-atelier-ink">
                   {title || defaultTitle}
                 </h3>
-                <p className="text-xs text-warm-550 leading-relaxed font-semibold">
+                <p className="text-fl-sm text-atelier-ink-2">
                   {message || defaultMessage}
                 </p>
               </div>
             </div>
 
             {/* Action buttons */}
-            <div className="mt-6 flex justify-end gap-2.5 border-t border-warm-100 pt-4">
+            <div className="mt-fl-md flex justify-end gap-fl-2xs border-t border-atelier-rule pt-fl-sm">
               <button
                 onClick={onClose}
-                className="px-4 py-2.5 text-xs font-bold bg-warm-100 hover:bg-warm-250 text-warm-900 rounded-xl transition-all cursor-pointer"
+                className="min-h-11 rounded-control border border-atelier-rule-strong bg-transparent px-fl-sm py-fl-3xs text-fl-sm font-medium text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 active:bg-atelier-paper-3 md:min-h-10"
               >
                 {language === "vi" ? "Hủy" : "Cancel"}
               </button>
@@ -84,7 +86,7 @@ export function DeleteConfirmModal({
                   onConfirm();
                   onClose();
                 }}
-                className="px-5 py-2.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all shadow-xs border border-red-600 cursor-pointer"
+                className="min-h-11 rounded-control bg-atelier-danger px-fl-md py-fl-3xs text-fl-sm font-medium text-atelier-accent-ink transition-[filter] duration-fl-fast ease-fl-out hover:brightness-90 active:brightness-[0.85] md:min-h-10"
               >
                 {language === "vi" ? "Xác nhận xóa" : "Confirm Delete"}
               </button>

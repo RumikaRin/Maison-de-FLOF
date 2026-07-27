@@ -1,6 +1,6 @@
 # Maison de FLOF ERD
 
-Last synchronized with `prisma/schema.prisma`: 26/07/2026 (36 models, 12 enums, 13 migrations)
+Last synchronized with `prisma/schema.prisma`: 26/07/2026 (38 models, 12 enums, 15 migrations)
 
 `public/erd_diagram.png` is a historical image and is not an authoritative
 schema reference. It omits current models, duplicates `Paint`, and uses key
@@ -156,6 +156,8 @@ erDiagram
   Order ||--o| Payment : pays
   Order ||--o| CheckoutIdempotency : deduplicates
   Paint ||--o{ InventoryTransaction : changes
+  User ||--o{ CartItem : holds
+  Paint ||--o{ CartItem : addedAs
   Order {
     string id PK
     string orderNumber UK
@@ -204,6 +206,13 @@ erDiagram
     string type
     int quantity
     string referenceId
+  }
+  CartItem {
+    string id PK
+    string userId FK
+    string paintId FK
+    string colorCode
+    int quantity
   }
 ```
 
@@ -282,6 +291,13 @@ erDiagram
     string status
     int retryCount
   }
+  NewsletterSubscriber {
+    string id PK
+    string email UK
+    string status
+    string unsubscribeToken UK
+    string source
+  }
   VisualizerRoom {
     string id PK
     string slug UK
@@ -311,3 +327,11 @@ erDiagram
   retained for Auth.js database-adapter compatibility.
 - `MfaCredential.secretCiphertext` and recovery hashes are never rendered in
   audit/export responses.
+- `CartItem` is the server-side mirror for multi-device cart sync. Its uniqueness
+  key `(userId, paintId, colorCode)` uses an empty string — not NULL — for the
+  "no colour" case, because Postgres treats NULLs as distinct and would allow
+  duplicate rows.
+- `NewsletterSubscriber` is standalone (no relation to `User`): a subscriber is
+  keyed by email and can exist without an account. `unsubscribeToken` is stored
+  to back a future one-click unsubscribe link (the consuming endpoint is not yet
+  built) and is never the primary id.

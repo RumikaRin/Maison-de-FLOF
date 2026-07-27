@@ -6,8 +6,8 @@ import { validateOpenApiCoverage } from "../scripts/validate-openapi-coverage.ts
 test("API inventory discovers every route file and exported operation", async () => {
   const inventory = await discoverApiOperations();
 
-  assert.equal(new Set(inventory.map(({ file }) => file)).size, 64);
-  assert.equal(inventory.length, 115);
+  assert.equal(new Set(inventory.map(({ file }) => file)).size, 67);
+  assert.equal(inventory.length, 118);
   assert.ok(
     inventory.some(
       ({ path, method }) =>
@@ -39,6 +39,6 @@ test("OpenAPI covers every source operation and reusable contract schema", async
     await validateOpenApiCoverage();
 
   assert.equal(document.openapi, "3.1.0");
-  assert.equal(sourceOperations.length, 115);
-  assert.equal(documentedOperations.length, 115);
+  assert.equal(sourceOperations.length, 118);
+  assert.equal(documentedOperations.length, 118);
 });

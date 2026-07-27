@@ -21,6 +21,11 @@ export class VNPayService implements PaymentService {
   verifyReturn(query: any): PaymentVerificationResult {
     const verify = getVnpayInstance().verifyReturnUrl(query);
     return {
+      // The library validates the signature and reports it as `isVerified`,
+      // independent of the success response code. Both must hold — otherwise a
+      // forged callback carrying vnp_ResponseCode=00 with no valid HMAC would
+      // mark an order paid. See order-lifecycle: callers gate on isVerified.
+      isVerified: verify.isVerified,
       isSuccess: verify.isSuccess,
       message: verify.message,
       orderId: query.vnp_TxnRef,
@@ -34,6 +39,7 @@ export class VNPayService implements PaymentService {
   verifyIpn(query: any): PaymentVerificationResult {
     const verify = getVnpayInstance().verifyIpnCall(query);
     return {
+      isVerified: verify.isVerified,
       isSuccess: verify.isSuccess,
       message: verify.message,
       orderId: query.vnp_TxnRef,

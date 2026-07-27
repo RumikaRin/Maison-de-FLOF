@@ -1959,6 +1959,54 @@ paths:
           required: true
           schema:
             type: string
+  /api/cart:
+    get:
+      operationId: getCart
+      summary: GET /api/cart
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/cart/merge:
+    post:
+      operationId: postCartMerge
+      summary: POST /api/cart/merge
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a16
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a16
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
   /api/categories:
     get:
       operationId: getCategories
@@ -1989,7 +2037,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a16
+          content: &a17
             application/json:
               schema:
                 oneOf:
@@ -1999,7 +2047,7 @@ paths:
                       $ref: "#/components/schemas/Conversation"
         "201":
           description: Resource created
-          content: *a16
+          content: *a17
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -2046,7 +2094,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a17
+          content: &a18
             application/json:
               schema:
                 oneOf:
@@ -2056,7 +2104,7 @@ paths:
                       $ref: "#/components/schemas/Conversation"
         "201":
           description: Resource created
-          content: *a17
+          content: *a18
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2209,6 +2257,35 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/newsletter:
+    post:
+      operationId: postNewsletter
+      summary: POST /api/newsletter
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a19
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "201":
+          description: Resource created
+          content: *a19
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
   /api/orders:
     get:
       operationId: listOrders
@@ -2461,7 +2538,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a18
+          content: &a20
             application/json:
               schema:
                 oneOf:
@@ -2469,7 +2546,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a18
+          content: *a20
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2621,7 +2698,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a19
+          content: &a21
             application/json:
               schema:
                 oneOf:
@@ -2629,7 +2706,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a19
+          content: *a21
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2680,7 +2757,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a20
+          content: &a22
             application/json:
               schema:
                 oneOf:
@@ -2688,7 +2765,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a20
+          content: *a22
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2793,7 +2870,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a21
+          content: &a23
             application/json:
               schema:
                 oneOf:
@@ -2801,7 +2878,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a21
+          content: *a23
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2976,7 +3053,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a22
+          content: &a24
             application/json:
               schema:
                 oneOf:
@@ -2986,7 +3063,7 @@ paths:
                       $ref: "#/components/schemas/Review"
         "201":
           description: Resource created
-          content: *a22
+          content: *a24
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3056,7 +3133,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a23
+          content: &a25
             application/json:
               schema:
                 oneOf:
@@ -3064,7 +3141,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a23
+          content: *a25
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

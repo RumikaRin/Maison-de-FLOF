@@ -1,11 +1,15 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { Suspense, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguageStore } from "@/store/language-store";
 import { passwordPolicyMessage, isPasswordStrong } from "@/lib/password-policy";
 import { toast } from "@/components/ui/csp-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Rule, TypographicLink } from "@/components/ui/editorial";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -63,73 +67,72 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="bg-white border border-warm-200/80 p-8 rounded-2xl shadow-md flex flex-col gap-6 w-full max-w-md mx-auto">
-      <div className="text-center flex flex-col items-center gap-2">
-        <h2 className="text-2xl font-bold font-serif text-warm-900">
-          {language === "vi" ? "Đặt lại mật khẩu" : "Reset password"}
-        </h2>
-        <p className="text-xs text-warm-500">{passwordPolicyMessage(language === "vi" ? "vi" : "en")}</p>
-      </div>
+    <div className="mx-auto w-full max-w-sm px-[clamp(1rem,4vw,1.5rem)] text-left">
+      <Rule weight="strong" />
+      <h1 className="fl-display mt-fl-md text-fl-2xl">
+        {language === "vi" ? "Đặt lại mật khẩu" : "Reset password"}
+      </h1>
+      <p className="mt-fl-2xs text-fl-sm text-atelier-ink-2">
+        {passwordPolicyMessage(language === "vi" ? "vi" : "en")}
+      </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="reset-email" className="text-[10px] font-bold uppercase text-warm-450">Email</label>
-          <input
+      <form onSubmit={handleSubmit} className="mt-fl-md flex flex-col gap-fl-sm">
+        <div className="flex flex-col gap-fl-2xs">
+          <Label htmlFor="reset-email">Email</Label>
+          <Input
             id="reset-email"
             type="email"
             autoComplete="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="reset-token" className="text-[10px] font-bold uppercase text-warm-450">
+        <div className="flex flex-col gap-fl-2xs">
+          <Label htmlFor="reset-token">
             {language === "vi" ? "Mã token" : "Token"}
-          </label>
-          <input
+          </Label>
+          <Input
             id="reset-token"
             type="text"
             autoComplete="off"
             required
             value={token}
             onChange={(e) => setToken(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 font-mono"
+            className="font-mono"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="reset-password" className="text-[10px] font-bold uppercase text-warm-450">
+        <div className="flex flex-col gap-fl-2xs">
+          <Label htmlFor="reset-password">
             {language === "vi" ? "Mật khẩu mới" : "New password"}
-          </label>
-          <input
+          </Label>
+          <Input
             id="reset-password"
             type="password"
             autoComplete="new-password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="reset-confirm-password" className="text-[10px] font-bold uppercase text-warm-450">
+        <div className="flex flex-col gap-fl-2xs">
+          <Label htmlFor="reset-confirm-password">
             {language === "vi" ? "Xác nhận mật khẩu" : "Confirm password"}
-          </label>
-          <input
+          </Label>
+          <Input
             id="reset-confirm-password"
             type="password"
             autoComplete="new-password"
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30"
           />
         </div>
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          className="w-full py-2.5 rounded-xl bg-jotun-teal text-white text-xs font-bold uppercase tracking-wide hover:opacity-90 disabled:opacity-60"
+          data-state={isLoading ? "loading" : undefined}
+          className="mt-fl-2xs w-full"
         >
           {isLoading
             ? language === "vi"
@@ -138,22 +141,22 @@ function ResetPasswordForm() {
             : language === "vi"
               ? "Đặt lại mật khẩu"
               : "Reset password"}
-        </button>
+        </Button>
       </form>
 
-      <p className="text-center text-xs text-warm-500">
-        <Link href="/login" className="text-jotun-teal font-semibold hover:underline">
+      <div className="mt-fl-md">
+        <TypographicLink href="/login" arrow="→">
           {language === "vi" ? "Quay lại đăng nhập" : "Back to login"}
-        </Link>
-      </p>
+        </TypographicLink>
+      </div>
     </div>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <div className="w-full bg-jotun-ivory text-warm-900 min-h-[80vh] flex flex-col justify-center py-12">
-      <Suspense fallback={<div className="text-center text-sm text-warm-500">Loading...</div>}>
+    <div className="min-h-[80vh] w-full bg-atelier-paper py-fl-2xl text-atelier-ink">
+      <Suspense fallback={<div className="text-center text-fl-sm text-atelier-ink-2">Loading...</div>}>
         <ResetPasswordForm />
       </Suspense>
     </div>

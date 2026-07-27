@@ -20,7 +20,7 @@ export function HeroSection() {
 
   return (
     <>
-    <section className="fl-photo-fold fl-photo-plate flex min-h-[560px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[72vh] md:max-h-[780px]">
+    <section className="fl-photo-fold fl-photo-plate flex min-h-[620px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[80vh] md:max-h-[860px]">
       {/* Full-bleed media — the one hero load transition the system allows */}
       <safeMotion.div
         initial={reduceMotion ? false : { opacity: 0 }}
@@ -50,7 +50,7 @@ export function HeroSection() {
         <div aria-hidden="true" className="fl-photo-scrim" />
       </safeMotion.div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-xl pt-fl-4xl md:pb-fl-2xl">
+      <div className="relative z-10 mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-2xl pt-fl-4xl md:pb-[4rem] md:pt-[12rem]">
         <div className="fl-hero-cascade max-w-2xl text-left text-atelier-on-dark">
           <p className="fl-label">Maison de FLOF</p>
 

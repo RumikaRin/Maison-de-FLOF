@@ -1,8 +1,13 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useState } from "react";
 import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Rule } from "@/components/ui/editorial";
 
 interface SecurityTabProps {
   language: string;
@@ -124,76 +129,64 @@ export function SecurityTab({
   }
 
   return (
-    <section
-      aria-labelledby="security-heading"
-      className="rounded-2xl border border-warm-200/80 bg-white p-5 shadow-sm sm:p-8"
-    >
-      <div className="flex flex-col gap-2 border-b border-warm-100 pb-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 id="security-heading" className="font-serif text-2xl font-bold text-warm-900">
-            {vi ? "Bảo mật quản trị viên" : "Administrator security"}
-          </h1>
-          <span
-            role="status"
-            className={`rounded-full px-3 py-1 text-xs font-bold ${
-              mfaEnabled
-                ? "bg-emerald-100 text-emerald-800"
-                : "bg-amber-100 text-amber-800"
-            }`}
-          >
-            {mfaEnabled
-              ? vi ? "MFA đang bật" : "MFA enabled"
-              : vi ? "MFA chưa bật" : "MFA disabled"}
-          </span>
-        </div>
-        <p className="text-sm leading-6 text-warm-600">
-          {vi
-            ? "MFA bảo vệ tài khoản admin bằng ứng dụng xác thực và mã khôi phục dùng một lần."
-            : "MFA protects the admin account with an authenticator app and single-use recovery codes."}
-        </p>
+    <section aria-labelledby="security-heading" className="text-left">
+      <div className="flex flex-wrap items-end justify-between gap-fl-sm">
+        <h1 id="security-heading" className="fl-display text-fl-2xl">
+          {vi ? "Bảo mật quản trị viên" : "Administrator security"}
+        </h1>
+        <span
+          role="status"
+          className={`fl-label ${mfaEnabled ? "text-atelier-success" : "text-atelier-danger"}`}
+        >
+          {mfaEnabled
+            ? vi ? "MFA đang bật" : "MFA enabled"
+            : vi ? "MFA chưa bật" : "MFA disabled"}
+        </span>
       </div>
+      <Rule weight="strong" className="mt-fl-xs" />
+      <p className="fl-measure mt-fl-xs text-fl-sm leading-relaxed text-atelier-ink-2">
+        {vi
+          ? "MFA bảo vệ tài khoản admin bằng ứng dụng xác thực và mã khôi phục dùng một lần."
+          : "MFA protects the admin account with an authenticator app and single-use recovery codes."}
+      </p>
 
       {!mfaEnabled && !setup && recoveryCodes.length === 0 ? (
-        <div className="pt-6">
-          <button
+        <div className="pt-fl-md">
+          <Button
             type="button"
             onClick={() => void beginSetup()}
             disabled={pendingAction !== null}
-            className="rounded-xl bg-warm-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
+            data-state={pendingAction === "setup" ? "loading" : undefined}
           >
             {pendingAction === "setup"
               ? vi ? "Đang tạo…" : "Creating…"
               : vi ? "Thiết lập MFA" : "Set up MFA"}
-          </button>
+          </Button>
         </div>
       ) : null}
 
       {setup ? (
-        <form onSubmit={verifySetup} className="flex flex-col gap-5 pt-6">
-          <div className="rounded-xl border border-jotun-teal/20 bg-jotun-teal/5 p-4">
-            <p className="mb-3 text-sm font-semibold text-warm-800">
+        <form onSubmit={verifySetup} className="flex flex-col gap-fl-md pt-fl-md">
+          <div className="border-b border-t border-atelier-rule py-fl-sm">
+            <p className="fl-measure text-fl-sm text-atelier-ink">
               {vi
                 ? "Thêm tài khoản vào ứng dụng xác thực bằng URI hoặc khóa bí mật dưới đây."
                 : "Add the account to your authenticator using the URI or secret below."}
             </p>
-            <label className="block text-xs font-bold uppercase text-warm-500">
-              {vi ? "Khóa bí mật" : "Secret key"}
-            </label>
-            <output className="mt-1 block break-all rounded-lg bg-white p-3 font-mono text-sm text-warm-900">
+            <p className="fl-label mt-fl-sm">{vi ? "Khóa bí mật" : "Secret key"}</p>
+            <output className="mt-fl-3xs block break-all rounded-surface bg-atelier-paper-2 p-fl-xs font-mono text-fl-sm text-atelier-ink">
               {setup.secret}
             </output>
-            <label className="mt-4 block text-xs font-bold uppercase text-warm-500">
-              Authenticator URI
-            </label>
-            <output className="mt-1 block break-all rounded-lg bg-white p-3 font-mono text-xs text-warm-700">
+            <p className="fl-label mt-fl-sm">Authenticator URI</p>
+            <output className="mt-fl-3xs block break-all rounded-surface bg-atelier-paper-2 p-fl-xs font-mono text-fl-xs text-atelier-ink-2">
               {setup.otpauthUri}
             </output>
           </div>
-          <div>
-            <label htmlFor="mfa-verification-code" className="text-sm font-bold text-warm-800">
+          <div className="flex max-w-xs flex-col gap-fl-2xs">
+            <Label htmlFor="mfa-verification-code">
               {vi ? "Mã 6 chữ số" : "6-digit code"}
-            </label>
-            <input
+            </Label>
+            <Input
               id="mfa-verification-code"
               inputMode="numeric"
               autoComplete="one-time-code"
@@ -201,74 +194,95 @@ export function SecurityTab({
               required
               value={verificationCode}
               onChange={(event) => setVerificationCode(event.target.value)}
-              className="mt-2 block w-full max-w-xs rounded-xl border border-warm-200 px-4 py-3 font-mono"
+              className="font-mono"
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={pendingAction !== null}
-            className="w-fit rounded-xl bg-jotun-teal px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
+            data-state={pendingAction === "verify" ? "loading" : undefined}
+            className="self-start"
           >
             {pendingAction === "verify"
               ? vi ? "Đang xác minh…" : "Verifying…"
               : vi ? "Xác minh và bật MFA" : "Verify and enable MFA"}
-          </button>
+          </Button>
         </form>
       ) : null}
 
       {recoveryCodes.length > 0 ? (
-        <div className="flex flex-col gap-4 pt-6">
-          <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+        <div className="flex flex-col gap-fl-sm pt-fl-md">
+          <p className="fl-measure border-l-2 border-atelier-danger pl-fl-xs text-fl-sm text-atelier-ink">
             <strong>{vi ? "Lưu ngay các mã này." : "Save these codes now."}</strong>{" "}
             {vi
               ? "Mỗi mã chỉ dùng được một lần và sẽ không được hiển thị lại."
               : "Each code works once and will not be shown again."}
-          </div>
-          <ul aria-label={vi ? "Mã khôi phục" : "Recovery codes"} className="grid gap-2 sm:grid-cols-2">
+          </p>
+          <ul aria-label={vi ? "Mã khôi phục" : "Recovery codes"} className="grid gap-fl-2xs sm:grid-cols-2">
             {recoveryCodes.map((code) => (
-              <li key={code} className="rounded-lg bg-warm-50 px-4 py-2 font-mono text-sm">
+              <li key={code} className="rounded-surface bg-atelier-paper-2 px-fl-sm py-fl-2xs font-mono text-fl-sm tabular-nums">
                 {code}
               </li>
             ))}
           </ul>
-          <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={() => void copyRecoveryCodes()} className="rounded-xl border border-warm-300 px-4 py-2 text-sm font-bold">
+          <div className="flex flex-wrap gap-fl-sm">
+            <Button type="button" variant="outline" onClick={() => void copyRecoveryCodes()}>
               {vi ? "Sao chép" : "Copy"}
-            </button>
-            <button type="button" onClick={downloadRecoveryCodes} className="rounded-xl border border-warm-300 px-4 py-2 text-sm font-bold">
+            </Button>
+            <Button type="button" variant="outline" onClick={downloadRecoveryCodes}>
               {vi ? "Tải tệp .txt" : "Download .txt"}
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
 
       {mfaEnabled && recoveryCodes.length === 0 ? (
-        <form onSubmit={disableMfa} className="flex flex-col gap-4 pt-6">
-          <div className="rounded-xl border border-red-200 bg-red-50/60 p-4">
-            <h2 className="font-bold text-red-900">{vi ? "Tắt MFA" : "Disable MFA"}</h2>
-            <p className="mt-1 text-sm text-red-800">
+        <form onSubmit={disableMfa} className="flex flex-col gap-fl-sm pt-fl-md">
+          <div className="border-b border-t border-atelier-rule py-fl-sm">
+            <h2 className="text-fl-md font-medium text-atelier-danger">{vi ? "Tắt MFA" : "Disable MFA"}</h2>
+            <p className="fl-measure mt-fl-3xs text-fl-sm text-atelier-ink-2">
               {vi
                 ? "Xác nhận bằng mật khẩu và mã từ ứng dụng xác thực hoặc một mã khôi phục."
                 : "Confirm with your password and an authenticator or recovery code."}
             </p>
           </div>
-          <div>
-            <label htmlFor="mfa-disable-password" className="text-sm font-bold text-warm-800">
+          <div className="flex max-w-md flex-col gap-fl-2xs">
+            <Label htmlFor="mfa-disable-password">
               {vi ? "Mật khẩu" : "Password"}
-            </label>
-            <input id="mfa-disable-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 block w-full max-w-md rounded-xl border border-warm-200 px-4 py-3" />
+            </Label>
+            <Input
+              id="mfa-disable-password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
           </div>
-          <div>
-            <label htmlFor="mfa-disable-code" className="text-sm font-bold text-warm-800">
+          <div className="flex max-w-md flex-col gap-fl-2xs">
+            <Label htmlFor="mfa-disable-code">
               {vi ? "Mã xác thực hoặc khôi phục" : "Authentication or recovery code"}
-            </label>
-            <input id="mfa-disable-code" autoComplete="one-time-code" required value={disableCode} onChange={(event) => setDisableCode(event.target.value)} className="mt-2 block w-full max-w-md rounded-xl border border-warm-200 px-4 py-3 font-mono" />
+            </Label>
+            <Input
+              id="mfa-disable-code"
+              autoComplete="one-time-code"
+              required
+              value={disableCode}
+              onChange={(event) => setDisableCode(event.target.value)}
+              className="font-mono"
+            />
           </div>
-          <button type="submit" disabled={pendingAction !== null} className="w-fit rounded-xl bg-red-700 px-5 py-3 text-sm font-bold text-white disabled:opacity-50">
+          <Button
+            type="submit"
+            variant="destructive"
+            disabled={pendingAction !== null}
+            data-state={pendingAction === "disable" ? "loading" : undefined}
+            className="self-start"
+          >
             {pendingAction === "disable"
               ? vi ? "Đang tắt…" : "Disabling…"
               : vi ? "Tắt MFA" : "Disable MFA"}
-          </button>
+          </Button>
         </form>
       ) : null}
     </section>

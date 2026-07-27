@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
       name: user.name || "",
       phone: user.phone || "",
       role: user.role.type,
+      // Surfaced so profile settings can offer verification on demand — it is
+      // optional for customers, not a gate (see lib/auth/email-verification).
+      emailVerified: Boolean(user.emailVerified),
       mfaEnabled:
         user.role.type === "ADMIN" && Boolean(user.mfaCredential?.enabledAt),
     });
@@ -52,6 +55,9 @@ export async function PATCH(request: NextRequest) {
       name: user.name || "",
       phone: user.phone || "",
       role: user.role.type,
+      // Surfaced so profile settings can offer verification on demand — it is
+      // optional for customers, not a gate (see lib/auth/email-verification).
+      emailVerified: Boolean(user.emailVerified),
       mfaEnabled:
         user.role.type === "ADMIN" && Boolean(user.mfaCredential?.enabledAt),
     });

@@ -1,4 +1,4 @@
-"use client";
+/* Hallmark · genre: editorial · macrostructure: 08 Photographic · design-system: design.md · designed-as-app */ "use client";
 
 import { useCallback, useState, useEffect } from "react";
 import Link from "next/link";
@@ -7,31 +7,20 @@ import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { cn } from "@/lib/utils";
-import { Sparkles, ArrowRight, RefreshCw, Save, Trash2 } from "lucide-react";
-import { safeMotion } from "@/components/ui/motion-safe";
+import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
 import { ColorSwatch } from "@/components/ui/color-swatch";
 import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { AsyncState } from "@/components/ui/AsyncState";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-};
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  DrenchBand,
+  EditorialHeading,
+  EditorialSection,
+  Rule,
+  SpecLedger,
+} from "@/components/ui/editorial";
 
 const CURATED_COMBINATIONS = [
   {
@@ -176,6 +165,7 @@ export function VisualizerClient() {
   const { language } = useLanguageStore();
   const t = useTrans(language);
   const { status: sessionStatus } = useSession();
+  const reduceMotion = useReducedMotion();
 
   const [rooms, setRooms] = useState<VisualizerRoom[]>([]);
   const [roomStatus, setRoomStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -233,7 +223,7 @@ export function VisualizerClient() {
   if (!mounted) return null;
   if (roomStatus === "loading") {
     return (
-      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+      <div className="min-h-[70vh] bg-atelier-paper px-fl-sm pt-fl-3xl">
         <AsyncState
           status="loading"
           title={
@@ -247,7 +237,7 @@ export function VisualizerClient() {
   }
   if (roomStatus === "error") {
     return (
-      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+      <div className="min-h-[70vh] bg-atelier-paper px-fl-sm pt-fl-3xl">
         <AsyncState
           status="error"
           title={
@@ -263,7 +253,7 @@ export function VisualizerClient() {
   }
   if (rooms.length === 0) {
     return (
-      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+      <div className="min-h-[70vh] bg-atelier-paper px-fl-sm pt-fl-3xl">
         <AsyncState
           status="empty"
           title={
@@ -380,399 +370,389 @@ export function VisualizerClient() {
   }
 
   return (
-    <div className="min-h-screen bg-jotun-ivory text-warm-900 transition-colors duration-300">
+    <div className="min-h-screen bg-atelier-paper text-atelier-ink">
 
-      {/* 1. HERO BANNER - Split Layout matching image 1 */}
-      <section className="relative w-full border-b border-black/5 bg-[#F2F2EB]">
-        <div className="w-full max-w-[1880px] mx-auto grid grid-cols-1 lg:grid-cols-12 items-stretch min-h-[460px]">
-          {/* Left Text */}
-          <safeMotion.div
-            initial={{ opacity: 0, x: -25 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="lg:col-span-5 px-6 py-16 md:p-16 xl:p-24 flex flex-col justify-center items-start text-left gap-6"
-          >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold tracking-tight text-warm-900 leading-tight">
-              {language === "vi" ? "Công cụ phối màu" : "Color Visualizer"}
+      {/* Photographic fold — the room photograph is the hero; text sits on it,
+          left-biased. The load fade is motion primitive 1 of 2 for this page. */}
+      <section className="fl-photo-fold fl-photo-plate flex min-h-[420px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[56vh] md:max-h-[640px]">
+        <safeMotion.div
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute inset-0"
+        >
+          <Image
+            src="/facade_sage.webp"
+            alt={
+              language === "vi"
+                ? "Mặt tiền nhà sơn màu xanh rêu"
+                : "House facade painted in sage green"
+            }
+            fill
+            priority
+            // A 1024x1024 source cropped to a wide band is already below 2x
+            // here; quality 92 keeps next/image from softening it further.
+            quality={92}
+            sizes="100vw"
+            // Soft drift: a 1024x1024 source cannot afford the full 14%
+            // parallax crop on top of the wide-band crop it already takes.
+            className="fl-photo-parallax fl-photo-parallax-soft object-cover object-center"
+          />
+          {/* Legibility scrim, bottom-left weighted like a printed caption field */}
+          <div aria-hidden="true" className="fl-photo-scrim" />
+        </safeMotion.div>
+
+        <div className="relative z-10 mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-xl pt-fl-3xl">
+          <div className="max-w-2xl text-left text-atelier-on-dark">
+            <p className="fl-label">
+              {language === "vi" ? "Công cụ số" : "Digital tool"}
+            </p>
+            <h1 className="fl-display mt-fl-xs text-fl-display-s text-atelier-on-dark">
+              {language === "vi" ? "Công cụ phối màu" : "Colour visualizer"}
             </h1>
-            <p className="text-sm md:text-base text-warm-700 leading-relaxed max-w-xl">
+            <p className="fl-measure-tight mt-fl-md text-fl-md text-atelier-on-dark">
               {language === "vi"
-                ? "Bạn không thể đưa ra sự lựa chọn màu sắc cho ngôi nhà? Với công cụ Phối Màu, việc tìm kiếm màu sắc hoàn hảo cho ngôi nhà của bạn chỉ đơn giản bằng một cú chạm. Hãy biến ngôi nhà mơ ước của bạn thành thực tế."
-                : "Can't decide on the perfect paint colors for your home? With our interactive Color Visualizer, finding the ideal palette is just a tap away. Bring your dream home to life instantly."}
+                ? "Tìm màu sắc hoàn hảo cho ngôi nhà của bạn chỉ bằng một cú chạm — thử trên phòng mẫu trước khi mua."
+                : "Find the ideal palette for your home in a tap — preview on sample rooms before you buy."}
             </p>
-          </safeMotion.div>
-          {/* Right Image */}
-          <safeMotion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
-            className="lg:col-span-7 relative min-h-[320px] lg:min-h-full overflow-hidden"
-          >
-            <Image
-              src="/facade_sage.webp"
-              alt="Premium House Exterior"
-              fill
-              className="object-cover"
-              priority
-            />
-            <div className="absolute inset-0 bg-black/5" />
-          </safeMotion.div>
-        </div>
-      </section>
-
-      {/* 2. INTRO PARAGRAPH - Centered style */}
-      <section className="py-16 border-b border-black/5 bg-white overflow-hidden">
-        <div className="w-full max-w-[1000px] mx-auto px-6 text-center">
-          <safeMotion.p
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-sm md:text-base text-warm-650 leading-relaxed font-medium"
-          >
-            {language === "vi"
-              ? "Trải nghiệm không gian sống chân thực với các tùy chọn phối màu sơn thực tế được phối sắc tỉ mỉ. Thay đổi màu sắc trên các bức tường, mặt tiền kiến trúc một cách thông minh và chiêm ngưỡng các thiết kế thực tế."
-              : "Experience realistic living spaces with dual-color combination presets from our premium collection. Intelligently update architectural details and view real-world paint coordinates."}
-          </safeMotion.p>
-        </div>
-      </section>
-
-      {/* 3. INTERACTIVE VISUALIZER TOOL SECTION */}
-      <section id="interactive-tool" className="py-24 bg-jotun-ivory">
-        <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 text-left">
-
-          <safeMotion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl font-serif font-bold text-warm-900 mb-3">
-              {language === "vi" ? "Màu sắc ngôi nhà bạn" : "Colors of Your House"}
-            </h2>
-            <p className="text-xs md:text-sm text-warm-550 leading-relaxed max-w-xl mx-auto">
-              {language === "vi"
-                ? "Thử nghiệm các bộ phối màu sơn thực tế (Curated Palettes) được dựng 3D sắc nét. Chọn bộ màu bên dưới để thay đổi không gian."
-                : "Experiment with photo-realistic pre-rendered color palettes. Click any preset below to update the entire space to the matching paint render."}
-            </p>
-          </safeMotion.div>
-
-          <safeMotion.div
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch"
-          >
-            {/* Left: Live Preview */}
-            <div className="lg:col-span-8 flex flex-col gap-5">
-              {/* Room Switcher bar */}
-              <div className="bg-white border border-warm-200/80 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-sm overflow-hidden">
-                <div className="flex items-center gap-3 overflow-x-auto scrollbar-none -mx-1 px-1 flex-grow">
-                  <span className="hidden sm:inline text-xs font-bold uppercase text-warm-450 whitespace-nowrap">{t.selectSpace}:</span>
-                  <div className="flex gap-2">
-                    {rooms.map((room) => (
-                      <safeMotion.button
-                        key={room.id}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => {
-                          setActiveRoomId(room.id);
-                        }}
-                        className={cn(
-                          "px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl border transition-all duration-300 shrink-0",
-                          activeRoomId === room.id
-                            ? "bg-warm-900 border-warm-900 text-white shadow-sm"
-                            : "border-warm-200 hover:bg-warm-50/50 text-warm-700 hover:text-warm-900"
-                        )}
-                      >
-                        {language === "vi" ? room.name : room.nameEn}
-                      </safeMotion.button>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={handleReset}
-                  aria-label={language === "vi" ? "Đặt lại bảng màu" : "Reset palette"}
-                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 border border-warm-200 hover:border-warm-300 rounded-xl text-[11px] sm:text-xs hover:bg-warm-50/50 font-bold text-warm-700 transition-all flex items-center gap-1.5 shrink-0"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  <span className="hidden xs:inline">{language === "vi" ? "Đặt lại" : "Reset"}</span>
-                </button>
-              </div>
-
-              {/* Live Canvas Room Image Preview */}
-              <div className="relative aspect-[4/3] sm:aspect-video lg:h-[520px] lg:aspect-none w-full rounded-2xl border border-warm-200/80 overflow-hidden shadow-md bg-warm-955">
-                <Image
-                  src={imageSrc}
-                  alt={activeRoom.name}
-                  fill
-                  sizes="(min-width: 1024px) 67vw, 100vw"
-                  className="object-cover transition-all duration-500"
-                />
-
-                {/* Floating badge indicating render realism level */}
-                <div className="absolute top-3 right-3 sm:top-5 sm:right-5 z-20 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>
-                    {language === "vi" ? "Ảnh Dựng 3D" : "3D Render"}
-                  </span>
-                </div>
-
-                {/* Floating active colors summary - Desktop only */}
-                <div className="hidden sm:flex absolute bottom-5 left-5 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-warm-100 flex flex-col gap-1.5 text-xs text-left">
-                  <span className="font-bold text-warm-850 text-[9px] uppercase tracking-wider mb-0.5">
-                    {language === "vi" ? "MÀU ĐANG DÙNG" : "CURRENT SHADES"}
-                  </span>
-                  {surfaces.map(s => (
-                    <div key={s.value} className="flex items-center gap-2">
-                      <ColorSwatch color={s.color} className="h-4.5 w-4.5 shrink-0 rounded-full border border-black/10" />
-                      <span className="text-warm-850 font-mono font-bold">{s.color}</span>
-                      <span className="text-warm-450 font-semibold">· {s.label}</span>
-                    </div>
-                  ))}
-                  <div className="mt-1.5 pt-1.5 border-t border-warm-100 flex flex-col gap-0.5 text-[10px] text-warm-550 font-bold">
-                    <span>{language === "vi" ? "BỘ PHỐI MÀU:" : "PALETTE CONCEPT:"}</span>
-                    <span className="text-[#88734C]">{language === "vi" ? currentCombo.nameVi : currentCombo.name}</span>
-                  </div>
-                </div>
-
-                {/* Mobile Sleek bottom colors strip - Mobile only */}
-                <div className="sm:hidden absolute bottom-3 left-3 right-3 z-20 flex justify-between items-center bg-white/95 backdrop-blur-md rounded-xl p-2.5 border border-warm-100 shadow-lg">
-                  <div className="flex gap-2">
-                    {surfaces.map(s => (
-                      <div key={s.value} className="flex items-center gap-1.5">
-                        <ColorSwatch color={s.color} className="h-3.5 w-3.5 shrink-0 rounded-full border border-black/10" />
-                        <span className="text-[9px] text-warm-900 font-mono font-bold">{s.color}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-[9.5px] text-[#88734C] font-bold truncate max-w-[120px]">
-                    {language === "vi" ? currentCombo.nameVi : currentCombo.name}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Controller Sidebar */}
-            <div className="lg:col-span-4 bg-white border border-warm-200/80 rounded-2xl p-5 sm:p-6 flex flex-col gap-6 shadow-sm overflow-hidden">
-              <div className="flex flex-col gap-6">
-
-                {/* Curated combinations list matching Image 2 */}
-                <div>
-                  <h3 className="font-serif font-bold text-base text-warm-900 mb-4 uppercase tracking-wider">
-                    {language === "vi" ? "Bộ Phối 2 Màu" : "Curated Preset"}
-                  </h3>
-                  <safeMotion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex flex-row lg:flex-col gap-3 max-h-[480px] overflow-x-auto lg:overflow-y-auto scrollbar-none pb-3 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0"
-                  >
-                    {CURATED_COMBINATIONS.map((combo) => {
-                      const isActive = selectedComboId === combo.id;
-                      return (
-                        <safeMotion.button
-                          key={combo.id}
-                          variants={itemVariants}
-                          whileHover={{ scale: 1.025, y: -2 }}
-                          whileTap={{ scale: 0.975 }}
-                          onClick={() => setSelectedComboId(combo.id)}
-                          className={cn(
-                            "w-[260px] lg:w-full shrink-0 p-4 rounded-xl border text-left flex flex-col gap-2 transition-all duration-300",
-                            isActive
-                              ? "border-warm-900 bg-warm-50/40 shadow-sm ring-1 ring-warm-900"
-                              : "border-warm-150 hover:border-warm-250 hover:bg-warm-50/20"
-                          )}
-                        >
-                          <span className="text-xs font-bold text-warm-900">
-                            {language === "vi" ? combo.theme : combo.themeEn}
-                          </span>
-                          <p className="text-[10px] text-warm-500 leading-relaxed line-clamp-2">
-                            {language === "vi" ? combo.descriptionVi : combo.descriptionEn}
-                          </p>
-                          <div className="flex items-center gap-3 mt-1">
-                            <div className="flex items-center gap-1.5">
-                              <ColorSwatch color={combo.mainHex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" />
-                              <span className="text-[10px] text-warm-700 font-mono font-semibold">{combo.mainHex}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <ColorSwatch color={combo.accentHex} className="w-4 h-4 rounded-full border border-black/10 shrink-0" />
-                              <span className="text-[10px] text-warm-700 font-mono font-semibold">{combo.accentHex}</span>
-                            </div>
-                          </div>
-                        </safeMotion.button>
-                      );
-                    })}
-                  </safeMotion.div>
-                </div>
-
-                <div className="border-t border-warm-200 pt-5">
-                  <h3 className="font-serif text-base font-bold uppercase tracking-wider text-warm-900">
-                    {language === "vi" ? "Thiết kế của tôi" : "My designs"}
-                  </h3>
-                  <div className="mt-3 flex gap-2">
-                    <input
-                      value={designName}
-                      onChange={(event) => setDesignName(event.target.value)}
-                      maxLength={80}
-                      placeholder={language === "vi" ? "Tên thiết kế" : "Design name"}
-                      aria-label={language === "vi" ? "Tên thiết kế mới" : "New design name"}
-                      className="h-10 min-w-0 flex-1 rounded-xl border border-warm-200 px-3 text-xs"
-                    />
-                    <button
-                      type="button"
-                      disabled={saving}
-                      onClick={() => void saveDesign()}
-                      className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-warm-900 px-3 text-xs font-bold text-white hover:bg-warm-800 disabled:opacity-40"
-                    >
-                      <Save className="h-3.5 w-3.5" />
-                      {language === "vi" ? "Lưu" : "Save"}
-                    </button>
-                  </div>
-
-                  {loginPrompt && sessionStatus !== "authenticated" ? (
-                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950">
-                      <p>
-                        {language === "vi"
-                          ? "Bạn có thể thử phối màu với tư cách khách. Hãy đăng nhập để lưu thiết kế."
-                          : "Guests can experiment freely. Sign in to save this design."}
-                      </p>
-                      <Link
-                        href="/login?callbackUrl=/color-visualizer"
-                        className="mt-2 inline-flex font-bold underline"
-                      >
-                        {language === "vi" ? "Đăng nhập" : "Sign in"}
-                      </Link>
-                    </div>
-                  ) : null}
-
-                  {sessionStatus === "authenticated" ? (
-                    <div className="mt-4 space-y-2" aria-label="Saved visualizer designs">
-                      {designs.length === 0 ? (
-                        <p className="text-xs text-warm-600">
-                          {language === "vi"
-                            ? "Chưa có thiết kế đã lưu."
-                            : "No saved designs yet."}
-                        </p>
-                      ) : (
-                        designs.map((design) => (
-                          <div
-                            key={design.id}
-                            className="rounded-xl border border-warm-200 bg-warm-50 p-3"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => openDesign(design)}
-                              className="text-left text-xs font-bold text-jotun-teal hover:underline"
-                            >
-                              {language === "vi" ? "Mở" : "Open"} · {design.room.name}
-                            </button>
-                            <div className="mt-2 flex gap-2">
-                              <input
-                                value={designNames[design.id] ?? design.name}
-                                onChange={(event) =>
-                                  setDesignNames((current) => ({
-                                    ...current,
-                                    [design.id]: event.target.value,
-                                  }))
-                                }
-                                maxLength={80}
-                                aria-label={`${language === "vi" ? "Tên thiết kế" : "Design name"} ${design.name}`}
-                                className="h-9 min-w-0 flex-1 rounded-lg border border-warm-200 bg-white px-2 text-xs"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => void renameDesign(design)}
-                                className="rounded-lg border border-warm-200 bg-white px-2 text-[10px] font-bold"
-                                aria-label={`${language === "vi" ? "Đổi tên" : "Rename"} ${design.name}`}
-                              >
-                                {language === "vi" ? "Đổi tên" : "Rename"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void removeDesign(design)}
-                                className="rounded-lg border border-red-200 bg-white p-2 text-red-700"
-                                aria-label={`${language === "vi" ? "Xóa" : "Delete"} ${design.name}`}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-
-              </div>
-            </div>
-          </safeMotion.div>
-        </div>
-      </section>
-
-      {/* 4. SHOWROOM COLOR EXPERIENCE SECTION */}
-      <section className="py-24 bg-white border-t border-b border-black/5 overflow-hidden">
-        <div className="w-full max-w-[1440px] mx-auto px-6 md:px-12 text-left">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            {/* Left Content */}
-            <safeMotion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="lg:col-span-5 flex flex-col gap-6"
-            >
-              <span className="text-[#88734C] font-semibold text-xs tracking-widest flex items-center gap-2 uppercase">
-                <Sparkles className="w-4 h-4 text-[#88734C]" />
-                {language === "vi" ? "TỰ NHIÊN & TRỰC QUAN" : "REAL & VISUAL"}
-              </span>
-              <h2 className="font-serif font-bold text-3xl md:text-4xl text-warm-900 leading-tight">
-                {language === "vi"
-                  ? "Xem Trực Tiếp Màu Sơn Tại Showroom"
-                  : "Experience Color Swatches at Our Showrooms"}
-              </h2>
-              <p className="text-sm text-warm-650 leading-relaxed font-light">
-                {language === "vi"
-                  ? "Đến trực tiếp các đại lý ủy quyền của Maison de FLOF để trải nghiệm hệ thống cây màu, quạt màu chuẩn xác nhất dưới nhiều điều kiện ánh sáng thực tế. Đội ngũ chuyên gia của chúng tôi sẵn sàng hỗ trợ bạn lựa chọn dòng sơn tối ưu và tiến hành pha màu sơn tự động ngay tại quầy."
-                  : "Visit Maison de FLOF authorized dealers to view real color cards, swatches, and fan decks under various lighting conditions. Our showroom advisors will help you select matching paint categories and tint them instantly."}
-              </p>
-              <div>
-                <Link
-                  href="/find-dealer"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-warm-900 hover:bg-warm-850 text-white text-xs font-bold rounded-xl transition-all shadow-sm group"
-                >
-                  <span>{language === "vi" ? "Tìm đại lý gần nhất" : "Find Nearest Showroom"}</span>
-                  <ArrowRight className="h-4 w-4 text-white transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </safeMotion.div>
-            {/* Right Showroom Image */}
-            <safeMotion.div
-              initial={{ opacity: 0, scale: 0.94 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="lg:col-span-7 flex justify-center w-full"
-            >
-              <div className="relative w-full max-w-[650px] aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-black/5 bg-warm-50 p-2">
-                <Image
-                  src="https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=800"
-                  alt="Maison de FLOF Showroom Color Design Experience"
-                  fill
-                  className="object-cover transition-transform duration-700 hover:scale-102"
-                />
-              </div>
-            </safeMotion.div>
           </div>
         </div>
       </section>
 
+      {/* Narrow text fold between photographs — left-biased, never centred */}
+      <EditorialSection rhythm="tight">
+        <p className="fl-measure max-w-3xl text-fl-md text-atelier-ink-2">
+          {language === "vi"
+            ? "Trải nghiệm không gian sống chân thực với các tùy chọn phối màu sơn thực tế được phối sắc tỉ mỉ. Thay đổi màu sắc trên các bức tường, mặt tiền kiến trúc một cách thông minh và chiêm ngưỡng các thiết kế thực tế."
+            : "Experience realistic living spaces with dual-color combination presets from our premium collection. Intelligently update architectural details and view real-world paint coordinates."}
+        </p>
+      </EditorialSection>
 
+      {/* Workspace — one large room stage dominates; controls sit on hairlines */}
+      <EditorialSection rhythm="base" id="interactive-tool" className="border-t border-atelier-rule">
+        <div className="max-w-2xl">
+          <EditorialHeading as="h2" scale="3xl" label={t.visualizerStageLabel}>
+            {language === "vi" ? "Màu sắc ngôi nhà bạn" : "Colors of your house"}
+          </EditorialHeading>
+          <p className="fl-measure-tight mt-fl-sm text-fl-sm text-atelier-ink-2">
+            {language === "vi"
+              ? "Thử nghiệm các bộ phối màu sơn thực tế được dựng 3D sắc nét. Chọn bộ màu để thay đổi không gian."
+              : "Experiment with photo-realistic pre-rendered palettes. Pick a preset to repaint the space."}
+          </p>
+        </div>
+
+        <div className="mt-fl-lg grid grid-cols-1 items-start gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
+          {/* Stage — 8 of 12 */}
+          <div className="lg:col-span-8">
+            {/* Room switcher — restrained editorial controls on a hairline */}
+            <div className="flex flex-wrap items-baseline justify-between gap-x-fl-md gap-y-fl-2xs border-b border-atelier-rule pb-fl-2xs">
+              <div
+                role="group"
+                aria-label={t.selectSpace}
+                className="no-scrollbar -mx-1 flex gap-fl-md overflow-x-auto px-1"
+              >
+                {rooms.map((room) => {
+                  const isActive = activeRoomId === room.id;
+                  return (
+                    <button
+                      key={room.id}
+                      type="button"
+                      aria-pressed={isActive}
+                      onClick={() => {
+                        setActiveRoomId(room.id);
+                      }}
+                      className={cn( "min-h-11 shrink-0 whitespace-nowrap border-b-2 pb-fl-3xs text-fl-sm transition-colors duration-fl-fast ease-fl-out md:min-h-6",
+                        isActive
+                          ? "border-atelier-ink font-medium text-atelier-ink"
+                          : "border-transparent text-atelier-ink-2 hover:text-atelier-ink",
+                      )}
+                    >
+                      {language === "vi" ? room.name : room.nameEn}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={handleReset}
+                aria-label={language === "vi" ? "Đặt lại bảng màu" : "Reset palette"}
+                className="min-h-11 shrink-0 whitespace-nowrap text-fl-sm text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink md:min-h-6"
+              >
+                {language === "vi" ? "Đặt lại" : "Reset"}
+              </button>
+            </div>
+
+            {/* The stage. State crossfade — motion primitive 2 of 2 for this page. */}
+            <div className="relative mt-fl-sm aspect-[4/3] w-full overflow-hidden rounded-surface bg-atelier-paper-2 sm:aspect-[16/10]">
+              <AnimatePresence mode="wait">
+                <safeMotion.div
+                  key={`${activeRoom.id}-${currentCombo.id}`}
+                  initial={reduceMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={reduceMotion ? undefined : { opacity: 0 }}
+                  transition={{ duration: 0.24 }}
+                  className="absolute inset-0"
+                >
+                  <Image
+                    src={imageSrc}
+                    alt={activeRoom.name}
+                    fill
+                    sizes="(min-width: 1024px) 60vw, 100vw"
+                    className="object-cover"
+                  />
+                </safeMotion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Caption under the plate, editorial-figure style — no floating chip */}
+            <div className="flex flex-wrap items-baseline justify-between gap-fl-2xs border-b border-atelier-rule py-fl-xs">
+              <p className="text-fl-sm text-atelier-ink">
+                {language === "vi"
+                  ? `${activeRoom.name} · ${currentCombo.nameVi}`
+                  : `${activeRoom.nameEn} · ${currentCombo.name}`}
+              </p>
+              <p className="fl-label">
+                {language === "vi" ? currentCombo.theme : currentCombo.themeEn}
+              </p>
+            </div>
+
+            {/* Current shades — flat ledger keyed to the selected palette */}
+            <SpecLedger
+              className="mt-fl-sm border-t-0"
+              columns={4}
+              rows={[
+                ...surfaces.map((surface) => ({
+                  label: surface.label,
+                  value: (
+                    <span className="inline-flex items-center gap-fl-2xs">
+                      <ColorSwatch
+                        color={surface.color}
+                        className="fl-swatch h-4 w-4 shrink-0 rounded-swatch"
+                      />
+                      <span className="tabular-nums">{surface.color}</span>
+                    </span>
+                  ),
+                })),
+                {
+                  label: language === "vi" ? "Bộ phối" : "Palette",
+                  value: language === "vi" ? currentCombo.nameVi : currentCombo.name,
+                },
+              ]}
+            />
+          </div>
+
+          {/* Controls — 4 of 12, restrained rows on hairlines, no nested cards */}
+          <div className="lg:col-span-4">
+            <p className="fl-label">{t.visualizerPalettesLabel}</p>
+            <div className="mt-fl-2xs flex flex-col">
+              {CURATED_COMBINATIONS.map((combo) => {
+                const isActive = selectedComboId === combo.id;
+                return (
+                  <button
+                    key={combo.id}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => setSelectedComboId(combo.id)}
+                    className="flex min-h-11 flex-col gap-fl-2xs border-b border-atelier-rule py-fl-xs text-left"
+                  >
+                    <span className="flex items-center gap-fl-2xs">
+                      <ColorSwatch
+                        color={combo.mainHex}
+                        className={cn( "h-8 w-8 shrink-0 rounded-swatch transition-shadow duration-fl-fast ease-fl-out",
+                          isActive
+                            ? "shadow-[0_0_0_2px_var(--fl-ink)]"
+                            : "shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]",
+                        )}
+                      />
+                      <ColorSwatch
+                        color={combo.accentHex}
+                        className={cn( "h-8 w-8 shrink-0 rounded-swatch transition-shadow duration-fl-fast ease-fl-out",
+                          isActive
+                            ? "shadow-[0_0_0_2px_var(--fl-ink)]"
+                            : "shadow-[inset_0_0_0_1px_rgb(0_0_0/0.08)]",
+                        )}
+                      />
+                      <span
+                        className={cn( "ml-fl-2xs min-w-0 truncate text-fl-sm",
+                          isActive
+                            ? "font-medium text-atelier-ink"
+                            : "text-atelier-ink-2",
+                        )}
+                      >
+                        {language === "vi" ? combo.nameVi : combo.name}
+                      </span>
+                    </span>
+                    <span className="fl-label">
+                      {language === "vi" ? combo.theme : combo.themeEn}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="mt-fl-xs text-fl-sm text-atelier-ink-2">
+              {language === "vi"
+                ? currentCombo.descriptionVi
+                : currentCombo.descriptionEn}
+            </p>
+
+            {/* Saved designs — same hairline vocabulary */}
+            <div className="mt-fl-lg border-t border-atelier-rule-strong pt-fl-sm">
+              <h3 className="font-serif text-fl-lg text-atelier-ink">
+                {language === "vi" ? "Thiết kế của tôi" : "My designs"}
+              </h3>
+              <div className="mt-fl-xs flex gap-fl-2xs">
+                <Input
+                  value={designName}
+                  onChange={(event) => setDesignName(event.target.value)}
+                  maxLength={80}
+                  placeholder={language === "vi" ? "Tên thiết kế" : "Design name"}
+                  aria-label={language === "vi" ? "Tên thiết kế mới" : "New design name"}
+                  className="min-w-0 flex-1"
+                />
+                <Button
+                  type="button"
+                  disabled={saving}
+                  data-state={saving ? "loading" : undefined}
+                  onClick={() => void saveDesign()}
+                  className="shrink-0"
+                >
+                  {language === "vi" ? "Lưu" : "Save"}
+                </Button>
+              </div>
+
+              {loginPrompt && sessionStatus !== "authenticated" ? (
+                <div className="mt-fl-sm border-l-2 border-atelier-rule-strong pl-fl-sm text-fl-sm text-atelier-ink-2">
+                  <p>
+                    {language === "vi"
+                      ? "Bạn có thể thử phối màu với tư cách khách. Hãy đăng nhập để lưu thiết kế."
+                      : "Guests can experiment freely. Sign in to save this design."}
+                  </p>
+                  <Link
+                    href="/login?callbackUrl=/color-visualizer"
+                    className="mt-fl-2xs inline-flex min-h-11 items-center whitespace-nowrap font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 md:min-h-6"
+                  >
+                    {language === "vi" ? "Đăng nhập" : "Sign in"}
+                  </Link>
+                </div>
+              ) : null}
+
+              {sessionStatus === "authenticated" ? (
+                <div className="mt-fl-sm" aria-label="Saved visualizer designs">
+                  {designs.length === 0 ? (
+                    <p className="text-fl-sm text-atelier-ink-2">
+                      {language === "vi"
+                        ? "Chưa có thiết kế đã lưu."
+                        : "No saved designs yet."}
+                    </p>
+                  ) : (
+                    designs.map((design) => (
+                      <div
+                        key={design.id}
+                        className="border-b border-atelier-rule py-fl-xs"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => openDesign(design)}
+                          className="min-h-11 text-left text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 md:min-h-6"
+                        >
+                          {language === "vi" ? "Mở" : "Open"} · {design.room.name}
+                        </button>
+                        <div className="mt-fl-2xs flex flex-wrap gap-fl-2xs">
+                          <Input
+                            value={designNames[design.id] ?? design.name}
+                            onChange={(event) =>
+                              setDesignNames((current) => ({
+                                ...current,
+                                [design.id]: event.target.value,
+                              }))
+                            }
+                            maxLength={80}
+                            aria-label={`${language === "vi" ? "Tên thiết kế" : "Design name"} ${design.name}`}
+                            className="min-w-0 flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void renameDesign(design)}
+                            aria-label={`${language === "vi" ? "Đổi tên" : "Rename"} ${design.name}`}
+                          >
+                            {language === "vi" ? "Đổi tên" : "Rename"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void removeDesign(design)}
+                            aria-label={`${language === "vi" ? "Xóa" : "Delete"} ${design.name}`}
+                            className="text-atelier-danger"
+                          >
+                            {language === "vi" ? "Xóa" : "Delete"}
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </EditorialSection>
+
+      {/* Showroom — the section is drenched in a real paint colour (clay).
+          The single drench band on this page. */}
+      <DrenchBand color="clay" className="py-fl-3xl md:py-fl-4xl">
+        <div className="mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]">
+          <div className="grid grid-cols-1 items-center gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
+            <div className="lg:col-span-5">
+              <p className="fl-label">Showroom</p>
+              <h2 className="fl-display mt-fl-xs text-fl-3xl">
+                {language === "vi"
+                  ? "Xem trực tiếp màu sơn tại showroom"
+                  : "See the colours in person"}
+              </h2>
+              <p className="fl-measure-tight mt-fl-md text-fl-sm ">
+                {language === "vi"
+                  ? "Đến trực tiếp các đại lý ủy quyền của Maison de FLOF để trải nghiệm hệ thống cây màu, quạt màu chuẩn xác nhất dưới nhiều điều kiện ánh sáng thực tế. Đội ngũ chuyên gia của chúng tôi sẵn sàng hỗ trợ bạn lựa chọn dòng sơn tối ưu và tiến hành pha màu sơn tự động ngay tại quầy."
+                  : "Visit Maison de FLOF authorized dealers to view real color cards, swatches, and fan decks under various lighting conditions. Our showroom advisors will help you select matching paint categories and tint them instantly."}
+              </p>
+              <div className="mt-fl-lg">
+                {/* On a drench the action flips to the band ink — teal is invisible here */}
+                <Link
+                  href="/find-dealer"
+                  className="inline-flex min-h-11 items-center whitespace-nowrap rounded-control bg-atelier-on-dark px-fl-lg py-fl-xs text-fl-sm font-medium text-atelier-espresso transition-opacity duration-fl-fast ease-fl-out hover:opacity-90 md:min-h-10"
+                >
+                  {language === "vi" ? "Tìm đại lý gần nhất" : "Find the nearest showroom"}
+                </Link>
+              </div>
+            </div>
+            <div className="lg:col-span-7">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-surface">
+                <Image
+                  src="https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=800"
+                  alt={
+                    language === "vi"
+                      ? "Trải nghiệm màu sơn tại showroom Maison de FLOF"
+                      : "Maison de FLOF showroom colour experience"
+                  }
+                  fill
+                  sizes="(min-width: 1024px) 55vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+              <Rule className="mt-fl-sm" />
+              <p className="mt-fl-2xs text-fl-xs ">
+                {language === "vi"
+                  ? "Khối này được sơn màu đất nung — một sắc độ thật trong bảng màu FLOF."
+                  : "This section is painted in a real clay shade from the FLOF range."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </DrenchBand>
 
     </div>
   );
 }
-
-

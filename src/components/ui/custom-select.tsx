@@ -41,14 +41,24 @@ export function CustomSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold bg-white border border-warm-200 text-warm-900 rounded-xl shadow-sm hover:border-warm-300 focus:outline-none focus:ring-2 focus:ring-jotun-teal/20 focus:border-jotun-teal text-left h-10 transition-all ${className}`}
+        className={`flex min-h-11 w-full items-center justify-between rounded-control border bg-atelier-paper-2 px-3 py-2 text-left text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out md:min-h-10 ${
+          isOpen
+            ? "border-atelier-accent"
+            : "border-atelier-rule-strong hover:border-atelier-ink-3"
+        } ${className}`}
       >
         <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
-        <ChevronDown className="h-4 w-4 text-warm-450 opacity-60 shrink-0 ml-2" />
+        <ChevronDown
+          className={`ml-2 h-4 w-4 shrink-0 text-atelier-ink-3 transition-transform duration-fl-fast ease-fl-out ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+        />
       </button>
 
+      {/* The open panel visibly floats above the page — one of the two places
+          design.md allows a shadow. */}
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1.5 max-h-60 overflow-y-auto bg-white border border-warm-200 rounded-xl shadow-lg p-1 z-[100] animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="fl-panel-in absolute left-0 right-0 z-[100] mt-fl-3xs max-h-60 overflow-y-auto rounded-surface border border-atelier-rule bg-atelier-paper p-fl-3xs shadow-lg">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -57,10 +67,10 @@ export function CustomSelect({
                 onValueChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-3 py-2.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+              className={`flex min-h-11 w-full cursor-pointer items-center rounded-control px-3 py-2 text-left text-fl-sm transition-colors duration-fl-fast ease-fl-out md:min-h-9 ${
                 opt.value === value
-                  ? "bg-jotun-teal/10 text-jotun-teal font-bold"
-                  : "text-warm-800 hover:bg-warm-50"
+                  ? "bg-atelier-paper-3 font-medium text-atelier-accent"
+                  : "text-atelier-ink hover:bg-atelier-paper-2"
               }`}
             >
               {opt.label}

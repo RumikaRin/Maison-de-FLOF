@@ -1,3 +1,4 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { CspImage as Image } from "@/components/ui/csp-image";
@@ -22,76 +23,79 @@ export function CheckoutOrderSummary({
   total,
 }: CheckoutOrderSummaryProps) {
   return (
-    <div className="lg:col-span-5 bg-white dark:bg-zinc-950 border border-border p-6 rounded-xl shadow-sm flex flex-col gap-6">
-      <h2 className="font-serif font-bold text-lg border-b border-border pb-3">
-        {language === "vi" ? "Đơn hàng của bạn" : "Your Order"}
-      </h2>
+    <aside className="lg:sticky lg:top-24 lg:col-span-5">
+      <div className="rounded-surface bg-atelier-paper-2 p-fl-md text-atelier-ink">
+        <h2 className="fl-display text-fl-lg">
+          {language === "vi" ? "Đơn hàng của bạn" : "Your order"}
+        </h2>
 
-      {/* List of items inside sidebar */}
-      <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1">
-        {items.map((item) => (
-          <div key={item.id} className="flex gap-3 items-center justify-between text-xs py-1 border-b border-zinc-50 dark:border-zinc-900 last:border-0">
-            <div className="flex items-center gap-2">
-              <div className="relative h-10 w-10 border border-border bg-zinc-50 rounded overflow-hidden shrink-0">
-                <Image src={getProductImage(item.paint.images)} alt={item.paint.name} fill sizes="40px" className="object-cover" />
+        {/* Hairline item rows */}
+        <ul className="mt-fl-sm max-h-[300px] overflow-y-auto border-t border-atelier-rule">
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className="flex items-center justify-between gap-fl-sm border-b border-atelier-rule py-fl-2xs"
+            >
+              <div className="flex min-w-0 items-center gap-fl-2xs">
+                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-surface border border-atelier-rule bg-atelier-paper">
+                  <Image src={getProductImage(item.paint.images)} alt={item.paint.name} fill sizes="40px" className="object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-fl-sm font-medium">
+                    {language === "vi" ? item.paint.name : item.paint.nameEn}
+                  </p>
+                  <p className="truncate text-fl-xs text-atelier-ink-2">
+                    {item.paint.volume} {item.paint.volumeUnit}
+                    {item.selectedColor ? ` | ${item.selectedColor.code} - ${language === "vi" ? item.selectedColor.name : item.selectedColor.nameEn}` : ""}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold line-clamp-1">
-                  {language === "vi" ? item.paint.name : item.paint.nameEn}
-                </h4>
-                <p className="text-[10px] text-muted-foreground font-semibold">
-                  {item.paint.volume} {item.paint.volumeUnit}
-                  {item.selectedColor ? ` | ${item.selectedColor.code} - ${language === "vi" ? item.selectedColor.name : item.selectedColor.nameEn}` : ""}
-                </p>
+              <div className="shrink-0 text-right tabular-nums">
+                <span className="block text-fl-xs text-atelier-ink-2">×{item.quantity}</span>
+                <span className="block text-fl-sm font-medium">
+                  {formatPrice(
+                    (item.paint.discountPercent && item.paint.discountPercent > 0
+                      ? item.paint.price * (1 - item.paint.discountPercent / 100)
+                      : item.paint.price) * item.quantity
+                  )}
+                </span>
               </div>
-            </div>
-            <div className="text-right font-mono shrink-0">
-              <span className="text-muted-foreground">x{item.quantity}</span>
-              <span className="font-bold block text-jotun-teal">
-                {formatPrice(
-                  (item.paint.discountPercent && item.paint.discountPercent > 0
-                    ? item.paint.price * (1 - item.paint.discountPercent / 100)
-                    : item.paint.price) * item.quantity
-                )}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+            </li>
+          ))}
+        </ul>
 
-      {/* Pricing calculations */}
-      <div className="border-t border-border pt-4 flex flex-col gap-3 font-semibold text-xs text-muted-foreground">
-        <div className="flex justify-between">
-          <span>{language === "vi" ? "Tạm tính" : "Subtotal"}</span>
-          <span className="font-mono text-foreground">{formatPrice(subtotal)}</span>
-        </div>
-        {discountParam > 0 && (
-          <div className="flex justify-between text-red-500">
-            <span>{language === "vi" ? "Giảm giá" : "Discount"}</span>
-            <span className="font-mono">-{formatPrice(discountParam)}</span>
+        {/* SpecLedger-like totals */}
+        <dl className="mt-fl-sm">
+          <div className="flex items-baseline justify-between border-b border-atelier-rule py-fl-2xs">
+            <dt className="fl-label">{language === "vi" ? "Tạm tính" : "Subtotal"}</dt>
+            <dd className="text-fl-sm tabular-nums">{formatPrice(subtotal)}</dd>
           </div>
-        )}
-        <div className="flex justify-between">
-          <span>{language === "vi" ? "Phí vận chuyển" : "Shipping Fee"}</span>
-          <span className="font-mono text-foreground">
-            {shippingFee === 0
-              ? language === "vi"
-                ? "Miễn phí"
-                : "Free"
-              : formatPrice(shippingFee)}
-          </span>
-        </div>
+          {discountParam > 0 && (
+            <div className="flex items-baseline justify-between border-b border-atelier-rule py-fl-2xs text-atelier-success">
+              <dt className="fl-label text-atelier-success">
+                {language === "vi" ? "Giảm giá" : "Discount"}
+              </dt>
+              <dd className="text-fl-sm tabular-nums">−{formatPrice(discountParam)}</dd>
+            </div>
+          )}
+          <div className="flex items-baseline justify-between border-b border-atelier-rule py-fl-2xs">
+            <dt className="fl-label">{language === "vi" ? "Phí vận chuyển" : "Shipping Fee"}</dt>
+            <dd className="text-fl-sm tabular-nums">
+              {shippingFee === 0
+                ? language === "vi"
+                  ? "Miễn phí"
+                  : "Free"
+                : formatPrice(shippingFee)}
+            </dd>
+          </div>
+          <div className="flex items-end justify-between border-b border-atelier-rule-strong py-fl-xs">
+            <dt className="text-fl-sm font-medium">
+              {language === "vi" ? "Tổng cộng" : "Grand Total"}
+            </dt>
+            <dd className="text-fl-xl font-medium tabular-nums">{formatPrice(total)}</dd>
+          </div>
+        </dl>
       </div>
-
-      <div className="border-t border-border pt-4 flex justify-between items-end">
-        <span className="font-serif font-bold text-sm">{language === "vi" ? "Tổng cộng" : "Grand Total"}</span>
-        <div className="text-right">
-          <span className="text-2xl font-bold text-jotun-teal font-mono block">
-            {formatPrice(total)}
-          </span>
-        </div>
-      </div>
-    </div>
+    </aside>
   );
 }
-

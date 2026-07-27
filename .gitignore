@@ -38,6 +38,10 @@ yarn-error.log*
 
 # agent / AI tools
 .agent
+/.claude/
+/.ai-understand/
+/.hallmark/
+/output/
 
 # security scanners and cloned tools
 /tools/skillspector/
@@ -47,3 +51,6 @@ yarn-error.log*
 /PROJECT_AUDIT_REPORT_VI.md
 /PROJECT_ROADMAP_VI.md
 
+
+# Visual brainstorming sessions
+.superpowers/

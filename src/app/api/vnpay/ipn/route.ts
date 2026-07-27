@@ -9,8 +9,16 @@ export async function GET(request: NextRequest) {
   try {
     const result = paymentService.verifyIpn(query);
 
-    if (!result.isSuccess) {
+    // Signature first: a callback whose HMAC does not verify is rejected before
+    // anything is read from it, regardless of its claimed response code.
+    if (!result.isVerified) {
       return NextResponse.json({ RspCode: "97", Message: "Invalid signature" }, { status: 200 });
+    }
+
+    // Signature valid but the gateway reported a failed/cancelled transaction —
+    // acknowledge without marking the order paid.
+    if (!result.isSuccess) {
+      return NextResponse.json({ RspCode: "00", Message: "Confirmed" }, { status: 200 });
     }
 
     if (!result.orderId) {

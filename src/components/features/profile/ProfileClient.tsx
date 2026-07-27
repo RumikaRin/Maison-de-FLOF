@@ -1,8 +1,8 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { safeMotion } from "@/components/ui/motion-safe";
 import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
@@ -32,6 +32,7 @@ interface UserSession {
   name: string;
   role: "ADMIN" | "STAFF" | "CUSTOMER";
   mfaEnabled: boolean;
+  emailVerified: boolean;
 }
 
 export function ProfileClient() {
@@ -145,7 +146,7 @@ export function ProfileClient() {
   if (!mounted) return null;
   if (profileStatus === "loading" || authStatus === "loading") {
     return (
-      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+      <div className="min-h-[70vh] bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] pt-32">
         <AsyncState
           status="loading"
           title={language === "vi" ? "Đang tải hồ sơ…" : "Loading profile…"}
@@ -155,7 +156,7 @@ export function ProfileClient() {
   }
   if (profileStatus === "error" || !user) {
     return (
-      <div className="min-h-[70vh] bg-jotun-ivory px-4 pt-32">
+      <div className="min-h-[70vh] bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] pt-32">
         <AsyncState
           status="error"
           title={
@@ -364,9 +365,9 @@ export function ProfileClient() {
   };
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 md:px-12 py-6 sm:py-12 bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh]">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left column sidebar settings */}
+    <div className="mx-auto min-h-[80vh] w-full max-w-[100rem] bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] py-fl-lg text-atelier-ink sm:py-fl-xl">
+      <div className="grid grid-cols-1 items-start gap-fl-xl lg:grid-cols-12">
+        {/* Left column — flat text index */}
         <ProfileSidebar
           user={user}
           activeTab={activeTab}
@@ -376,12 +377,7 @@ export function ProfileClient() {
         />
 
         {/* Right column settings panels */}
-        <safeMotion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          className="lg:col-span-8 flex flex-col gap-6"
-        >
+        <div className="flex flex-col gap-fl-md lg:col-span-8">
           {activeTab === "history" && (
             <OrderHistoryTab orders={orders} language={language} />
           )}
@@ -399,6 +395,7 @@ export function ProfileClient() {
               profileAddress={profileAddress}
               setProfileAddress={setProfileAddress}
               handleProfileSubmit={handleProfileSubmit}
+              emailVerified={user.emailVerified}
             />
           )}
 
@@ -473,7 +470,7 @@ export function ProfileClient() {
             onToggleFavorite={handleToggleFavoriteColor}
             language={language}
           />
-        </safeMotion.div>
+        </div>
       </div>
     </div>
   );

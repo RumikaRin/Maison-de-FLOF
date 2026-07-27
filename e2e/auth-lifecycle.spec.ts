@@ -39,7 +39,9 @@ test("guest registers a customer account and can sign in", async ({ page }) => {
     .check();
   await page.getByRole("button", { name: /Đăng ký tài khoản|Sign Up/i }).click();
 
-  await expect(page).toHaveURL(/\/verify-email\?email=/);
+  // Verification is optional for customers: registration signs them straight in
+  // and lands on the profile. They can confirm the address later from settings.
+  await expect(page).toHaveURL(/\/profile$/);
 
   const tokenDatabase = createTestDatabase();
   let verificationToken = "";
@@ -49,6 +51,7 @@ test("guest registers a customer account and can sign in", async ({ page }) => {
       select: { emailVerified: true },
     });
     expect(unverifiedUser?.emailVerified).toBeNull();
+    // Still unverified, yet already signed in — that is the intended policy.
     const verification = await createEmailVerificationToken(
       tokenDatabase,
       REGISTER_EMAIL,

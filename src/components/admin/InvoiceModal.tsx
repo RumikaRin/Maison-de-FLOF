@@ -1,7 +1,7 @@
 "use client";
 
 import { formatPrice } from "@/lib/utils";
-import { Printer, X, Check, FileText } from "lucide-react";
+import { Printer, X, Check, FileText, ExternalLink } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 
 interface InvoiceModalProps {
@@ -295,6 +295,17 @@ export function InvoiceModal({ isOpen, onClose, order }: InvoiceModalProps) {
           >
             {language === "vi" ? "Đóng lại" : "Close"}
           </button>
+          {/* Opens the dedicated, print-optimised invoice document in a new tab
+              (Ctrl/Cmd + P → Save as PDF for Vietnamese tax records). */}
+          <a
+            href={`/admin/invoices/${encodeURIComponent(order.id)}/print`}
+            target="_blank"
+            rel="noopener"
+            className="px-5 py-2.5 border border-jotun-teal text-jotun-teal hover:bg-jotun-teal/5 font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span>{language === "vi" ? "In hóa đơn" : "Print invoice"}</span>
+          </a>
           <button
             onClick={handlePrint}
             className="px-5 py-2.5 bg-jotun-teal hover:bg-jotun-teal/90 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"

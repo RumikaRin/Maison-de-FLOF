@@ -13,18 +13,35 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[];
+  /** True once the server cart has been merged in for an authenticated user. */
+  synced: boolean;
   addItem: (paint: Paint, quantity: number, selectedColor?: PaintColor) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  /** Replace the whole cart (used when the server cart is the source of truth). */
+  replaceItems: (items: CartItem[]) => void;
+  setSynced: (synced: boolean) => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
+}
+
+/** The minimal snapshot the server persists — no denormalised paint payload. */
+export function toCartSnapshot(items: CartItem[]) {
+  return items.map((item) => ({
+    paintId: item.paint.id,
+    colorCode: item.selectedColor?.code ?? "",
+    quantity: item.quantity,
+  }));
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      synced: false,
+      replaceItems: (items) => set({ items }),
+      setSynced: (synced) => set({ synced }),
       addItem: (paint, quantity, selectedColor) => {
         const id = selectedColor ? `${paint.id}-${selectedColor.code}` : paint.id;
         const currentItems = get().items;
@@ -71,6 +88,8 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "sonvn-cart", // LocalStorage key
+      // `synced` is session-derived, never persisted — only the items are.
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );

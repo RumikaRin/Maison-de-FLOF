@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { authConfig } from "@/auth.config";
 import GoogleProvider from "next-auth/providers/google";
-import { isCredentialEmailVerified } from "@/lib/auth/email-verification";
+import { canSignInWithCredentials } from "@/lib/auth/email-verification";
 import {
   createRegisteredSession,
   validateRegisteredSession,
@@ -158,12 +158,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           include: { role: true },
         });
 
-        if (!user || !user.password || !isCredentialEmailVerified(user.emailVerified)) {
+        // The UI deliberately shows one generic message so it cannot be used to
+        // enumerate accounts. The precise reason goes to the server log instead,
+        // because "wrong password" and "privileged account with an unverified
+        // address" are indistinguishable to an operator otherwise — that is what
+        // made the seeded README credentials look simply broken.
+        const reject = (reason: string) => {
+          writeOperationalLog("warn", "auth.credentials.rejected", { reason });
           return null;
+        };
+
+        if (!user) return reject("USER_NOT_FOUND");
+        if (!user.password) return reject("NO_PASSWORD_CREDENTIAL");
+        if (
+          !canSignInWithCredentials({
+            roleType: user.role.type,
+            emailVerified: user.emailVerified,
+          })
+        ) {
+          return reject("PRIVILEGED_EMAIL_NOT_VERIFIED");
         }
 
         const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) return null;
+        if (!isValid) return reject("PASSWORD_MISMATCH");
         if (
           user.role.type === "ADMIN" &&
           !(await verifyMfaForLogin(
@@ -173,7 +190,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               : undefined,
           ))
         ) {
-          return null;
+          return reject("MFA_REQUIRED_OR_INVALID");
         }
 
         return {

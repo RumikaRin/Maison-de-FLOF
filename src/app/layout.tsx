@@ -20,25 +20,27 @@ import { shouldEnableVercelTelemetry } from "@/lib/vercel-runtime";
 import { resolveLocale } from "@/lib/locale";
 import "./globals.css";
 
-// A strict per-request CSP nonce requires dynamic rendering so Next.js can
-// attach the nonce to every framework and application script.
-export const dynamic = "force-dynamic";
+// Dynamic rendering is handled automatically by the headers() call below.
+// Vercel CDN caching (s-maxage) is set in middleware for public pages.
 
 const noto = Noto_Sans({
   subsets: ["vietnamese"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-noto",
+  display: "swap",
 });
 
 const playfair = Playfair_Display({
   subsets: ["vietnamese"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-playfair",
+  display: "swap",
 });
 
 const bromise = localFont({
   src: "./fonts/bromise/bromise.ttf",
   variable: "--font-bromise",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -80,6 +82,7 @@ export default async function RootLayout({
             script-src 'self' 'nonce-...' 'strict-dynamic'. initFlReveal still
             sets the class too, as a no-JS-blocked fallback. */}
         <script
+          suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: 'document.documentElement.classList.add("fl-js")',

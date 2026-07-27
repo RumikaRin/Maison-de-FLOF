@@ -63,12 +63,37 @@ function withSecurityHeaders<T extends Response>(response: T, nonce: string) {
   return response;
 }
 
-function nextWithNonce(requestHeaders: Headers, nonce: string) {
-  return withSecurityHeaders(
-    NextResponse.next({
-      request: { headers: requestHeaders },
-    }),
-    nonce,
+/**
+ * Apply Vercel CDN caching headers to public page responses.
+ * s-maxage=300 → Vercel Edge caches the HTML for 5 minutes.
+ * stale-while-revalidate=600 → serves stale content while revalidating in the background.
+ * Browser cache is set to 0 so users always get a CDN-fresh copy.
+ */
+function withCdnCache<T extends Response>(response: T, pathname: string) {
+  const isPublicPage =
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/profile") &&
+    !pathname.startsWith("/checkout") &&
+    !pathname.startsWith("/cart");
+  if (isPublicPage) {
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=300, stale-while-revalidate=600",
+    );
+  }
+  return response;
+}
+
+function nextWithNonce(requestHeaders: Headers, nonce: string, pathname: string) {
+  return withCdnCache(
+    withSecurityHeaders(
+      NextResponse.next({
+        request: { headers: requestHeaders },
+      }),
+      nonce,
+    ),
+    pathname,
   );
 }
 
@@ -93,9 +118,12 @@ function rewriteWithNonce(
   locale: Locale,
 ) {
   return withLocaleCookie(
-    withSecurityHeaders(
-      NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
-      nonce,
+    withCdnCache(
+      withSecurityHeaders(
+        NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
+        nonce,
+      ),
+      url.pathname,
     ),
     locale,
   );
@@ -195,7 +223,7 @@ export default async function middleware(request: NextRequest, event: any) {
       rewriteUrl.pathname = pathname;
       return rewriteWithNonce(rewriteUrl, requestHeaders, nonce, locale);
     }
-    return nextWithNonce(requestHeaders, nonce);
+    return nextWithNonce(requestHeaders, nonce, pathname);
   }
 
   const authUrl = request.nextUrl.clone();
@@ -209,7 +237,7 @@ export default async function middleware(request: NextRequest, event: any) {
 
   const response = prefixed.hadPrefix
     ? rewriteWithNonce(authUrl, requestHeaders, nonce, locale)
-    : nextWithNonce(requestHeaders, nonce);
+    : nextWithNonce(requestHeaders, nonce, pathname);
   for (const cookie of authResponse?.cookies?.getAll?.() ?? []) {
     response.cookies.set(cookie);
   }

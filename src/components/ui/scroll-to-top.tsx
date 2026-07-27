@@ -22,24 +22,21 @@ export function ScrollToTop() {
       {visible && (
         <safeMotion.button
           key="scroll-to-top"
-          initial={{ opacity: 0, y: 16, scale: 0.88 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.88 }}
-          transition={{ type: "spring", stiffness: 380, damping: 28 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
           onClick={scrollToTop}
           aria-label="Scroll to top"
-          className="fixed bottom-24 right-5 z-[60] flex items-center justify-center w-11 h-11 rounded-full
-                     sm:bottom-[6.75rem] sm:right-8
-                     bg-[#1c1917] hover:bg-[#292524] text-white
-                     shadow-[0_4px_20px_rgba(0,0,0,0.18),0_1px_6px_rgba(0,0,0,0.1)]
-                     border border-white/10
-                     transition-colors duration-300 cursor-pointer
-                     group"
-          whileHover={{ y: -2 }}
-          whileTap={{ scale: 0.93 }}
+          className="group fixed bottom-24 right-5 z-[60] flex h-11 w-11 cursor-pointer
+                     items-center justify-center rounded-control
+                     border border-atelier-rule-strong bg-atelier-espresso text-atelier-on-dark
+                     transition-colors duration-fl-fast ease-fl-out
+                     hover:bg-atelier-ink
+                     sm:bottom-[6.75rem] sm:right-8 md:h-10 md:w-10"
         >
           <ArrowUp
-            className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5"
+            className="h-4 w-4 transition-transform duration-fl-fast ease-fl-out group-hover:-translate-y-0.5"
           />
         </safeMotion.button>
       )}

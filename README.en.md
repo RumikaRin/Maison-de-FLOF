@@ -39,7 +39,7 @@ The project delivers a comprehensive digital experience, ranging from browsing p
   - Interactively preview paint colors on 4 rooms: Living Room, Bedroom, Kitchen, and Facade.
   - Instantly switch colors, save to favorites, and submit a consultation request form.
 - **Find Dealer**: Locates authorized distributor stores by Province and District, displayed interactively using MapLibre GL maps.
-- **Cart & Checkout**: Local cart management using Zustand, coupon code support, and cash-on-delivery (COD) order placement.
+- **Cart & Checkout**: Zustand cart with local persistence for guests and multi-device sync on sign-in (union merge with the server-side `CartItem` mirror), coupon code support, and COD or VNPay online payment (with idempotency against duplicate orders).
 - **Profile**: Manages personal profile details, order history, tracking order status, and viewing favorite paint colors or items.
 
 ### 2. Admin Portal

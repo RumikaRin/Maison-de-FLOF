@@ -35,38 +35,48 @@ async function main() {
   const staffPassword = await bcrypt.hash("staff123", 12);
   const customerPassword = await bcrypt.hash("customer123", 12);
 
+  // Seeded accounts are created by whoever runs `db:seed`, so their addresses
+  // are verified by construction. Without this stamp the credentials documented
+  // in the README cannot sign in at all: ADMIN and STAFF are gated on a verified
+  // address (see lib/auth/email-verification). It is set on `update` too, so
+  // re-running the seed backfills databases seeded before this fix.
+  const seededEmailVerified = new Date();
+
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@sonvn.com" },
-    update: {},
+    update: { emailVerified: seededEmailVerified },
     create: {
       email: "admin@sonvn.com",
       password: hashedPassword,
       name: "SONVN Admin",
       phone: "0900000001",
+      emailVerified: seededEmailVerified,
       roleId: adminRole.id,
     },
   });
 
   const staffUser = await prisma.user.upsert({
     where: { email: "staff@sonvn.com" },
-    update: {},
+    update: { emailVerified: seededEmailVerified },
     create: {
       email: "staff@sonvn.com",
       password: staffPassword,
       name: "SONVN Staff",
       phone: "0900000002",
+      emailVerified: seededEmailVerified,
       roleId: staffRole.id,
     },
   });
 
   const customerUser = await prisma.user.upsert({
     where: { email: "customer1@sonvn.com" },
-    update: {},
+    update: { emailVerified: seededEmailVerified },
     create: {
       email: "customer1@sonvn.com",
       password: customerPassword,
       name: "Nguyễn Văn Khách",
       phone: "0900000003",
+      emailVerified: seededEmailVerified,
       roleId: customerRole.id,
     },
   });
@@ -1131,6 +1141,24 @@ async function main() {
     });
   }
   console.log("Blogs seeded successfully.");
+
+  // Visualizer rooms — without these the colour visualizer has no stage to
+  // render and saved designs cannot bind to a room. Slugs match the base
+  // images the client ships.
+  const visualizerRooms = [
+    { slug: "facade", name: "Mặt tiền nhà", nameEn: "House Facade", baseImage: "/facade_sage.webp", sortOrder: 10 },
+    { slug: "living", name: "Phòng khách", nameEn: "Living Room", baseImage: "/living_sage.webp", sortOrder: 20 },
+    { slug: "bedroom", name: "Phòng ngủ", nameEn: "Bedroom", baseImage: "/bedroom_beige.webp", sortOrder: 30 },
+    { slug: "kitchen", name: "Phòng bếp", nameEn: "Kitchen", baseImage: "/kitchen_grey.webp", sortOrder: 40 },
+  ];
+  for (const room of visualizerRooms) {
+    await prisma.visualizerRoom.upsert({
+      where: { slug: room.slug },
+      update: { name: room.name, nameEn: room.nameEn, baseImage: room.baseImage, sortOrder: room.sortOrder, isActive: true },
+      create: room,
+    });
+  }
+  console.log("Visualizer rooms seeded successfully.");
 
   console.log("Seeding process completed successfully!");
 }

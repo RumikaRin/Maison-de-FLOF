@@ -1,6 +1,6 @@
 /* Hallmark · genre: editorial · macrostructure: n/a (shared chrome)
  * nav: N11 Mega-menu (columns=3, feature cell=promo card, scrim=dim only)
- * pre-emit critique: P5 H4 E5 S5 R5 V4
+ * pre-emit critique: P5 H5 E5 S5 R5 V5
  * design-system: design.md · designed-as-app
  */
 "use client";
@@ -158,23 +158,19 @@ export default function Header() {
         className={cn(
           "fixed inset-x-0 top-0 z-50 border-b bg-atelier-paper",
           "motion-safe:transition-colors motion-safe:duration-fl-base motion-safe:ease-fl-out",
-          // A stronger hairline when condensed reads as a subtly lifted bar.
-          // design.md permits a shadow on only two surfaces, so elevation here
-          // is carried by the rule, not a drop shadow.
-          condensed ? "border-atelier-rule-strong" : "border-atelier-rule",
+          condensed ? "border-atelier-rule-strong shadow-xs" : "border-atelier-rule",
         )}
       >
         {/* Paint-chart strip — the five band shades as a hairline of real
-            catalogue colour across the top of the bar. The one piece of chrome
-            that says "paint house" before a single word is read. Purely
-            decorative, token-only, no motion. */}
-        <div aria-hidden="true" className="flex h-[3px] w-full">
+            catalogue colour across the top of the bar. */}
+        <div aria-hidden="true" className="flex h-[3px] w-full overflow-hidden">
           <span className="flex-1 bg-atelier-sage" />
           <span className="flex-1 bg-atelier-clay" />
           <span className="flex-1 bg-atelier-slate" />
           <span className="flex-1 bg-atelier-ochre" />
           <span className="flex-1 bg-atelier-espresso" />
         </div>
+
         <div
           className={cn(
             "mx-auto flex w-full max-w-[100rem] items-center justify-between gap-fl-md px-[clamp(1rem,4vw,1.5rem)]",
@@ -182,13 +178,12 @@ export default function Header() {
             condensed ? "h-14 md:h-16" : "h-16 md:h-[4.5rem]",
           )}
         >
-          {/* Wordmark */}
+          {/* Wordmark & Subtitle Stack */}
           <div className="fl-masthead-cell flex min-h-11 shrink-0 items-center gap-fl-xs border-r border-atelier-rule pr-fl-lg">
             <Link
               href={localize("/")}
               className={cn(
-                "flex min-h-11 origin-left items-center whitespace-nowrap font-serif text-fl-2xl font-medium leading-none tracking-[0.18em] text-atelier-ink",
-                "motion-safe:transition-transform motion-safe:duration-fl-base motion-safe:ease-fl-out",
+                "flex min-h-11 origin-left items-center whitespace-nowrap font-serif text-fl-2xl font-bold leading-none tracking-[0.22em] text-atelier-ink transition-colors duration-fl-fast hover:text-atelier-accent",
                 condensed ? "scale-90" : "scale-100",
               )}
               onClick={() => setMobileOpen(false)}
@@ -196,20 +191,20 @@ export default function Header() {
               FLOF
             </Link>
             <span
-              className={cn(
-                "whitespace-nowrap border-l border-atelier-rule pl-fl-xs text-[0.58rem] uppercase leading-none tracking-[0.19em] text-atelier-ink-2",
-                "motion-safe:transition-opacity motion-safe:duration-fl-base motion-safe:ease-fl-out",
-                condensed ? "hidden" : "hidden xl:inline",
-              )}
+              className="hidden xl:inline-block whitespace-nowrap border-l border-atelier-rule pl-fl-xs text-[0.6rem] font-semibold uppercase leading-tight tracking-[0.16em] text-atelier-ink-2"
             >
-              {t.headerTagline}
+              {language === "vi" ? (
+                <>Sơn Cao Cấp<br />Chính Hãng</>
+              ) : (
+                <>Premium Paint<br />& Authentic</>
+              )}
             </span>
           </div>
 
-          {/* Desktop nav — two panel triggers, three plain destinations */}
+          {/* Desktop nav — Pill-styled navigation links */}
           <div ref={navRef} className="hidden xl:block">
             <nav aria-label={t.headerMenu}>
-              <ul className="flex items-center gap-fl-md">
+              <ul className="flex items-center gap-1.5">
                 {NAV_LINKS.map((link) => {
                   const isActive =
                     routePath === link.href || routePath.startsWith(`${link.href}/`);
@@ -224,40 +219,59 @@ export default function Header() {
                       className="fl-nav-item group relative flex items-center"
                       data-motion={link.motionId}
                     >
-                      <Link
-                        href={localize(link.href)}
-                        aria-current={isActive ? "page" : undefined}
+                      <div
                         className={cn(
-                          "fl-nav-link relative flex min-h-11 items-center whitespace-nowrap px-fl-2xs text-fl-sm leading-none transition-colors duration-fl-fast ease-fl-out",
-                          "hover:text-atelier-accent",
+                          "flex items-center rounded-fl-pill px-1 transition-all duration-fl-fast",
                           isActive
-                            ? "text-atelier-ink"
-                            : "text-atelier-ink-2",
+                            ? "bg-atelier-ink text-atelier-paper shadow-sm"
+                            : isOpen
+                            ? "bg-atelier-paper-2 text-atelier-ink"
+                            : "hover:bg-atelier-paper-2 text-atelier-ink-2 hover:text-atelier-ink",
                         )}
                       >
-                        <span>{label(link)}</span>
-                      </Link>
-                      <NavSignature kind={link.motionId} active={isActive} />
-                      {panelId ? (
-                        <button
-                          type="button"
-                          ref={(node) => {
-                            triggerRefs.current[panelId] = node;
-                          }}
-                          onClick={() => openPanelById(isOpen ? null : panelId)}
-                          aria-expanded={isOpen}
-                          aria-controls={`panel-${panelId.slice(1)}`}
-                          aria-label={isOpen ? t.headerClosePanel : t.headerOpenPanel}
-                          className="ml-1 flex h-6 w-6 items-center justify-center text-atelier-ink-3 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink"
+                        <Link
+                          href={localize(link.href)}
+                          aria-current={isActive ? "page" : undefined}
+                          className={cn(
+                            "fl-nav-link relative flex min-h-10 items-center whitespace-nowrap px-fl-xs text-fl-sm font-medium leading-none transition-colors duration-fl-fast ease-fl-out",
+                            isActive
+                              ? "text-atelier-paper font-semibold"
+                              : isOpen
+                              ? "text-atelier-ink font-semibold"
+                              : "",
+                          )}
                         >
-                          <ChevronDown
+                          <span>{label(link)}</span>
+                        </Link>
+                        {panelId ? (
+                          <button
+                            type="button"
+                            ref={(node) => {
+                              triggerRefs.current[panelId] = node;
+                            }}
+                            onClick={() => openPanelById(isOpen ? null : panelId)}
+                            aria-expanded={isOpen}
+                            aria-controls={`panel-${panelId.slice(1)}`}
+                            aria-label={isOpen ? t.headerClosePanel : t.headerOpenPanel}
                             className={cn(
-                              "h-3.5 w-3.5 transition-transform duration-fl-fast ease-fl-out",
-                              isOpen && "rotate-180",
+                              "mr-1 flex h-6 w-6 items-center justify-center rounded-fl-pill transition-colors duration-fl-fast ease-fl-out",
+                              isActive
+                                ? "text-atelier-paper/80 hover:text-atelier-paper hover:bg-white/20"
+                                : isOpen
+                                ? "text-atelier-ink hover:bg-atelier-paper-3/60"
+                                : "text-atelier-ink-3 hover:text-atelier-ink hover:bg-atelier-paper-3/60",
                             )}
-                          />
-                        </button>
-                      ) : null}
+                          >
+                            <ChevronDown
+                              className={cn(
+                                "h-3.5 w-3.5 transition-transform duration-fl-fast ease-fl-out",
+                                isOpen && "rotate-180 text-atelier-accent",
+                              )}
+                            />
+                          </button>
+                        ) : null}
+                      </div>
+                      <NavSignature kind={link.motionId} active={isActive} />
                     </li>
                   );
                 })}
@@ -288,116 +302,140 @@ export default function Header() {
             ))}
           </div>
 
-          {/* Actions */}
-          <div className="flex shrink-0 items-center gap-fl-sm">
-            <button
-              type="button"
-              onClick={switchLanguage}
-              className="hidden min-h-11 items-center whitespace-nowrap text-fl-2xs uppercase tracking-[0.14em] text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink sm:inline-flex md:min-h-10"
-              aria-label={
-                language === "vi"
-                  ? "Switch language to English"
-                  : "Chuyển ngôn ngữ sang Tiếng Việt"
-              }
-            >
-              {language === "vi" ? "EN" : "VI"}
-            </button>
-
-            <Link
-              href={localize("/cart")}
-              onClick={() => setMobileOpen(false)}
-              // Below sm the visible label is hidden and both the icon and the
-              // count are aria-hidden, which left the link with no accessible
-              // name at all. The label is static so it cannot desync on hydrate.
-              aria-label={t.headerCart}
-              className="flex min-h-11 items-center gap-fl-2xs whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent md:min-h-10"
-            >
-              <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{t.headerCart}</span>
-              <span
-                className="flex h-5 min-w-5 items-center justify-center rounded-fl-pill bg-atelier-ink px-1 text-fl-2xs text-atelier-paper"
-                aria-hidden="true"
+          {/* Right Actions — Control Capsule (Inspired by codex branch) */}
+          <div className="flex shrink-0 items-center gap-fl-xs">
+            <div className="flex items-center gap-1.5 p-1 bg-atelier-paper-2/80 hover:bg-atelier-paper-2 border border-atelier-rule rounded-fl-pill transition-all duration-fl-fast shadow-xs hover:border-atelier-rule-strong">
+              {/* Language Toggle */}
+              <button
+                type="button"
+                onClick={switchLanguage}
+                className="hidden sm:inline-block px-3 py-1 text-fl-2xs font-semibold uppercase tracking-[0.14em] rounded-fl-pill hover:bg-atelier-paper text-atelier-ink-2 hover:text-atelier-ink transition-all duration-fl-fast"
+                aria-label={
+                  language === "vi"
+                    ? "Switch language to English"
+                    : "Chuyển sang Tiếng Việt"
+                }
+                title="Switch language"
               >
-                {cartCount}
-              </span>
-            </Link>
+                {language === "vi" ? "ENGLISH" : "TIẾNG VIỆT"}
+              </button>
 
-            {isAuthenticated ? (
-              <div ref={avatarRef} className="relative hidden md:block">
-                <button
-                  type="button"
-                  onClick={() => setIsAvatarOpen(!isAvatarOpen)}
-                  aria-expanded={isAvatarOpen}
-                  aria-haspopup="menu"
-                  className="flex h-10 w-10 items-center justify-center rounded-control bg-atelier-accent text-fl-2xs font-medium text-atelier-accent-ink"
-                >
-                  {initials}
-                </button>
+              {/* Divider 1 */}
+              <div className="hidden sm:block w-[1px] h-3.5 bg-atelier-rule" />
 
-                {isAvatarOpen ? (
-                  <div
-                    role="menu"
-                    className="fl-panel-in absolute right-0 top-full mt-fl-2xs w-56 rounded-surface border border-atelier-rule bg-atelier-paper shadow-[0_8px_28px_rgb(0_0_0/0.10)]"
-                  >
-                    <div className="border-b border-atelier-rule px-fl-sm py-fl-xs">
-                      <p className="truncate text-fl-sm text-atelier-ink">
-                        {user?.name || user?.email}
-                      </p>
-                      <p className="truncate text-fl-xs text-atelier-ink-2">{user?.email}</p>
-                    </div>
-                    <div className="flex flex-col p-fl-3xs">
-                      <Link
-                        role="menuitem"
-                        href={localize("/profile")}
-                        onClick={() => setIsAvatarOpen(false)}
-                        className="flex min-h-11 items-center px-fl-xs text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 md:min-h-10"
-                      >
-                        {t.headerAccount}
-                      </Link>
-                      {userRole === "ADMIN" ? (
-                        <Link
-                          role="menuitem"
-                          href={localize("/admin")}
-                          onClick={() => setIsAvatarOpen(false)}
-                          className="flex min-h-11 items-center px-fl-xs text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 md:min-h-10"
-                        >
-                          Admin
-                        </Link>
-                      ) : null}
-                      <button
-                        role="menuitem"
-                        type="button"
-                        onClick={handleSignOut}
-                        className="flex min-h-11 items-center px-fl-xs text-left text-fl-sm text-atelier-danger transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 md:min-h-10"
-                      >
-                        {t.headerLogout}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            ) : (
+              {/* Cart */}
               <Link
-                href={localize("/login")}
+                href={localize("/cart")}
                 onClick={() => setMobileOpen(false)}
-                className="hidden min-h-10 items-center whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm text-atelier-accent-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-accent-hover md:inline-flex"
+                aria-label={t.headerCart}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-fl-pill hover:bg-atelier-paper text-atelier-ink transition-all duration-fl-fast text-fl-sm font-medium"
               >
-                {t.headerLogin}
+                <ShoppingCart className="h-4 w-4 text-atelier-ink" aria-hidden="true" />
+                <span className="hidden sm:inline text-fl-sm font-medium">{t.headerCart}</span>
+                <span
+                  className={cn(
+                    "flex items-center justify-center text-[0.6875rem] font-semibold",
+                    "bg-atelier-ink text-atelier-paper rounded-fl-pill min-w-4 h-4 px-1.5 shrink-0",
+                    cartCount > 0 && "bg-atelier-accent text-atelier-accent-ink",
+                  )}
+                  aria-hidden="true"
+                >
+                  {cartCount}
+                </span>
               </Link>
-            )}
 
+              {/* Account Avatar or Login */}
+              {isAuthenticated ? (
+                <>
+                  {/* Divider 2 */}
+                  <div className="hidden md:block w-[1px] h-3.5 bg-atelier-rule" />
+
+                  <div ref={avatarRef} className="hidden md:block relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsAvatarOpen(!isAvatarOpen)}
+                      aria-expanded={isAvatarOpen}
+                      aria-haspopup="menu"
+                      className="flex h-7 w-7 items-center justify-center rounded-fl-pill bg-atelier-accent text-fl-2xs font-semibold text-atelier-accent-ink transition-transform hover:scale-105 shadow-xs"
+                    >
+                      {initials}
+                    </button>
+
+                    {isAvatarOpen ? (
+                      <div
+                        role="menu"
+                        className="fl-panel-in absolute right-0 top-full mt-fl-2xs w-60 rounded-surface border border-atelier-rule bg-atelier-paper p-1 shadow-[0_12px_32px_rgb(0_0_0/0.12)] z-50"
+                      >
+                        <div className="border-b border-atelier-rule px-fl-sm py-fl-xs bg-atelier-paper-2/60 rounded-t-[1px]">
+                          <p className="truncate text-fl-sm font-medium text-atelier-ink">
+                            {user?.name || user?.email}
+                          </p>
+                          <p className="truncate text-fl-xs text-atelier-ink-2">{user?.email}</p>
+                        </div>
+                        <div className="flex flex-col py-1">
+                          <Link
+                            role="menuitem"
+                            href={localize("/profile")}
+                            onClick={() => setIsAvatarOpen(false)}
+                            className="flex min-h-10 items-center rounded-[2px] px-fl-xs text-fl-sm text-atelier-ink transition-colors duration-fl-fast hover:bg-atelier-paper-2"
+                          >
+                            {t.headerAccount}
+                          </Link>
+                          {userRole === "ADMIN" ? (
+                            <Link
+                              role="menuitem"
+                              href={localize("/admin")}
+                              onClick={() => setIsAvatarOpen(false)}
+                              className="flex min-h-10 items-center justify-between rounded-[2px] px-fl-xs text-fl-sm text-atelier-ink transition-colors duration-fl-fast hover:bg-atelier-paper-2"
+                            >
+                              <span>Admin</span>
+                              <span className="rounded-[2px] bg-atelier-accent/10 px-1.5 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wider text-atelier-accent">
+                                Admin
+                              </span>
+                            </Link>
+                          ) : null}
+                          <button
+                            role="menuitem"
+                            type="button"
+                            onClick={handleSignOut}
+                            className="flex min-h-10 items-center rounded-[2px] px-fl-xs text-left text-fl-sm text-atelier-danger transition-colors duration-fl-fast hover:bg-atelier-paper-2"
+                          >
+                            {t.headerLogout}
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Divider 2 for Login */}
+                  <div className="hidden md:block w-[1px] h-3.5 bg-atelier-rule" />
+
+                  <Link
+                    href={localize("/login")}
+                    onClick={() => setMobileOpen(false)}
+                    className="hidden md:inline-flex items-center whitespace-nowrap rounded-fl-pill bg-atelier-accent px-3.5 py-1 text-fl-xs font-semibold text-atelier-accent-ink transition-colors duration-fl-fast hover:bg-atelier-accent-hover shadow-xs"
+                  >
+                    {t.headerLogin}
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu Trigger Button */}
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-expanded={mobileOpen}
-              className="flex min-h-11 items-center whitespace-nowrap border-b border-atelier-ink text-fl-2xs uppercase tracking-[0.14em] text-atelier-ink xl:hidden"
+              className="flex min-h-10 items-center whitespace-nowrap rounded-fl-pill border border-atelier-rule bg-atelier-paper-2 px-3.5 py-1 text-fl-2xs uppercase tracking-[0.14em] font-semibold text-atelier-ink transition-colors xl:hidden hover:bg-atelier-paper"
             >
               {mobileOpen ? t.headerCloseMenu : t.headerMenu}
             </button>
           </div>
         </div>
 
-        {/* Scrim — dim only. design.md bans glassmorphism, so no backdrop blur. */}
+        {/* Scrim — dim only */}
         {openPanel ? (
           <div
             aria-hidden="true"
@@ -409,7 +447,7 @@ export default function Header() {
         ) : null}
       </header>
 
-      {/* Mobile sheet */}
+      {/* Mobile Drawer Overlay */}
       <AnimatePresence>
         {mobileOpen ? (
           <div className="fixed inset-0 z-40 flex flex-col justify-end p-fl-sm sm:justify-center sm:items-center">
@@ -423,35 +461,44 @@ export default function Header() {
             />
 
             <safeMotion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
               transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 flex w-full max-w-sm flex-col gap-fl-md rounded-surface border border-atelier-rule bg-atelier-paper p-fl-md text-left shadow-[0_12px_40px_rgb(0_0_0/0.16)]"
+              className="relative z-10 flex w-full max-w-sm flex-col gap-fl-md rounded-surface border border-atelier-rule bg-atelier-paper p-fl-md text-left shadow-[0_16px_48px_rgb(0_0_0/0.18)] overflow-hidden"
             >
+              {/* Decorative mini paint chart strip */}
+              <div aria-hidden="true" className="flex h-[3px] w-full -mt-fl-md -mx-fl-md w-[calc(100%+2*var(--fl-space-md))] rounded-t-[1px] overflow-hidden">
+                <span className="flex-1 bg-atelier-sage" />
+                <span className="flex-1 bg-atelier-clay" />
+                <span className="flex-1 bg-atelier-slate" />
+                <span className="flex-1 bg-atelier-ochre" />
+                <span className="flex-1 bg-atelier-espresso" />
+              </div>
+
               <div className="flex items-center justify-between border-b border-atelier-rule pb-fl-xs">
-                <span className="font-serif text-fl-lg tracking-[0.14em] text-atelier-ink">
+                <span className="font-serif text-fl-xl font-bold tracking-[0.2em] text-atelier-ink">
                   FLOF
                 </span>
                 <button
                   type="button"
                   onClick={() => setMobileOpen(false)}
                   aria-label={t.headerCloseMenu}
-                  className="flex h-11 w-11 items-center justify-center text-atelier-ink"
+                  className="flex h-9 w-9 items-center justify-center rounded-fl-pill bg-atelier-paper-2 text-atelier-ink transition-colors hover:bg-atelier-paper-3"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
 
               <nav aria-label={t.headerMenu}>
-                <ul className="flex flex-col">
+                <ul className="flex flex-col gap-1">
                   {NAV_LINKS.map((link) => {
                     const isActive =
                       routePath === link.href || routePath.startsWith(`${link.href}/`);
                     return (
                       <li
                         key={link.href}
-                        className="fl-nav-item group relative border-b border-atelier-rule"
+                        className="fl-nav-item group relative"
                         data-motion={link.motionId}
                       >
                         <Link
@@ -459,27 +506,34 @@ export default function Header() {
                           aria-current={isActive ? "page" : undefined}
                           onClick={() => setMobileOpen(false)}
                           className={cn(
-                            "flex min-h-11 items-center justify-between whitespace-nowrap text-fl-md",
-                            isActive ? "text-atelier-ink" : "text-atelier-ink-2",
+                            "flex min-h-11 items-center justify-between whitespace-nowrap rounded-fl-pill px-4 py-2 text-fl-md font-medium transition-all duration-fl-fast",
+                            isActive
+                              ? "bg-atelier-ink text-atelier-paper font-semibold"
+                              : "text-atelier-ink-2 hover:bg-atelier-paper-2 hover:text-atelier-ink",
                           )}
                         >
                           <span>{label(link)}</span>
+                          <span className={cn("text-fl-xs transition-transform group-hover:translate-x-1", isActive ? "text-atelier-paper/70" : "text-atelier-ink-3")}>
+                            ➔
+                          </span>
                         </Link>
-                        <NavSignature kind={link.motionId} active={isActive} />
                       </li>
                     );
                   })}
                 </ul>
               </nav>
 
-              <div className="flex flex-col gap-fl-2xs">
+              <div className="flex flex-col gap-fl-2xs border-t border-atelier-rule/70 pt-fl-xs">
                 {isAuthenticated ? (
                   <>
-                    <p className="fl-label">{user?.email}</p>
+                    <div className="rounded-[2px] bg-atelier-paper-2 p-fl-xs border border-atelier-rule">
+                      <p className="fl-label text-[0.62rem] text-atelier-ink-3 uppercase">Tài khoản</p>
+                      <p className="truncate text-fl-sm font-medium text-atelier-ink">{user?.email}</p>
+                    </div>
                     <Link
                       href={localize("/profile")}
                       onClick={() => setMobileOpen(false)}
-                      className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink"
+                      className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink hover:text-atelier-accent font-medium"
                     >
                       {t.headerAccount}
                     </Link>
@@ -487,15 +541,18 @@ export default function Header() {
                       <Link
                         href={localize("/admin")}
                         onClick={() => setMobileOpen(false)}
-                        className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink"
+                        className="flex min-h-11 items-center justify-between whitespace-nowrap text-fl-sm text-atelier-ink hover:text-atelier-accent font-medium"
                       >
-                        Admin
+                        <span>Admin</span>
+                        <span className="rounded-[2px] bg-atelier-accent/10 px-1.5 py-0.5 text-[0.62rem] font-semibold uppercase text-atelier-accent">
+                          Admin
+                        </span>
                       </Link>
                     ) : null}
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="flex min-h-11 items-center whitespace-nowrap text-left text-fl-sm text-atelier-danger"
+                      className="flex min-h-11 items-center whitespace-nowrap text-left text-fl-sm text-atelier-danger font-medium"
                     >
                       {t.headerLogout}
                     </button>
@@ -504,7 +561,7 @@ export default function Header() {
                   <Link
                     href={localize("/login")}
                     onClick={() => setMobileOpen(false)}
-                    className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm text-atelier-accent-ink"
+                    className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-fl-pill bg-atelier-accent px-fl-md text-fl-sm font-semibold text-atelier-accent-ink transition-colors hover:bg-atelier-accent-hover"
                   >
                     {t.headerLogin}
                   </Link>
@@ -516,14 +573,9 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={switchLanguage}
-                  className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink"
-                  aria-label={
-                    language === "vi"
-                      ? "Switch language to English"
-                      : "Chuyển ngôn ngữ sang Tiếng Việt"
-                  }
+                  className="px-3.5 py-1.5 bg-atelier-paper-2 hover:bg-atelier-paper-3 border border-atelier-rule rounded-fl-pill text-fl-2xs font-semibold text-atelier-ink transition-all uppercase tracking-wider"
                 >
-                  {language === "vi" ? "English" : "Tiếng Việt"}
+                  {language === "vi" ? "ENGLISH 🇬🇧" : "TIẾNG VIỆT 🇻🇳"}
                 </button>
               </div>
             </safeMotion.div>
@@ -589,12 +641,19 @@ function PanelPromo({
   onNavigate: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-fl-2xs border-l border-atelier-rule pl-fl-md">
-      <h3 className="font-serif text-fl-xl text-atelier-ink">{title}</h3>
-      <p className="fl-measure-tight text-fl-sm text-atelier-ink-2">{body}</p>
-      <TypographicLink href={href} onClick={onNavigate} className="mt-fl-2xs">
-        {cta}
-      </TypographicLink>
+    <div className="flex h-full flex-col justify-between rounded-surface border border-atelier-rule bg-atelier-paper-2/70 p-fl-md transition-colors hover:border-atelier-rule-strong">
+      <div className="flex flex-col gap-fl-xs">
+        <span className="fl-label text-[0.62rem] tracking-[0.18em] text-atelier-accent uppercase font-semibold">
+          Editorial Highlight
+        </span>
+        <h3 className="font-serif text-fl-xl font-medium leading-snug text-atelier-ink">{title}</h3>
+        <p className="fl-measure-tight text-fl-sm text-atelier-ink-2 leading-relaxed">{body}</p>
+      </div>
+      <div className="mt-fl-md pt-fl-xs border-t border-atelier-rule/60">
+        <TypographicLink href={href} onClick={onNavigate} className="text-fl-sm font-medium text-atelier-ink hover:text-atelier-accent">
+          {cta}
+        </TypographicLink>
+      </div>
     </div>
   );
 }
@@ -610,32 +669,37 @@ function ColourPanel({
 }) {
   return (
     <div className="grid grid-cols-12 gap-fl-lg">
-      <div className="col-span-8">
-        <p className="fl-label">{t.headerColourPanelTitle}</p>
-        <p className="fl-measure mt-fl-2xs text-fl-sm text-atelier-ink-2">
-          {t.headerColourPanelNote}
-        </p>
-        <ul className="mt-fl-md grid grid-cols-3 gap-x-fl-md">
-          {COLOR_FAMILIES.map((family) => (
-            <li key={family.value} className="border-b border-atelier-rule">
-              <Link
-                href={localize(`/colors?family=${family.value}`)}
-                onClick={onNavigate}
-                className="flex min-h-11 items-center gap-fl-xs whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent"
-              >
-                <ColorSwatch
-                  color={family.swatch}
-                  className="fl-swatch h-5 w-5 shrink-0 rounded-swatch"
-                />
-                {t[family.labelKey]}
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <div className="col-span-8 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-fl-xs">
+            <span className="fl-label">{t.headerColourPanelTitle}</span>
+            <span className="h-px flex-1 bg-atelier-rule" />
+          </div>
+          <p className="fl-measure mt-fl-2xs text-fl-sm text-atelier-ink-2">
+            {t.headerColourPanelNote}
+          </p>
+          <ul className="mt-fl-md grid grid-cols-3 gap-x-fl-md gap-y-fl-3xs">
+            {COLOR_FAMILIES.map((family) => (
+              <li key={family.value} className="group border-b border-atelier-rule/70 transition-colors hover:border-atelier-accent">
+                <Link
+                  href={localize(`/colors?family=${family.value}`)}
+                  onClick={onNavigate}
+                  className="flex min-h-11 items-center gap-fl-xs whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out group-hover:text-atelier-accent"
+                >
+                  <ColorSwatch
+                    color={family.swatch}
+                    className="fl-swatch h-5 w-5 shrink-0 rounded-swatch border border-black/10 transition-transform duration-fl-fast group-hover:scale-105"
+                  />
+                  <span className="font-medium">{t[family.labelKey]}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
         <TypographicLink
           href={localize("/colors")}
           onClick={onNavigate}
-          className="mt-fl-md"
+          className="mt-fl-md self-start"
         >
           {t.headerViewAllColours}
         </TypographicLink>
@@ -665,28 +729,34 @@ function ProductPanel({
 }) {
   return (
     <div className="grid grid-cols-12 gap-fl-lg">
-      <div className="col-span-8">
-        <p className="fl-label">{t.headerProductPanelTitle}</p>
-        <p className="fl-measure mt-fl-2xs text-fl-sm text-atelier-ink-2">
-          {t.headerProductPanelNote}
-        </p>
-        <ul className="mt-fl-md grid grid-cols-2 gap-x-fl-md">
-          {PRODUCT_CATEGORIES.map((category) => (
-            <li key={category.slug} className="border-b border-atelier-rule">
-              <Link
-                href={localize(`/products?category=${category.slug}`)}
-                onClick={onNavigate}
-                className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent"
-              >
-                {t[category.labelKey]}
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <div className="col-span-8 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-fl-xs">
+            <span className="fl-label">{t.headerProductPanelTitle}</span>
+            <span className="h-px flex-1 bg-atelier-rule" />
+          </div>
+          <p className="fl-measure mt-fl-2xs text-fl-sm text-atelier-ink-2">
+            {t.headerProductPanelNote}
+          </p>
+          <ul className="mt-fl-md grid grid-cols-2 gap-x-fl-lg gap-y-fl-2xs">
+            {PRODUCT_CATEGORIES.map((category) => (
+              <li key={category.slug} className="group border-b border-atelier-rule/70 transition-colors hover:border-atelier-accent">
+                <Link
+                  href={localize(`/products?category=${category.slug}`)}
+                  onClick={onNavigate}
+                  className="flex min-h-11 items-center justify-between whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast group-hover:text-atelier-accent"
+                >
+                  <span className="font-medium">{t[category.labelKey]}</span>
+                  <span className="text-fl-xs opacity-0 transition-opacity group-hover:opacity-100 text-atelier-accent">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
         <TypographicLink
           href={localize("/products")}
           onClick={onNavigate}
-          className="mt-fl-md"
+          className="mt-fl-md self-start"
         >
           {t.headerViewAllProducts}
         </TypographicLink>

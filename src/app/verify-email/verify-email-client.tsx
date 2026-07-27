@@ -1,8 +1,12 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Rule, TypographicLink } from "@/components/ui/editorial";
 
 type Status = "idle" | "verifying" | "verified" | "error";
 
@@ -70,44 +74,50 @@ export default function VerifyEmailClient({
   }
 
   return (
-    <main className="min-h-[70vh] bg-jotun-ivory px-4 py-16">
+    <main className="min-h-[70vh] w-full bg-atelier-paper py-fl-2xl text-atelier-ink">
+      {/* The form sits directly on paper — no card box, just a top rule. */}
       <section
         aria-live="polite"
-        className="mx-auto flex max-w-md flex-col gap-5 rounded-2xl border border-warm-200 bg-white p-8 text-center shadow-md"
+        className="mx-auto w-full max-w-sm px-[clamp(1rem,4vw,1.5rem)] text-left"
       >
-        <h1 className="font-serif text-2xl font-bold text-warm-900">
-          Xác minh email
-        </h1>
-        <p className="text-sm text-warm-600">{message}</p>
+        <Rule weight="strong" />
+        <h1 className="fl-display mt-fl-md text-fl-2xl">Xác minh email</h1>
+        <p
+          className={`mt-fl-2xs text-fl-sm ${
+            status === "error" ? "text-atelier-danger" : "text-atelier-ink-2"
+          }`}
+        >
+          {message}
+        </p>
 
         {status === "verified" ? (
-          <Link
-            href="/login"
-            className="rounded-xl bg-warm-900 px-5 py-3 text-sm font-bold text-white"
-          >
-            Đăng nhập
-          </Link>
+          <div className="mt-fl-md">
+            <TypographicLink href="/login" arrow="→">
+              Đăng nhập
+            </TypographicLink>
+          </div>
         ) : (
-          <>
-            <label className="text-left text-xs font-bold text-warm-700">
-              Email
-              <input
+          <div className="mt-fl-md flex flex-col gap-fl-sm">
+            <div className="flex flex-col gap-fl-2xs">
+              <Label htmlFor="verify-email-input">Email</Label>
+              <Input
+                id="verify-email-input"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-warm-200 px-3 py-2.5"
                 autoComplete="email"
               />
-            </label>
-            <button
+            </div>
+            <Button
               type="button"
               onClick={resend}
               disabled={resending || !email}
-              className="rounded-xl bg-warm-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
+              data-state={resending ? "loading" : undefined}
+              className="w-full"
             >
               {resending ? "Đang gửi..." : "Gửi lại liên kết"}
-            </button>
-          </>
+            </Button>
+          </div>
         )}
       </section>
     </main>

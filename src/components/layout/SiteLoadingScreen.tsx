@@ -1,9 +1,19 @@
+/* Hallmark · genre: editorial · macrostructure: n/a (shared chrome) · design-system: design.md · designed-as-app */
 "use client";
 
 import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import { useLanguageStore } from "@/store/language-store";
-import { Loader2 } from "@/components/ui/loader-2";
 
+/**
+ * Restyled to the atelier tokens — timing, visibility contract and the
+ * `fullscreen-loader` hook that globals.css keys its layout overrides off are
+ * unchanged.
+ *
+ * Dropped: the radial dot-grid overlay (design.md § Notes bans grain and
+ * decorative pattern fields), the Bromise wordmark (retired from public pages)
+ * and the three-shape loader triad, whose colours are hard-coded outside the
+ * token set. The hairline progress rule is now the only indicator.
+ */
 export function SiteLoadingScreen({
   visible = true,
   message,
@@ -24,28 +34,22 @@ export function SiteLoadingScreen({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fullscreen-loader fixed inset-0 z-[10000] flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-jotun-ivory px-6 text-center text-warm-900"
+          className="fullscreen-loader fixed inset-0 z-[10000] flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] text-center text-atelier-ink"
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40" />
           <safeMotion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22 }}
-            className="relative z-10 flex flex-col items-center gap-5"
+            className="relative z-10 flex flex-col items-center gap-fl-md"
           >
-            <div className="flex items-center gap-2">
-              <span className="font-bromise text-2xl font-bold uppercase tracking-[0.22em] text-warm-900">
-                FLOF
-              </span>
-            </div>
-            <Loader2 className="min-h-0 py-3" />
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-warm-500">
+            <span className="fl-display text-fl-2xl text-atelier-ink">FLOF</span>
+            <div className="flex flex-col items-center gap-fl-2xs">
+              <p className="fl-label">
                 {message || (language === "vi" ? "Đang chuẩn bị không gian..." : "Preparing your space...")}
               </p>
-              <div className="mx-auto h-0.5 w-28 overflow-hidden rounded-full bg-warm-200">
-                <span className="site-loader-progress block h-full w-1/2 rounded-full bg-jotun-teal" />
-              </div>
+              <span className="block h-0.5 w-28 overflow-hidden bg-atelier-rule">
+                <span className="site-loader-progress block h-full w-1/2 bg-atelier-accent" />
+              </span>
             </div>
           </safeMotion.div>
         </safeMotion.div>
@@ -53,4 +57,3 @@ export function SiteLoadingScreen({
     </AnimatePresence>
   );
 }
-

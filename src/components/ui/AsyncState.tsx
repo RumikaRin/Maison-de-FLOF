@@ -34,19 +34,20 @@ export function AsyncState({
       aria-live={status === "error" ? "assertive" : "polite"}
       aria-busy={status === "loading"}
       className={cn(
-        "mx-auto flex min-h-40 w-full max-w-2xl flex-col items-center justify-center rounded-2xl border border-warm-200 bg-white p-8 text-center shadow-sm",
+        // A recessed panel, not a floating one — no shadow (design.md § Shape).
+        "mx-auto flex min-h-40 w-full max-w-2xl flex-col items-center justify-center rounded-surface border border-atelier-rule bg-atelier-paper-2 p-fl-lg text-center",
         className,
       )}
     >
       {status === "loading" ? (
         <span
           aria-hidden="true"
-          className="mb-4 h-8 w-8 rounded-full border-2 border-warm-200 border-t-jotun-teal motion-safe:animate-spin"
+          className="mb-fl-sm h-8 w-8 rounded-swatch border-2 border-atelier-rule-strong border-t-atelier-accent motion-safe:animate-spin"
         />
       ) : null}
-      <h2 className="font-serif text-xl font-bold text-warm-900">{title}</h2>
+      <h2 className="fl-display text-fl-xl text-atelier-ink">{title}</h2>
       {description ? (
-        <p className="mt-2 max-w-lg text-sm leading-6 text-warm-600">
+        <p className="mt-fl-2xs max-w-lg text-fl-sm text-atelier-ink-2">
           {description}
         </p>
       ) : null}
@@ -55,7 +56,7 @@ export function AsyncState({
           ref={retryRef}
           type="button"
           onClick={onRetry}
-          className="mt-5 rounded-xl bg-warm-900 px-5 py-2.5 text-xs font-bold text-white outline-none hover:bg-warm-800 focus-visible:ring-2 focus-visible:ring-jotun-teal focus-visible:ring-offset-2"
+          className="mt-fl-md min-h-11 rounded-control border border-atelier-rule-strong bg-transparent px-fl-md py-fl-3xs text-fl-sm font-medium text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-3 active:bg-atelier-paper-3 md:min-h-10"
         >
           {retryLabel}
         </button>

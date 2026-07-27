@@ -1,3 +1,4 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 import VerifyEmailClient from "./verify-email-client";
 
 type VerifyEmailPageProps = {

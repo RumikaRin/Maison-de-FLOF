@@ -1,15 +1,17 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, getSession } from "next-auth/react";
-import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { toast } from "@/components/ui/csp-toast";
 import { useGoogleProviderAvailable } from "@/hooks/use-google-provider";
-
-
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Rule, TypographicLink } from "@/components/ui/editorial";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,6 +46,9 @@ export default function LoginPage() {
     });
 
     if (!result?.ok || result.error) {
+      // Reveal the code field on failure: an MFA-enrolled administrator has no
+      // other route to it. The label states it is only needed when 2FA is on,
+      // so this does not imply the code was the reason for *this* failure.
       setShowMfaChallenge(true);
       toast.error(
         language === "vi" ? "Email hoặc mật khẩu không chính xác." : "Incorrect email or password."
@@ -76,123 +81,129 @@ export default function LoginPage() {
     router.refresh();
   };
 
-
-
   return (
-    <div className="w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh] flex flex-col justify-center py-12">
-      <div className="bg-white border border-warm-200/80 p-8 rounded-2xl shadow-md flex flex-col gap-6 w-full max-w-md mx-auto text-left">
-        <div className="text-center flex flex-col items-center gap-2 mb-2">
-          <h2 className="text-2xl font-bold font-serif text-warm-900">{language === "vi" ? "Đăng Nhập FLOF" : "Login to FLOF"}</h2>
-          <p className="text-xs text-warm-500">
-            {language === "vi" ? "Chào mừng bạn quay trở lại với cửa hàng sơn nước trực tuyến." : "Welcome back to your premium paint supplier."}
-          </p>
-        </div>
+    <div className="min-h-[80vh] w-full bg-atelier-paper py-fl-2xl text-atelier-ink">
+      {/* The form sits directly on paper — no card box, just a top rule. */}
+      <div className="mx-auto w-full max-w-sm px-[clamp(1rem,4vw,1.5rem)] text-left">
+        <Rule weight="strong" />
+        <h1 className="fl-display mt-fl-md text-fl-2xl">
+          {language === "vi" ? "Đăng nhập" : "Sign in"}
+        </h1>
+        <p className="mt-fl-2xs text-fl-sm text-atelier-ink-2">
+          {language === "vi" ? "Chào mừng bạn quay trở lại với cửa hàng sơn nước trực tuyến." : "Welcome back to your premium paint supplier."}
+        </p>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="login-email" className="text-[10px] font-bold uppercase text-warm-450">Email</label>
-            <input
+        <form onSubmit={handleLogin} className="mt-fl-md flex flex-col gap-fl-sm">
+          <div className="flex flex-col gap-fl-2xs">
+            <Label htmlFor="login-email">Email</Label>
+            <Input
               id="login-email"
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              className="px-3.5 py-2.5 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all text-warm-800"
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor="login-password" className="text-[10px] font-bold uppercase text-warm-450">
-              {language === "vi" ? "Mật khẩu" : "Password"}
-            </label>
-            <div className="relative">
-              <input
-                id="login-password"
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••"
-                className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-warm-200 bg-white text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all text-warm-800"
-              />
+          <div className="flex flex-col gap-fl-2xs">
+            <div className="flex items-baseline justify-between gap-fl-sm">
+              <Label htmlFor="login-password">
+                {language === "vi" ? "Mật khẩu" : "Password"}
+              </Label>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-1 top-1/2 min-h-11 min-w-11 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-jotun-teal hover:text-warm-850"
+                className="whitespace-nowrap text-fl-xs text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink"
               >
-                {showPassword ? (language === "vi" ? "[Ẩn]" : "[Hide]") : (language === "vi" ? "[Hiện]" : "[Show]")}
+                {showPassword ? (language === "vi" ? "Ẩn mật khẩu" : "Hide password") : (language === "vi" ? "Hiện mật khẩu" : "Show password")}
               </button>
             </div>
+            <Input
+              id="login-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••"
+            />
           </div>
 
-          <div className="flex justify-end -mt-1">
-            <Link
-              href="/forgot-password"
-              className="text-[10px] font-bold text-jotun-teal hover:underline uppercase tracking-wide"
-            >
+          <div className="flex justify-end">
+            <TypographicLink href="/forgot-password" arrow="→">
               {language === "vi" ? "Quên mật khẩu?" : "Forgot password?"}
-            </Link>
+            </TypographicLink>
           </div>
+
+          {!showMfaChallenge && (
+            <button
+              type="button"
+              onClick={() => setShowMfaChallenge(true)}
+              className="min-h-11 self-start whitespace-nowrap text-fl-xs text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink md:min-h-6"
+            >
+              {language === "vi"
+                ? "Tài khoản có xác thực hai lớp?"
+                : "Account uses two-factor authentication?"}
+            </button>
+          )}
 
           {showMfaChallenge && (
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="login-mfa-code"
-                className="text-[10px] font-bold uppercase text-warm-450"
-              >
+            <div className="flex flex-col gap-fl-2xs">
+              <Label htmlFor="login-mfa-code">
                 {language === "vi"
-                  ? "Mã xác thực (nếu đã bật)"
-                  : "Authentication code (if enabled)"}
-              </label>
-              <input
+                  ? "Mã xác thực hai lớp (chỉ khi tài khoản đã bật)"
+                  : "Two-factor code (only if your account has it enabled)"}
+              </Label>
+              <Input
                 id="login-mfa-code"
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={mfaCode}
                 onChange={(event) => setMfaCode(event.target.value)}
-                className="rounded-xl border border-warm-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-warm-800 focus:border-jotun-teal focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30"
+                className="font-mono"
               />
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-warm-900 text-white font-bold py-3.5 rounded-xl hover:bg-warm-800 disabled:bg-warm-200 transition-colors shadow-xs flex items-center justify-center gap-2 text-xs mt-2"
+            data-state={isLoading ? "loading" : undefined}
+            className="mt-fl-2xs w-full"
           >
             {isLoading ? (language === "vi" ? "Đang xử lý..." : "Processing...") : t.navLogin}
-          </button>
+          </Button>
         </form>
 
         {googleAvailable ? (
           <>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-warm-200"></span>
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
-                <span className="bg-white px-2 text-warm-450">{language === "vi" ? "Hoặc tiếp tục với" : "Or continue with"}</span>
-              </div>
+            <div className="mt-fl-md flex items-center gap-fl-sm">
+              <Rule className="flex-1" />
+              <span className="fl-label">{language === "vi" ? "Hoặc tiếp tục với" : "Or continue with"}</span>
+              <Rule className="flex-1" />
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => signIn("google", { callbackUrl: "/profile" })}
-              className="w-full bg-white border border-warm-200 text-warm-800 font-bold py-3.5 rounded-xl hover:bg-warm-50 transition-colors shadow-xs flex items-center justify-center gap-2 text-xs"
+              className="mt-fl-md w-full"
             >
-              <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 19">
+              <svg className="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 19">
                 <path fillRule="evenodd" d="M8.842 18.083a8.8 8.8 0 0 1-8.65-8.948 8.841 8.841 0 0 1 8.8-8.652h.153a8.439 8.439 0 0 1 5.7 2.257l-2.193 2.038A5.27 5.27 0 0 0 9.09 3.4a5.882 5.882 0 0 0-.2 11.76h.124a5.091 5.091 0 0 0 5.248-4.057L14.3 11H9V8h8.34c.066.543.095 1.09.088 1.636-.086 5.053-3.463 8.449-8.4 8.449l-.186-.002Z" clipRule="evenodd"/>
               </svg>
               Google
-            </button>
+            </Button>
           </>
         ) : null}
-        <div className="text-center text-xs text-warm-550">
-          <span>{language === "vi" ? "Chưa có tài khoản?" : "Don't have an account?"}</span>{" "}
-          <Link href="/register" className="text-jotun-teal font-bold hover:underline">
+
+        <div className="mt-fl-md flex flex-wrap items-baseline gap-x-fl-2xs text-fl-sm text-atelier-ink-2">
+          <span>{language === "vi" ? "Chưa có tài khoản?" : "Don't have an account?"}</span>
+          <TypographicLink href="/register" arrow="→">
             {language === "vi" ? "Đăng ký ngay" : "Register here"}
-          </Link>
+          </TypographicLink>
         </div>
       </div>
     </div>

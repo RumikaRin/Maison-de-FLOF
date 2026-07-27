@@ -1,9 +1,14 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
 import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Rule } from "@/components/ui/editorial";
 
 export function PrivacyTab({ language }: { language: string }) {
   const [confirmation, setConfirmation] = useState("");
@@ -51,76 +56,80 @@ export function PrivacyTab({ language }: { language: string }) {
   }
 
   return (
-    <section className="space-y-6 rounded-2xl border border-warm-200 bg-white p-6 shadow-sm">
-      <div>
-        <h2 className="text-xl font-bold text-warm-950">
-          {language === "vi" ? "Dữ liệu & quyền riêng tư" : "Data & privacy"}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-warm-700">
-          {language === "vi"
-            ? "Tải bản sao dữ liệu thuộc tài khoản này hoặc yêu cầu ẩn danh tài khoản."
-            : "Download a copy of this account's data or permanently anonymize the account."}
-        </p>
-      </div>
+    <section className="text-left">
+      <h2 className="fl-display text-fl-xl">
+        {language === "vi" ? "Dữ liệu & quyền riêng tư" : "Data & privacy"}
+      </h2>
+      <Rule weight="strong" className="mt-fl-xs" />
+      <p className="fl-measure mt-fl-xs text-fl-sm leading-relaxed text-atelier-ink-2">
+        {language === "vi"
+          ? "Tải bản sao dữ liệu thuộc tài khoản này hoặc yêu cầu ẩn danh tài khoản."
+          : "Download a copy of this account's data or permanently anonymize the account."}
+      </p>
 
-      <div className="rounded-2xl border border-warm-200 bg-warm-50 p-5">
-        <h3 className="font-bold text-warm-900">
+      {/* Export */}
+      <div className="mt-fl-lg">
+        <h3 className="text-fl-md font-medium text-atelier-ink">
           {language === "vi" ? "Xuất dữ liệu" : "Export data"}
         </h3>
-        <p className="mt-1 text-xs leading-5 text-warm-700">
+        <p className="fl-measure mt-fl-3xs text-fl-sm text-atelier-ink-2">
           {language === "vi"
             ? "Tệp JSON chỉ chứa dữ liệu của bạn và không chứa mật khẩu hoặc token."
             : "The JSON archive contains only your data and excludes passwords and tokens."}
         </p>
-        <a
-          href="/api/profile/data-export"
-          download
-          className="mt-4 inline-flex rounded-xl bg-warm-900 px-4 py-3 text-xs font-bold text-white hover:bg-warm-800"
-        >
-          {language === "vi" ? "Tải dữ liệu của tôi" : "Download my data"}
-        </a>
+        <Button asChild variant="outline" className="mt-fl-sm">
+          <a href="/api/profile/data-export" download>
+            {language === "vi" ? "Tải dữ liệu của tôi" : "Download my data"}
+          </a>
+        </Button>
       </div>
 
-      <form
-        onSubmit={deleteAccount}
-        className="rounded-2xl border border-red-200 bg-red-50 p-5"
-      >
-        <h3 className="font-bold text-red-950">
+      <Rule className="mt-fl-lg" />
+
+      {/* Delete — destructive, confirmed by typing */}
+      <form onSubmit={deleteAccount} className="mt-fl-lg">
+        <h3 className="text-fl-md font-medium text-atelier-danger">
           {language === "vi" ? "Xóa tài khoản" : "Delete account"}
         </h3>
-        <p className="mt-1 text-xs leading-5 text-red-900">
+        <p className="fl-measure mt-fl-3xs text-fl-sm leading-relaxed text-atelier-ink-2">
           {language === "vi"
             ? "Hành động này thu hồi mọi phiên, xóa dữ liệu cá nhân và không thể hoàn tác. Dữ liệu đơn hàng bắt buộc sẽ được giữ ở dạng ẩn danh."
             : "This revokes every session and removes personal data. Required order records remain anonymized, and the action cannot be undone."}
         </p>
-        <div className="mt-4 grid gap-3">
-          <label className="text-xs font-semibold text-red-950">
-            {language === "vi"
-              ? "Nhập DELETE để xác nhận"
-              : "Type DELETE to confirm"}
-            <input
+        <div className="mt-fl-sm grid max-w-md gap-fl-sm">
+          <div className="flex flex-col gap-fl-2xs">
+            <Label htmlFor="privacy-delete-confirmation">
+              {language === "vi"
+                ? "Nhập DELETE để xác nhận"
+                : "Type DELETE to confirm"}
+            </Label>
+            <Input
+              id="privacy-delete-confirmation"
               value={confirmation}
               onChange={(event) => setConfirmation(event.target.value)}
-              className="mt-1 block h-10 w-full rounded-xl border border-red-200 bg-white px-3 text-sm"
               autoComplete="off"
             />
-          </label>
-          <label className="text-xs font-semibold text-red-950">
-            {language === "vi"
-              ? "Mật khẩu hiện tại (nếu có)"
-              : "Current password (if applicable)"}
-            <input
+          </div>
+          <div className="flex flex-col gap-fl-2xs">
+            <Label htmlFor="privacy-delete-password">
+              {language === "vi"
+                ? "Mật khẩu hiện tại (nếu có)"
+                : "Current password (if applicable)"}
+            </Label>
+            <Input
+              id="privacy-delete-password"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="mt-1 block h-10 w-full rounded-xl border border-red-200 bg-white px-3 text-sm"
               autoComplete="current-password"
             />
-          </label>
-          <button
+          </div>
+          <Button
             type="submit"
+            variant="destructive"
             disabled={confirmation !== "DELETE" || deleting}
-            className="rounded-xl bg-red-700 px-4 py-3 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-40"
+            data-state={deleting ? "loading" : undefined}
+            className="justify-self-start"
           >
             {deleting
               ? language === "vi"
@@ -129,7 +138,7 @@ export function PrivacyTab({ language }: { language: string }) {
               : language === "vi"
                 ? "Ẩn danh và xóa tài khoản"
                 : "Anonymize and delete account"}
-          </button>
+          </Button>
         </div>
       </form>
     </section>

@@ -39,7 +39,14 @@ export function useLocaleNavigation() {
   }, [pathname, router, setLanguage, urlLocale]);
 
   return {
-    language,
+    // The URL is the authoritative locale, not the store. Middleware redirects
+    // every request to a locale-prefixed path, so `urlLocale` is known during
+    // SSR; the store only settles after hydration. Returning the store value
+    // here rendered Vietnamese labels into the server HTML for `/en` and threw
+    // React hydration error #418 on every page load.
+    language: urlLocale,
+    /** The persisted preference. Only useful for the toggle's own state. */
+    storedLanguage: language,
     pathname,
     routePath,
     localize,

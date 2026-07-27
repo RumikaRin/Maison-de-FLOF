@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { stripLocalePrefix } from "@/lib/locale";
 import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import { Facebook, MessageCircle, Send, X, User as UserIcon } from "lucide-react";
 import { toast } from "@/components/ui/csp-toast";
@@ -123,7 +124,8 @@ export function ChatBubble() {
     }
   };
 
-  if (pathname?.startsWith("/admin")) return null;
+  // Locale-aware: the raw path is `/vi/admin/...`, so strip the prefix first.
+  if (stripLocalePrefix(pathname || "/").pathname.startsWith("/admin")) return null;
 
   return (
     <div className="fixed bottom-5 right-4 z-[70] flex flex-col items-end gap-3 sm:bottom-7 sm:right-7">

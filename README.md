@@ -53,13 +53,17 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 - **Bộ phối màu thông minh (Color Visualizer)**: 
   - Xem trực quan các màu sơn trên 4 không gian phòng mẫu: Phòng khách (Living Room), Phòng ngủ (Bedroom), Phòng bếp (Kitchen), Mặt tiền (Facade).
   - Thay đổi màu sơn tức thì, lưu màu yêu thích.
+  - **Lưu thiết kế phối màu** vào tài khoản (đặt tên, mở lại, xoá) — bảng màu được gắn với phòng mẫu và tồn tại qua nhiều phiên/thiết bị.
   - Gửi biểu mẫu đăng ký tư vấn phối màu tại nhà/đại lý.
 - **Tìm kiếm đại lý (Find Dealer)**: Tìm kiếm các cửa hàng phân phối ủy quyền theo Tỉnh/Thành phố và Quận/Huyện, hiển thị trực quan bằng bản đồ tương tác sử dụng MapLibre GL.
-- **Giỏ hàng & Thanh toán (Cart & Checkout)**: Quản lý giỏ hàng cục bộ thông qua Zustand, áp dụng mã giảm giá, đặt hàng trực tuyến với hình thức COD hoặc thanh toán qua cổng VNPay (với cơ chế idempotency chống trùng đơn).
+- **Giỏ hàng & Thanh toán (Cart & Checkout)**: Giỏ hàng Zustand lưu cục bộ cho khách vãng lai và **đồng bộ đa thiết bị** khi đăng nhập (hợp nhất union giỏ khách với giỏ server, cộng dồn số lượng, tự loại sản phẩm đã gỡ bán); áp dụng mã giảm giá, đặt hàng trực tuyến với hình thức COD hoặc thanh toán qua cổng VNPay (với cơ chế idempotency chống trùng đơn).
 - **Hồ sơ cá nhân (Profile)**: Quản lý thông tin, lịch sử đơn hàng, xem trạng thái đơn hàng và lưu danh sách màu sơn/sản phẩm yêu thích.
 - **Đánh giá sản phẩm (Reviews)**: Khách hàng đánh giá & bình luận sản phẩm đã mua.
 - **Blog & Tin tức**: Xem các bài viết về mẹo phối màu, xu hướng thiết kế nội thất.
 - **Yêu cầu báo giá (Quote Request)**: Gửi yêu cầu báo giá công trình lớn/dự án.
+- **Đăng ký nhận tin (Newsletter)**: Form ở footer lưu subscriber vào DB (`NewsletterSubscriber`) qua `POST /api/newsletter`, chống trùng (idempotent theo email) và có rate-limit riêng. Mỗi bản ghi sinh sẵn `unsubscribeToken` để làm nền cho link hủy đăng ký một chạm — endpoint tiêu thụ token này **chưa được dựng** (xem mục Hạng mục chưa hoàn thiện).
+- **Trang pháp lý (Legal)**: Chính sách bảo mật, Điều khoản dịch vụ, Chính sách cookie (`/privacy-policy`, `/terms-of-service`, `/cookie-policy`).
+- **Liên kết mạng xã hội**: Facebook/Instagram/YouTube/Zalo ở footer, cấu hình qua biến `NEXT_PUBLIC_SOCIAL_*` (ẩn khi để trống).
 - **Chat trực tuyến (Chat Bubble)**: Widget chat hỗ trợ khách hàng tích hợp trên mọi trang.
 - **Đa ngôn ngữ (i18n)**: Hỗ trợ chuyển đổi Tiếng Việt / English.
 
@@ -68,7 +72,7 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 - Giao diện công khai dùng tiền tố ngôn ngữ chuẩn: `/vi/...` và `/en/...`; URL không có tiền tố được chuyển hướng theo cookie, mặc định là Tiếng Việt.
 - API, callback xác thực, asset tĩnh, `robots.txt` và `sitemap.xml` không dùng tiền tố ngôn ngữ.
 - Nút đổi ngôn ngữ giữ nguyên trang hiện tại, đồng bộ URL, cookie, thuộc tính `html[lang]` và Zustand store.
-- Giỏ hàng hiện được lưu cục bộ trên từng trình duyệt/thiết bị cho phạm vi demo. Đồng bộ giỏ hàng đa thiết bị cần một quyết định sản phẩm và data model riêng, không được ngầm suy diễn từ session đăng nhập.
+- Giỏ hàng của khách vãng lai được lưu cục bộ (Zustand + LocalStorage). Khi đăng nhập, `CartSync` **hợp nhất** giỏ cục bộ với giỏ server (`CartItem`) theo phép union — cộng dồn số lượng cùng `(paint, colorCode)`, giữ mọi món của cả hai bên, tự loại sản phẩm đã gỡ bán — rồi đẩy mọi thay đổi lên server (debounce). Đăng xuất thì giữ nguyên giỏ cục bộ. Endpoint: `GET/PUT /api/cart`, `POST /api/cart/merge`.
 
 ### 2. Hệ Thống Quản Trị (Admin Portal)
 Đường dẫn truy cập: `/admin` (Yêu cầu tài khoản có quyền ADMIN hoặc STAFF)
@@ -123,7 +127,7 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 │   │   │   ├── paints/      # Quản lý sản phẩm sơn
 │   │   │   ├── quotes/      # Quản lý yêu cầu báo giá
 │   │   │   └── reviews/     # Quản lý đánh giá sản phẩm
-│   │   ├── api/             # API Routes (52 route handlers)
+│   │   ├── api/             # API Routes (67 route handlers)
 │   │   │   ├── admin/       # Admin API (CRUD resources)
 │   │   │   ├── auth/        # NextAuth.js authentication
 │   │   │   ├── blog/        # Blog API
@@ -196,7 +200,7 @@ Dự án cung cấp trải nghiệm số hóa toàn diện từ việc xem sản
 │   │   ├── session-provider.tsx # NextAuth.js Session
 │   │   └── theme-provider.tsx   # next-themes (Light/Dark mode)
 │   ├── store/               # Zustand global state
-│   │   ├── cart-store.ts    # Giỏ hàng (persist LocalStorage)
+│   │   ├── cart-store.ts    # Giỏ hàng (persist LocalStorage + đồng bộ server qua CartSync)
 │   │   └── language-store.ts # Chuyển đổi ngôn ngữ VI/EN
 │   ├── types/               # TypeScript type definitions
 │   │   ├── index.ts         # Shared types & interfaces
@@ -287,7 +291,7 @@ Trên Vercel, cấu hình đầy đủ `DATABASE_URL`, `AUTH_SECRET`, Cloudinary
 Tài liệu vận hành và dữ liệu:
 
 - `docs/deployment-runbook.md`: checklist release, migration, cron, smoke test, rollback và monitoring.
-- `docs/erd.md`: ERD hiện tại sinh theo 32 model trong Prisma schema.
+- `docs/erd.md`: ERD hiện tại sinh theo 38 model trong Prisma schema.
 
 ---
 
@@ -319,6 +323,32 @@ Sau khi chạy lệnh `seed` thành công, bạn có thể đăng nhập bằng 
 | **Nhân viên (STAFF)** | `staff@sonvn.com` | `staff123` | Xem đơn hàng, quản lý sản phẩm và xử lý thông tin yêu cầu tư vấn phối màu. |
 | **Khách hàng (CUSTOMER)** | `customer1@sonvn.com` | `customer123` | Đặt mua sản phẩm, gửi yêu cầu báo giá dự án, quản lý giỏ hàng & lịch sử đơn hàng. |
 
+> **Nếu không đăng nhập được, kiểm tra hai điều sau:**
+>
+> 1. **Chạy lại `npm run db:seed`.** Các bản seed cũ tạo tài khoản mà không đặt
+>    `emailVerified`, và ADMIN / STAFF bị chặn đăng nhập khi email chưa xác minh.
+>    Lệnh seed hiện đã đóng dấu xác minh cho cả ba tài khoản trên, kể cả khi
+>    tài khoản đã tồn tại từ trước.
+>
+>    Muốn xem chính xác vì sao một tài khoản không đăng nhập được:
+>    ```bash
+>    npm run check:account -- admin@sonvn.com admin123
+>    ```
+>    Nếu chỉ muốn vá đúng một tài khoản mà không seed lại toàn bộ catalog:
+>    ```bash
+>    npm run check:account -- admin@sonvn.com --fix
+>    ```
+> 2. **Nếu đang chạy bản production build** (`npm run build && npm run start`):
+>    rate limiter chuyển sang chế độ *fail-closed*, nên khi thiếu
+>    `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` thì **mọi** request
+>    đăng nhập trả về `503 SERVICE_UNAVAILABLE` trước khi kiểm tra mật khẩu.
+>    Đây là hành vi bảo mật có chủ đích. Khi phát triển cục bộ hãy dùng
+>    `npm run dev` (rate limiter dùng bộ nhớ trong), hoặc cấu hình Upstash.
+>
+> Lưu ý về xác minh email: khách hàng **không bắt buộc** xác minh — đăng ký xong
+> là đăng nhập được luôn, và có thể xác minh sau tại *Hồ sơ → Xác minh email*.
+> Riêng ADMIN / STAFF thì bắt buộc phải có email đã xác minh.
+
 ---
 
 ## 🔒 Bảo Mật (Security)
@@ -330,5 +360,17 @@ Sau khi chạy lệnh `seed` thành công, bạn có thể đăng nhập bằng 
 - **Audit Logging**: Ghi nhận đầy đủ hành động quản trị (ai làm gì, lúc nào, dữ liệu trước/sau).
 - **Password Hashing**: bcryptjs với salt rounds = 12.
 - **Production Seed Guard**: Chặn seed trên production trừ khi có biến `ALLOW_PRODUCTION_SEED=true`.
+
+---
+
+## 🚧 Hạng Mục Chưa Hoàn Thiện (Known Gaps)
+
+Cập nhật 26/07/2026. Toàn bộ luồng mua–bán, thanh toán, quản trị đã chạy và có test; các mục dưới đây là phần *mở rộng* còn để ngỏ, không chặn phát hành:
+
+1. **Hoàn tiền tự động qua cổng thanh toán.** Hành động REFUND trong Admin → Payments hiện là **ghi sổ thủ công** — đổi trạng thái `REFUNDED` và lưu `refundCode` / `refundedBy` / `refundedAt`, nhưng **không gọi API hoàn tiền** của VNPay (`vnp_Command=refund`) hay ngân hàng. Nhân viên phải hoàn tiền ngoài hệ thống rồi nhập mã đối soát. Cần tự động hóa nếu muốn hoàn tiền một chạm.
+2. **Endpoint hủy đăng ký newsletter.** `NewsletterSubscriber.unsubscribeToken` đã được sinh và lưu, nhưng chưa có route (ví dụ `GET /api/newsletter/unsubscribe?token=...`) để người dùng tự hủy. Hiện chỉ hủy được bằng thao tác thủ công trên DB.
+3. **Connection pooling cho `DATABASE_URL`.** Chưa cấu hình `connection_limit` / pgbouncer. Với Prisma trên môi trường serverless, khi tải cao có thể chạm trần kết nối của Postgres. Nên thêm tham số pool (hoặc dùng Neon pooled endpoint) trước khi mở lưu lượng lớn.
+
+Mọi mutation "nóng" (trừ/cộng tồn kho, dùng coupon, hủy/thanh toán đơn) đều dùng cập nhật có điều kiện atomic (`updateMany` với guard trạng thái), nên **không oversell và không sập khi nhiều người thao tác đồng thời** — xem `docs/superpowers/plans/2026-07-26-flof-backend-audit.md`.
 
 ---

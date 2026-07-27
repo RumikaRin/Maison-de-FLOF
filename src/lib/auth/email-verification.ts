@@ -8,6 +8,30 @@ export function isCredentialEmailVerified(
   return value instanceof Date && Number.isFinite(value.getTime());
 }
 
+/**
+ * Roles that may not sign in until their address is verified.
+ *
+ * Customers are deliberately excluded: verification is a trust signal for
+ * their own account recovery, not a gate on browsing or buying, so they can
+ * skip it at sign-up and complete it later from profile settings. Privileged
+ * roles keep the hard gate — an unverified address on an account that can
+ * reach the admin surface is a takeover risk, not an inconvenience.
+ */
+const ROLES_REQUIRING_VERIFIED_EMAIL = new Set(["ADMIN", "STAFF"]);
+
+export function requiresVerifiedEmailForLogin(roleType: string): boolean {
+  return ROLES_REQUIRING_VERIFIED_EMAIL.has(roleType);
+}
+
+/** Whether this account is allowed to sign in with credentials right now. */
+export function canSignInWithCredentials(input: {
+  roleType: string;
+  emailVerified: Date | null | undefined;
+}): boolean {
+  if (!requiresVerifiedEmailForLogin(input.roleType)) return true;
+  return isCredentialEmailVerified(input.emailVerified);
+}
+
 type VerificationTokenWhere = {
   identifier_token: { identifier: string; token: string };
 };

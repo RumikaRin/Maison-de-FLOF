@@ -1,9 +1,12 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "@/components/ui/csp-toast";
 import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { AsyncState } from "@/components/ui/AsyncState";
+import { Button } from "@/components/ui/button";
+import { Rule } from "@/components/ui/editorial";
 
 type AuthSessionItem = {
   id: string;
@@ -75,36 +78,37 @@ export function SessionsTab({ language }: { language: string }) {
   }
 
   return (
-    <section className="rounded-2xl border border-warm-200 bg-white p-5 shadow-sm sm:p-7">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="font-serif text-xl font-bold text-warm-900">
-            {language === "vi" ? "Phiên đăng nhập" : "Signed-in sessions"}
-          </h2>
-          <p className="mt-1 text-xs text-warm-500">
-            {language === "vi"
-              ? "Thu hồi quyền truy cập trên thiết bị bạn không còn sử dụng."
-              : "Revoke access from devices you no longer use."}
-          </p>
-        </div>
-        <button
+    <section className="text-left">
+      <div className="flex flex-wrap items-end justify-between gap-fl-sm">
+        <h2 className="fl-display text-fl-xl">
+          {language === "vi" ? "Phiên đăng nhập" : "Signed-in sessions"}
+        </h2>
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => revoke({ allOthers: true })}
           disabled={
             revoking !== null ||
             sessions.filter((session) => !session.current).length === 0
           }
-          className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-700 disabled:opacity-50"
+          data-state={revoking === "all-others" ? "loading" : undefined}
         >
           {language === "vi" ? "Thu hồi tất cả phiên khác" : "Revoke all others"}
-        </button>
+        </Button>
       </div>
+      <Rule weight="strong" className="mt-fl-xs" />
+      <p className="mt-fl-xs text-fl-sm text-atelier-ink-2">
+        {language === "vi"
+          ? "Thu hồi quyền truy cập trên thiết bị bạn không còn sử dụng."
+          : "Revoke access from devices you no longer use."}
+      </p>
 
       {status === "loading" ? (
         <AsyncState
           status="loading"
           title={language === "vi" ? "Đang tải phiên…" : "Loading sessions…"}
-          className="mt-6 min-h-40 border-0 bg-warm-50 shadow-none"
+          className="mt-6 min-h-40 border-0 bg-atelier-paper-2 shadow-none"
         />
       ) : status === "error" ? (
         <AsyncState
@@ -116,23 +120,23 @@ export function SessionsTab({ language }: { language: string }) {
           }
           retryLabel={language === "vi" ? "Thử lại" : "Retry"}
           onRetry={() => void loadSessions()}
-          className="mt-6 min-h-40 border-0 bg-warm-50 shadow-none"
+          className="mt-6 min-h-40 border-0 bg-atelier-paper-2 shadow-none"
         />
       ) : sessions.length === 0 ? (
         <AsyncState
           status="empty"
           title={language === "vi" ? "Không có phiên hoạt động" : "No active sessions"}
-          className="mt-6 min-h-40 border-0 bg-warm-50 shadow-none"
+          className="mt-6 min-h-40 border-0 bg-atelier-paper-2 shadow-none"
         />
       ) : (
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-fl-sm">
           {sessions.map((session) => (
             <li
               key={session.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warm-100 p-4"
+              className="flex flex-wrap items-center justify-between gap-fl-sm border-b border-atelier-rule py-fl-xs"
             >
-              <div className="text-xs text-warm-600">
-                <p className="font-bold text-warm-900">
+              <div className="text-fl-sm text-atelier-ink-2">
+                <p className="font-medium text-atelier-ink">
                   {session.current
                     ? language === "vi"
                       ? "Phiên hiện tại"
@@ -141,7 +145,7 @@ export function SessionsTab({ language }: { language: string }) {
                       ? "Phiên khác"
                       : "Other session"}
                 </p>
-                <p>
+                <p className="tabular-nums">
                   {language === "vi" ? "Hoạt động gần nhất" : "Last active"}:{" "}
                   {new Date(session.lastSeenAt).toLocaleString(
                     language === "vi" ? "vi-VN" : "en-US",
@@ -153,7 +157,7 @@ export function SessionsTab({ language }: { language: string }) {
                   type="button"
                   onClick={() => revoke({ id: session.id })}
                   disabled={revoking !== null}
-                  className="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700 disabled:opacity-50"
+                  className="min-h-11 whitespace-nowrap text-fl-xs font-medium text-atelier-danger underline decoration-1 underline-offset-4 transition-opacity duration-fl-fast ease-fl-out hover:opacity-80 disabled:opacity-45 md:min-h-6"
                 >
                   {language === "vi" ? "Thu hồi" : "Revoke"}
                 </button>

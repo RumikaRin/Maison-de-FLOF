@@ -17,6 +17,10 @@ export function ColorSwatch({
     <svg
       aria-hidden="true"
       viewBox="0 0 100 100"
+      // A flat colour has no aspect ratio to protect. Without this the square
+      // rect is letterboxed inside non-square swatches, so the sample only
+      // paints part of its own frame.
+      preserveAspectRatio="none"
       className={cn("overflow-hidden", className)}
     >
       <rect

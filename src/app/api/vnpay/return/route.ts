@@ -9,7 +9,10 @@ export async function GET(request: NextRequest) {
   try {
     const result = paymentService.verifyReturn(query);
 
-    if (result.isSuccess && result.orderId) {
+    // Only a signature-verified, successful callback may transition the order.
+    // A forged return URL (valid orderId, vnp_ResponseCode=00, wrong/absent
+    // signature) must never mark a payment paid.
+    if (result.isVerified && result.isSuccess && result.orderId) {
       // Same verification path as IPN: amount check + idempotent PAID + auto CONFIRMED.
       // IPN remains the primary source of truth; return improves UX when IPN is delayed.
       await markPaymentPaidAndConfirmOrder({
@@ -25,7 +28,10 @@ export async function GET(request: NextRequest) {
     if (result.orderId) {
       redirectUrl.searchParams.set("orderId", result.orderId);
     }
-    redirectUrl.searchParams.set("vnpay_status", result.isSuccess ? "success" : "failed");
+    redirectUrl.searchParams.set(
+      "vnpay_status",
+      result.isVerified && result.isSuccess ? "success" : "failed",
+    );
 
     return NextResponse.redirect(redirectUrl);
   } catch (error) {

@@ -9,7 +9,8 @@ export type RateLimitPolicy = {
     | "api"
     | "quote"
     | "guest-chat"
-    | "review";
+    | "review"
+    | "newsletter";
   limiter: "auth" | "api" | "publicWrite";
   limit: number;
   windowMs: number;
@@ -40,6 +41,11 @@ export function getRateLimitPolicy(
   if (isWrite && pathname === "/api/reviews") {
     return policy("review", "publicWrite", 10);
   }
+  if (isWrite && pathname === "/api/newsletter") {
+    return policy("newsletter", "publicWrite", 5);
+  }
+  // Cart sync fires on every change (debounced) — needs a higher ceiling than a
+  // public write, and it's authenticated, so it rides the general api bucket.
   if (pathname === "/api/auth/callback/credentials") {
     return policy("auth", "auth", 10);
   }
