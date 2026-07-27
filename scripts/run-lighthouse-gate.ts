@@ -5,6 +5,7 @@ import { isMainModule } from "./is-main-module.ts";
 export const lighthouseGateUrls = [
   "http://127.0.0.1:3100/",
   "http://127.0.0.1:3100/products",
+  "http://127.0.0.1:3100/blog",
   "http://127.0.0.1:3100/login",
 ] as const;
 

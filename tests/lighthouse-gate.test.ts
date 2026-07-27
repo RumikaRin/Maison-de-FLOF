@@ -34,6 +34,10 @@ test("Lighthouse runs three samples with release-level assertions", async () => 
     "error",
     { maxNumericValue: 0.1, aggregationMethod: "median-run" },
   ]);
+  assert.deepEqual(assertions["largest-contentful-paint"], [
+    "error",
+    { maxNumericValue: 2500, aggregationMethod: "median-run" },
+  ]);
 });
 
 test("runs every configured Lighthouse URL in order", () => {
@@ -47,6 +51,7 @@ test("runs every configured Lighthouse URL in order", () => {
   assert.deepEqual(visited, [
     "http://127.0.0.1:3100/",
     "http://127.0.0.1:3100/products",
+    "http://127.0.0.1:3100/blog",
     "http://127.0.0.1:3100/login",
   ]);
 });
