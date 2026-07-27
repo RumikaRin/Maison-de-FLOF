@@ -16,6 +16,7 @@ test("Lighthouse runs three samples with release-level assertions", async () => 
   const assertions = config.ci.assert.assertions;
 
   assert.equal(collect.numberOfRuns, 3);
+  assert.equal(collect.settings.preset, "desktop");
   assert.deepEqual(assertions["categories:performance"], [
     "error",
     { minScore: 0.75, aggregationMethod: "median-run" },

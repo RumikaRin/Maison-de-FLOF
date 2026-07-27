@@ -30,6 +30,7 @@ export function HeroSection() {
           }
           fill
           priority
+          fetchPriority="high"
           quality={82}
           sizes="100vw"
           // Soft fold: the source is only 1280x720, so the scroll-out relaxes

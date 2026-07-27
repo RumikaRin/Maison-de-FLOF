@@ -31,6 +31,7 @@ test("homepage LCP image has no first-paint opacity gate", async () => {
     ),
   );
   assert.ok(heroSource.includes("quality={82}"));
+  assert.ok(heroSource.includes('fetchPriority="high"'));
   assert.ok(!layoutSource.includes("<safeMotion.main"));
 });
 
