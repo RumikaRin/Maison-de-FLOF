@@ -30,23 +30,26 @@ function hexToRgb(hex: string): string {
 
 function roomImageForFamily(familyId: string) {
   switch (familyId) {
-    case "green":
-      return "/living_sage.webp";
-    case "beige":
     case "white":
-      return "/living_beige.webp";
-    case "blue":
-      return "/living_p5.webp";
+      return "/color-rooms/living-white.webp";
     case "grey":
-    case "purple":
-      return "/living_grey.webp";
-    case "yellow":
-      return "/living_p6.webp";
-    case "red":
+      return "/color-rooms/living-grey.webp";
+    case "beige":
+      return "/color-rooms/living-beige.webp";
     case "peach":
-      return "/living_terracotta.webp";
+      return "/color-rooms/living-peach.webp";
+    case "red":
+      return "/color-rooms/living-red.webp";
+    case "purple":
+      return "/color-rooms/living-purple.webp";
+    case "blue":
+      return "/color-rooms/living-blue.webp";
+    case "green":
+      return "/color-rooms/living-green.webp";
+    case "yellow":
+      return "/color-rooms/living-yellow.webp";
     default:
-      return "/living_sage.webp";
+      return "/color-rooms/living-beige.webp";
   }
 }
 
@@ -190,11 +193,6 @@ export function ColorExplorerSection({
                   fill
                   sizes="(min-width: 1024px) 55vw, 100vw"
                   className="object-cover"
-                />
-                <ColorSwatch
-                  color={visWallMainColor}
-                  opacity={0.28}
-                  className="pointer-events-none absolute inset-0 h-full w-full mix-blend-multiply"
                 />
               </safeMotion.div>
             </AnimatePresence>

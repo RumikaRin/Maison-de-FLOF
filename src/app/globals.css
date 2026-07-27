@@ -1191,3 +1191,185 @@ next-route-announcer > div {
   background-position: left bottom;
   background-size: 100% 1px;
 }
+
+/* Header · Paint Atelier signatures -------------------------------------
+   Each destination carries a tiny motion specimen instead of sharing one
+   generic underline. The gestures are intentionally quiet: they identify
+   the tool before the mega panel or route takes over. */
+.fl-masthead-cell {
+  min-width: 9.5rem;
+}
+.fl-nav-signature {
+  position: relative;
+  display: block;
+  width: 2rem;
+  height: 5px;
+  color: var(--fl-accent);
+}
+.fl-nav-item > .fl-nav-signature {
+  position: absolute;
+  right: var(--fl-space-2xs);
+  bottom: 5px;
+  left: var(--fl-space-2xs);
+  width: auto;
+}
+.fl-nav-mark {
+  position: absolute;
+  display: block;
+  background: currentColor;
+  transform-origin: left center;
+}
+
+/* Products: a catalogue rule draws across, with two specification ticks. */
+[data-motion="products"] .fl-nav-mark-a {
+  inset: 2px 0 auto;
+  height: 1px;
+  transform: scaleX(0.18);
+}
+[data-motion="products"] .fl-nav-mark-b,
+[data-motion="products"] .fl-nav-mark-c {
+  top: 0;
+  width: 1px;
+  height: 5px;
+  opacity: 0;
+  transform: translateY(2px);
+}
+[data-motion="products"] .fl-nav-mark-b { left: 32%; }
+[data-motion="products"] .fl-nav-mark-c { left: 68%; }
+[data-motion="products"]:hover .fl-nav-mark-a,
+[data-motion="products"]:focus-within .fl-nav-mark-a,
+[data-motion="products"] .fl-nav-signature[data-active="true"] .fl-nav-mark-a {
+  transform: scaleX(1);
+}
+[data-motion="products"]:hover .fl-nav-mark-b,
+[data-motion="products"]:hover .fl-nav-mark-c,
+[data-motion="products"]:focus-within .fl-nav-mark-b,
+[data-motion="products"]:focus-within .fl-nav-mark-c,
+[data-motion="products"] .fl-nav-signature[data-active="true"] .fl-nav-mark-b,
+[data-motion="products"] .fl-nav-signature[data-active="true"] .fl-nav-mark-c {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Colours: three pigment samples rise in a short stagger. */
+[data-motion="colours"] .fl-nav-mark {
+  bottom: 0;
+  width: 8px;
+  height: 3px;
+  opacity: 0.42;
+  transform: translateY(1px);
+}
+[data-motion="colours"] .fl-nav-mark-a {
+  left: 0;
+  background: var(--fl-sage);
+}
+[data-motion="colours"] .fl-nav-mark-b {
+  left: calc(50% - 4px);
+  background: var(--fl-clay);
+}
+[data-motion="colours"] .fl-nav-mark-c {
+  right: 0;
+  background: var(--fl-ochre);
+}
+[data-motion="colours"]:hover .fl-nav-mark,
+[data-motion="colours"]:focus-within .fl-nav-mark,
+[data-motion="colours"] .fl-nav-signature[data-active="true"] .fl-nav-mark {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+/* Visualizer: two wall planes split open around a fixed centre datum. */
+[data-motion="visualizer"] .fl-nav-mark-a,
+[data-motion="visualizer"] .fl-nav-mark-b {
+  top: 0;
+  width: calc(50% - 2px);
+  height: 4px;
+  opacity: 0.45;
+  transform: scaleX(0.55);
+}
+[data-motion="visualizer"] .fl-nav-mark-a {
+  left: 0;
+  transform-origin: right center;
+}
+[data-motion="visualizer"] .fl-nav-mark-b {
+  right: 0;
+}
+[data-motion="visualizer"] .fl-nav-mark-c {
+  left: calc(50% - 0.5px);
+  top: -1px;
+  width: 1px;
+  height: 6px;
+}
+[data-motion="visualizer"]:hover .fl-nav-mark-a,
+[data-motion="visualizer"]:hover .fl-nav-mark-b,
+[data-motion="visualizer"]:focus-within .fl-nav-mark-a,
+[data-motion="visualizer"]:focus-within .fl-nav-mark-b,
+[data-motion="visualizer"] .fl-nav-signature[data-active="true"] :is(.fl-nav-mark-a, .fl-nav-mark-b) {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* Dealers: a route grows from coordinate to coordinate. */
+[data-motion="dealers"] .fl-nav-mark-a {
+  left: 2px;
+  right: 2px;
+  top: 2px;
+  height: 1px;
+  transform: scaleX(0.08);
+}
+[data-motion="dealers"] .fl-nav-mark-b,
+[data-motion="dealers"] .fl-nav-mark-c {
+  top: 0;
+  width: 5px;
+  height: 5px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: var(--fl-paper);
+  opacity: 0.5;
+}
+[data-motion="dealers"] .fl-nav-mark-b { left: 0; }
+[data-motion="dealers"] .fl-nav-mark-c { right: 0; }
+[data-motion="dealers"]:hover .fl-nav-mark-a,
+[data-motion="dealers"]:focus-within .fl-nav-mark-a,
+[data-motion="dealers"] .fl-nav-signature[data-active="true"] .fl-nav-mark-a {
+  transform: scaleX(1);
+}
+[data-motion="dealers"]:hover :is(.fl-nav-mark-b, .fl-nav-mark-c),
+[data-motion="dealers"]:focus-within :is(.fl-nav-mark-b, .fl-nav-mark-c),
+[data-motion="dealers"] .fl-nav-signature[data-active="true"] :is(.fl-nav-mark-b, .fl-nav-mark-c) {
+  opacity: 1;
+}
+
+/* Trends: editorial lines enter from opposing page edges. */
+[data-motion="trends"] .fl-nav-mark {
+  right: 0;
+  height: 1px;
+  transform: scaleX(0.2);
+  transform-origin: right center;
+}
+[data-motion="trends"] .fl-nav-mark-a { top: 0; width: 100%; }
+[data-motion="trends"] .fl-nav-mark-b { top: 2px; width: 72%; }
+[data-motion="trends"] .fl-nav-mark-c { top: 4px; width: 44%; }
+[data-motion="trends"]:hover .fl-nav-mark,
+[data-motion="trends"]:focus-within .fl-nav-mark,
+[data-motion="trends"] .fl-nav-signature[data-active="true"] .fl-nav-mark {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fl-nav-mark {
+    transition:
+      transform 260ms var(--fl-ease-out),
+      opacity 180ms var(--fl-ease-out);
+  }
+  [data-motion="colours"] .fl-nav-mark-b { transition-delay: 45ms; }
+  [data-motion="colours"] .fl-nav-mark-c { transition-delay: 90ms; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-nav-mark,
+  .fl-nav-link {
+    transition-duration: 0.01ms !important;
+  }
+}

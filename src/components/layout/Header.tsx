@@ -1,399 +1,706 @@
+/* Hallmark · genre: editorial · macrostructure: n/a (shared chrome)
+ * nav: N11 Mega-menu (columns=3, feature cell=promo card, scrim=dim only)
+ * pre-emit critique: P5 H4 E5 S5 R5 V4
+ * design-system: design.md · designed-as-app
+ */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { cn } from "@/lib/utils";
-import { ShoppingCart, X } from "lucide-react";
+import { ChevronDown, ShoppingCart, X } from "lucide-react";
 import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
+import { ColorSwatch } from "@/components/ui/color-swatch";
+import { TypographicLink } from "@/components/ui/editorial";
+import { COLOR_FAMILIES, PRODUCT_CATEGORIES } from "@/lib/constants/color-families";
 
+// Inline vi/en labels keep the bar hydration-safe — the language store settles
+// on the client, and a hook-based lookup here would flash the wrong label.
 const NAV_LINKS = [
-  { href: "/products", keyVi: "Sản phẩm", keyEn: "Products" },
-  { href: "/colors", keyVi: "Bảng màu", keyEn: "Colors" },
-  { href: "/color-visualizer", keyVi: "Phối màu", keyEn: "Visualizer" },
-  { href: "/find-dealer", keyVi: "Đại lý", keyEn: "Dealers" },
-  { href: "/blog", keyVi: "Xu hướng", keyEn: "Trends" },
-];
+  { href: "/products", keyVi: "Sản phẩm", keyEn: "Products", motionId: "products" },
+  { href: "/colors", keyVi: "Bảng màu", keyEn: "Colors", motionId: "colours" },
+  {
+    href: "/color-visualizer",
+    keyVi: "Phối màu",
+    keyEn: "Visualizer",
+    motionId: "visualizer",
+  },
+  { href: "/find-dealer", keyVi: "Đại lý", keyEn: "Dealers", motionId: "dealers" },
+  { href: "/blog", keyVi: "Xu hướng", keyEn: "Trends", motionId: "trends" },
+] as const;
+
+type NavMotionId = (typeof NAV_LINKS)[number]["motionId"];
+
+/** The two nav destinations that carry a mega-menu panel. */
+type PanelId = "/products" | "/colors";
+const PANEL_HREFS: PanelId[] = ["/products", "/colors"];
 
 export default function Header() {
-  const { language, routePath, localize, switchLanguage } =
-    useLocaleNavigation();
+  const { language, routePath, localize, switchLanguage } = useLocaleNavigation();
   const t = useTrans(language);
   const getCartItemCount = useCartStore((state) => state.getCartItemCount);
   const { data: session, status } = useSession();
 
   const [mounted, setMounted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
-  
+  const [openPanel, setOpenPanel] = useState<PanelId | null>(null);
+  const [mountedPanels, setMountedPanels] = useState<PanelId[]>([]);
+  const [condensed, setCondensed] = useState(false);
+
   const avatarRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useRef<Partial<Record<PanelId, HTMLButtonElement | null>>>({});
+
+  const openPanelById = useCallback((panelId: PanelId | null) => {
+    setOpenPanel(panelId);
+    if (panelId) {
+      setMountedPanels((current) =>
+        current.includes(panelId) ? current : [...current, panelId],
+      );
+    }
+  }, []);
+
+  const closePanel = useCallback(
+    (returnFocus = false) => {
+      setOpenPanel((current) => {
+        if (current && returnFocus) triggerRefs.current[current]?.focus();
+        return null;
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => setIsScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    
-    // Close dropdown on click outside
-    const handleClickOutside = (event: MouseEvent) => {
-      if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
-        setIsAvatarOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
 
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (avatarRef.current && !avatarRef.current.contains(target)) setIsAvatarOpen(false);
+      if (navRef.current && !navRef.current.contains(target)) setOpenPanel(null);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setIsAvatarOpen(false);
+      setOpenPanel((current) => {
+        if (current) triggerRefs.current[current]?.focus();
+        return null;
+      });
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
+  // Scroll condense. The bar shrinks past the threshold and expands again at
+  // the top; an open panel closes on the way so it cannot float detached from a
+  // bar that has moved. rAF-throttled, and the threshold has hysteresis so a
+  // scroll that hovers around the boundary cannot flutter.
+  useEffect(() => {
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const y = window.scrollY;
+        setCondensed((current) => (current ? y > 24 : y > 72));
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (condensed) setOpenPanel(null);
+  }, [condensed]);
+
+  // A navigation always dismisses the panel and the mobile sheet.
+  useEffect(() => {
+    setOpenPanel(null);
+    setMobileOpen(false);
+    setIsAvatarOpen(false);
+  }, [routePath]);
+
   const cartCount = mounted ? getCartItemCount() : 0;
   const user = session?.user;
-  const userRole = (user as any)?.role;
+  const userRole = (user as { role?: string } | undefined)?.role;
+  const isAuthenticated = mounted && status === "authenticated" && Boolean(user);
 
   if (routePath.startsWith("/admin")) return null;
+
+  const label = (link: (typeof NAV_LINKS)[number]) =>
+    language === "vi" ? link.keyVi : link.keyEn;
+
+  const initials = (user?.name || user?.email || "??").slice(0, 2).toUpperCase();
+
+  const handleSignOut = async () => {
+    setMobileOpen(false);
+    setIsAvatarOpen(false);
+    await signOut({ redirect: false });
+    window.location.href = `${window.location.origin}${localize("/")}`;
+  };
 
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-700 pointer-events-none"
+        className={cn(
+          "fixed inset-x-0 top-0 z-50 border-b bg-atelier-paper",
+          "motion-safe:transition-colors motion-safe:duration-fl-base motion-safe:ease-fl-out",
+          // A stronger hairline when condensed reads as a subtly lifted bar.
+          // design.md permits a shadow on only two surfaces, so elevation here
+          // is carried by the rule, not a drop shadow.
+          condensed ? "border-atelier-rule-strong" : "border-atelier-rule",
+        )}
       >
-        <safeMotion.div
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+        {/* Paint-chart strip — the five band shades as a hairline of real
+            catalogue colour across the top of the bar. The one piece of chrome
+            that says "paint house" before a single word is read. Purely
+            decorative, token-only, no motion. */}
+        <div aria-hidden="true" className="flex h-[3px] w-full">
+          <span className="flex-1 bg-atelier-sage" />
+          <span className="flex-1 bg-atelier-clay" />
+          <span className="flex-1 bg-atelier-slate" />
+          <span className="flex-1 bg-atelier-ochre" />
+          <span className="flex-1 bg-atelier-espresso" />
+        </div>
+        <div
           className={cn(
-            "pointer-events-auto mt-4 mx-auto flex items-center justify-between gap-2 sm:gap-6 md:gap-12",
-            "rounded-full transition-all duration-700 border shadow-xl",
-            isScrolled
-              ? "bg-white/85 backdrop-blur-xl border-warm-300 shadow-black/[0.04] py-2 w-[92vw] sm:w-[90vw] max-w-[1400px] h-16 md:h-[68px] px-4 sm:px-6 md:px-8"
-              : "bg-white/70 backdrop-blur-lg border-warm-300 shadow-black/[0.02] py-3 w-[95vw] sm:w-[94vw] max-w-[1550px] h-16 md:h-[76px] px-4 sm:px-8 md:px-10"
+            "mx-auto flex w-full max-w-[100rem] items-center justify-between gap-fl-md px-[clamp(1rem,4vw,1.5rem)]",
+            "motion-safe:transition-[height] motion-safe:duration-fl-base motion-safe:ease-fl-out",
+            condensed ? "h-14 md:h-16" : "h-16 md:h-[4.5rem]",
           )}
         >
-          {/* Logo */}
-          <Link href={localize("/")} onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 shrink-0 group">
-            <span className="font-bromise font-bold text-xl tracking-widest uppercase text-warm-900 leading-none group-hover:text-jotun-teal transition-colors duration-550">
-              FLOF
-            </span>
-            <span className="hidden xl:block text-[9px] text-warm-500 font-medium border-l border-warm-200 pl-2.5 leading-tight">
-              {language === "vi" ? (
-                <>Sơn Cao Cấp<br />Chính Hãng</>
-              ) : (
-                <>Premium &<br />Authentic Paint</>
+          {/* Wordmark */}
+          <div className="fl-masthead-cell flex min-h-11 shrink-0 items-center gap-fl-xs border-r border-atelier-rule pr-fl-lg">
+            <Link
+              href={localize("/")}
+              className={cn(
+                "flex min-h-11 origin-left items-center whitespace-nowrap font-serif text-fl-2xl font-medium leading-none tracking-[0.18em] text-atelier-ink",
+                "motion-safe:transition-transform motion-safe:duration-fl-base motion-safe:ease-fl-out",
+                condensed ? "scale-90" : "scale-100",
               )}
+              onClick={() => setMobileOpen(false)}
+            >
+              FLOF
+            </Link>
+            <span
+              className={cn(
+                "whitespace-nowrap border-l border-atelier-rule pl-fl-xs text-[0.58rem] uppercase leading-none tracking-[0.19em] text-atelier-ink-2",
+                "motion-safe:transition-opacity motion-safe:duration-fl-base motion-safe:ease-fl-out",
+                condensed ? "hidden" : "hidden xl:inline",
+              )}
+            >
+              {t.headerTagline}
             </span>
-          </Link>
+          </div>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-0.5" role="navigation">
-            {NAV_LINKS.map((link) => {
-              const isActive = routePath === link.href || routePath.startsWith(link.href + "/");
-              return (
-                <Link
-                  key={link.href}
-                  href={localize(link.href)}
-                  className={cn(
-                    "px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all duration-500",
-                    isActive
-                      ? "bg-warm-900 text-white"
-                      : "text-warm-700 hover:bg-warm-100 hover:text-warm-900"
-                  )}
-                >
-                  {language === "vi" ? link.keyVi : link.keyEn}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Desktop nav — two panel triggers, three plain destinations */}
+          <div ref={navRef} className="hidden xl:block">
+            <nav aria-label={t.headerMenu}>
+              <ul className="flex items-center gap-fl-md">
+                {NAV_LINKS.map((link) => {
+                  const isActive =
+                    routePath === link.href || routePath.startsWith(`${link.href}/`);
+                  const panelId = PANEL_HREFS.includes(link.href as PanelId)
+                    ? (link.href as PanelId)
+                    : null;
+                  const isOpen = panelId !== null && openPanel === panelId;
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
-            {/* Control Capsule (Language, Cart, Account/Login) */}
-            <div className="flex items-center gap-1.5 p-1 bg-warm-50/50 hover:bg-warm-50/80 border border-warm-200/80 rounded-full transition-all duration-300 shadow-sm hover:border-warm-300">
-              {/* Language Toggle */}
-              <button
-                onClick={switchLanguage}
-                className="hidden sm:inline-block px-3 py-1.5 text-[11px] font-bold rounded-full hover:bg-white hover:text-warm-900 text-warm-600 transition-all duration-300 hover:shadow-sm"
-                title="Switch language"
-                aria-label={
-                  language === "vi"
-                    ? "Switch language to English"
-                    : "Chuyển ngôn ngữ sang Tiếng Việt"
-                }
-              >
-                {language === "vi" ? "ENGLISH" : "TIẾNG VIỆT"}
-              </button>
-
-              {/* Divider 1 */}
-              <div className="hidden sm:block w-[1px] h-3.5 bg-warm-200/80" />
-
-              {/* Cart */}
-              <Link
-                href={localize("/cart")}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white hover:shadow-sm text-warm-900 transition-all duration-300 text-xs font-bold"
-              >
-                <ShoppingCart className="h-4 w-4 text-warm-900" />
-                <span className="hidden sm:inline">{language === "vi" ? "Giỏ hàng" : "Cart"}</span>
-                <span className={cn(
-                  "flex items-center justify-center text-[9px] font-medium",
-                  "bg-warm-900 text-white rounded-full min-w-4 h-4 px-1 shrink-0",
-                  "sm:bg-transparent sm:text-warm-900 sm:p-0 sm:w-auto sm:h-auto sm:text-xs sm:font-bold"
-                )}>
-                  {cartCount}
-                </span>
-              </Link>
-
-              {/* Account - Hidden on Mobile, shown on Desktop */}
-              {mounted && status === "authenticated" && user ? (
-                <>
-                  {/* Divider 2 */}
-                  <div className="hidden md:block w-[1px] h-3.5 bg-warm-200/80" />
-
-                  <div ref={avatarRef} className="hidden md:block relative">
-                    <button 
-                      onClick={() => setIsAvatarOpen(!isAvatarOpen)}
-                      className="flex items-center p-0.5 rounded-full hover:scale-105 transition-transform duration-300 focus:outline-none"
-                      aria-expanded={isAvatarOpen}
-                      aria-haspopup="menu"
+                  return (
+                    <li
+                      key={link.href}
+                      className="fl-nav-item group relative flex items-center"
+                      data-motion={link.motionId}
                     >
-                      <div className="h-6 w-6 bg-jotun-teal text-white rounded-full flex items-center justify-center text-[9px] font-bold shadow-sm">
-                        {(user.name || user.email || "??").slice(0, 2).toUpperCase()}
-                      </div>
-                    </button>
-
-                    <div 
-                      className={cn(
-                        "absolute top-full right-0 pt-3 w-52 z-50 transition-all duration-300",
-                        isAvatarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-                      )}
-                    >
-                      <div 
+                      <Link
+                        href={localize(link.href)}
+                        aria-current={isActive ? "page" : undefined}
                         className={cn(
-                          "bg-white border border-black/[0.06] rounded-2xl shadow-xl overflow-hidden transition-transform duration-300",
-                          isAvatarOpen ? "translate-y-0" : "translate-y-2"
+                          "fl-nav-link relative flex min-h-11 items-center whitespace-nowrap px-fl-2xs text-fl-sm leading-none transition-colors duration-fl-fast ease-fl-out",
+                          "hover:text-atelier-accent",
+                          isActive
+                            ? "text-atelier-ink"
+                            : "text-atelier-ink-2",
                         )}
                       >
-                        <div className="p-3 border-b border-warm-100 bg-warm-50">
-                          <p className="text-xs font-bold text-warm-900 truncate">{user.name || "User"}</p>
-                          <p className="text-[10px] text-warm-700 font-mono truncate">{user.email}</p>
-                        </div>
-                        <div className="p-2 flex flex-col gap-0.5 text-left">
-                          <Link 
-                            href={localize("/profile")}
-                            onClick={() => {
-                              setMobileOpen(false);
-                              setIsAvatarOpen(false);
-                            }} 
-                            className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold"
-                          >
-                            {language === "vi" ? "Tài khoản" : "My Account"}
-                          </Link>
-                          {userRole === "ADMIN" && (
-                            <Link 
-                              href={localize("/admin")}
-                              onClick={() => {
-                                setMobileOpen(false);
-                                setIsAvatarOpen(false);
-                              }} 
-                              className="flex items-center gap-2 px-3 py-2 text-xs text-warm-700 hover:bg-warm-50 rounded-xl font-bold"
-                            >
-                              Admin
-                            </Link>
-                          )}
-                          <button
-                            onClick={async () => {
-                              setMobileOpen(false);
-                              setIsAvatarOpen(false);
-                              await signOut({ redirect: false });
-                              window.location.href = `${window.location.origin}${localize("/")}`;
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl font-bold w-full text-left"
-                          >
-                            {language === "vi" ? "Đăng xuất" : "Logout"}
-                          </button>
-                        </div>
-                      </div>
+                        <span>{label(link)}</span>
+                      </Link>
+                      <NavSignature kind={link.motionId} active={isActive} />
+                      {panelId ? (
+                        <button
+                          type="button"
+                          ref={(node) => {
+                            triggerRefs.current[panelId] = node;
+                          }}
+                          onClick={() => openPanelById(isOpen ? null : panelId)}
+                          aria-expanded={isOpen}
+                          aria-controls={`panel-${panelId.slice(1)}`}
+                          aria-label={isOpen ? t.headerClosePanel : t.headerOpenPanel}
+                          className="ml-1 flex h-6 w-6 items-center justify-center text-atelier-ink-3 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink"
+                        >
+                          <ChevronDown
+                            className={cn(
+                              "h-3.5 w-3.5 transition-transform duration-fl-fast ease-fl-out",
+                              isOpen && "rotate-180",
+                            )}
+                          />
+                        </button>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {/* Mega-menu panels */}
+            {PANEL_HREFS.map((panelId) => (
+              <MegaPanel
+                key={panelId}
+                id={`panel-${panelId.slice(1)}`}
+                open={openPanel === panelId}
+              >
+                {!mountedPanels.includes(panelId) ? null : panelId === "/colors" ? (
+                  <ColourPanel
+                    t={t}
+                    localize={localize}
+                    onNavigate={() => closePanel()}
+                  />
+                ) : (
+                  <ProductPanel
+                    t={t}
+                    localize={localize}
+                    onNavigate={() => closePanel()}
+                  />
+                )}
+              </MegaPanel>
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex shrink-0 items-center gap-fl-sm">
+            <button
+              type="button"
+              onClick={switchLanguage}
+              className="hidden min-h-11 items-center whitespace-nowrap text-fl-2xs uppercase tracking-[0.14em] text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink sm:inline-flex md:min-h-10"
+              aria-label={
+                language === "vi"
+                  ? "Switch language to English"
+                  : "Chuyển ngôn ngữ sang Tiếng Việt"
+              }
+            >
+              {language === "vi" ? "EN" : "VI"}
+            </button>
+
+            <Link
+              href={localize("/cart")}
+              onClick={() => setMobileOpen(false)}
+              // Below sm the visible label is hidden and both the icon and the
+              // count are aria-hidden, which left the link with no accessible
+              // name at all. The label is static so it cannot desync on hydrate.
+              aria-label={t.headerCart}
+              className="flex min-h-11 items-center gap-fl-2xs whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent md:min-h-10"
+            >
+              <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{t.headerCart}</span>
+              <span
+                className="flex h-5 min-w-5 items-center justify-center rounded-fl-pill bg-atelier-ink px-1 text-fl-2xs text-atelier-paper"
+                aria-hidden="true"
+              >
+                {cartCount}
+              </span>
+            </Link>
+
+            {isAuthenticated ? (
+              <div ref={avatarRef} className="relative hidden md:block">
+                <button
+                  type="button"
+                  onClick={() => setIsAvatarOpen(!isAvatarOpen)}
+                  aria-expanded={isAvatarOpen}
+                  aria-haspopup="menu"
+                  className="flex h-10 w-10 items-center justify-center rounded-control bg-atelier-accent text-fl-2xs font-medium text-atelier-accent-ink"
+                >
+                  {initials}
+                </button>
+
+                {isAvatarOpen ? (
+                  <div
+                    role="menu"
+                    className="fl-panel-in absolute right-0 top-full mt-fl-2xs w-56 rounded-surface border border-atelier-rule bg-atelier-paper shadow-[0_8px_28px_rgb(0_0_0/0.10)]"
+                  >
+                    <div className="border-b border-atelier-rule px-fl-sm py-fl-xs">
+                      <p className="truncate text-fl-sm text-atelier-ink">
+                        {user?.name || user?.email}
+                      </p>
+                      <p className="truncate text-fl-xs text-atelier-ink-2">{user?.email}</p>
+                    </div>
+                    <div className="flex flex-col p-fl-3xs">
+                      <Link
+                        role="menuitem"
+                        href={localize("/profile")}
+                        onClick={() => setIsAvatarOpen(false)}
+                        className="flex min-h-11 items-center px-fl-xs text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 md:min-h-10"
+                      >
+                        {t.headerAccount}
+                      </Link>
+                      {userRole === "ADMIN" ? (
+                        <Link
+                          role="menuitem"
+                          href={localize("/admin")}
+                          onClick={() => setIsAvatarOpen(false)}
+                          className="flex min-h-11 items-center px-fl-xs text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 md:min-h-10"
+                        >
+                          Admin
+                        </Link>
+                      ) : null}
+                      <button
+                        role="menuitem"
+                        type="button"
+                        onClick={handleSignOut}
+                        className="flex min-h-11 items-center px-fl-xs text-left text-fl-sm text-atelier-danger transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 md:min-h-10"
+                      >
+                        {t.headerLogout}
+                      </button>
                     </div>
                   </div>
-                </>
-              ) : (
-                <>
-                  {/* Divider 2 for Login */}
-                  <div className="hidden md:block w-[1px] h-3.5 bg-warm-200/80" />
+                ) : null}
+              </div>
+            ) : (
+              <Link
+                href={localize("/login")}
+                onClick={() => setMobileOpen(false)}
+                className="hidden min-h-10 items-center whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm text-atelier-accent-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-accent-hover md:inline-flex"
+              >
+                {t.headerLogin}
+              </Link>
+            )}
 
-                  <Link
-                    href={localize("/login")}
-                    onClick={() => setMobileOpen(false)}
-                    className="hidden md:inline-block bg-warm-900 hover:bg-warm-800 text-white text-[11px] px-3.5 py-1.5 rounded-full font-bold transition-all duration-300 shadow-sm"
-                  >
-                    <span>{language === "vi" ? "Đăng nhập" : "Login"}</span>
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Mobile menu trigger */}
             <button
+              type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden text-[10px] font-extrabold uppercase tracking-wider px-3.5 py-2 rounded-full hover:bg-warm-100 text-warm-800 transition-all duration-300 border border-warm-200"
+              aria-expanded={mobileOpen}
+              className="flex min-h-11 items-center whitespace-nowrap border-b border-atelier-ink text-fl-2xs uppercase tracking-[0.14em] text-atelier-ink xl:hidden"
             >
-              {mobileOpen ? (language === "vi" ? "Đóng" : "Close") : "Menu"}
+              {mobileOpen ? t.headerCloseMenu : t.headerMenu}
             </button>
           </div>
-        </safeMotion.div>
+        </div>
+
+        {/* Scrim — dim only. design.md bans glassmorphism, so no backdrop blur. */}
+        {openPanel ? (
+          <div
+            aria-hidden="true"
+            className={cn(
+              "fixed inset-x-0 -z-10 h-screen bg-atelier-espresso/25",
+              condensed ? "top-14 md:top-16" : "top-16 md:top-[4.5rem]",
+            )}
+          />
+        ) : null}
       </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile sheet */}
       <AnimatePresence>
-        {mobileOpen && (
-          <div className="fixed inset-0 z-40 flex flex-col justify-end sm:justify-center items-center p-4">
-            {/* Background Blur Overlay */}
+        {mobileOpen ? (
+          <div className="fixed inset-0 z-40 flex flex-col justify-end p-fl-sm sm:justify-center sm:items-center">
             <safeMotion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.16 }}
               onClick={() => setMobileOpen(false)}
-              className="absolute inset-0 bg-warm-900/20 backdrop-blur-md"
+              className="absolute inset-0 bg-atelier-espresso/35"
             />
 
-            {/* Menu Box */}
             <safeMotion.div
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="relative w-full max-w-sm bg-white border border-warm-200/80 shadow-2xl rounded-[28px] p-6 flex flex-col gap-6 overflow-hidden z-10 text-left"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 flex w-full max-w-sm flex-col gap-fl-md rounded-surface border border-atelier-rule bg-atelier-paper p-fl-md text-left shadow-[0_12px_40px_rgb(0_0_0/0.16)]"
             >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b border-warm-100 pb-3">
-                <span className="font-bromise font-extrabold text-base tracking-widest text-warm-900">
+              <div className="flex items-center justify-between border-b border-atelier-rule pb-fl-xs">
+                <span className="font-serif text-fl-lg tracking-[0.14em] text-atelier-ink">
                   FLOF
                 </span>
                 <button
+                  type="button"
                   onClick={() => setMobileOpen(false)}
-                  className="h-7 w-7 rounded-full bg-warm-100 hover:bg-warm-200 text-warm-800 transition-colors flex items-center justify-center"
-                  aria-label="Close menu"
+                  aria-label={t.headerCloseMenu}
+                  className="flex h-11 w-11 items-center justify-center text-atelier-ink"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
 
-              {/* Navigation Links */}
-              <nav className="flex flex-col gap-1.5">
-                {NAV_LINKS.map((link, i) => {
-                  const isActive = routePath === link.href || routePath.startsWith(link.href + "/");
-                  return (
-                    <safeMotion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                    >
-                      <Link
-                        href={localize(link.href)}
-                        onClick={() => setMobileOpen(false)}
-                        className={cn(
-                          "px-4 py-3 rounded-2xl text-[14px] font-bold transition-all duration-300 flex items-center justify-between group",
-                          isActive
-                            ? "bg-warm-900 text-white"
-                            : "text-warm-800 hover:bg-warm-50 hover:text-warm-900"
-                        )}
+              <nav aria-label={t.headerMenu}>
+                <ul className="flex flex-col">
+                  {NAV_LINKS.map((link) => {
+                    const isActive =
+                      routePath === link.href || routePath.startsWith(`${link.href}/`);
+                    return (
+                      <li
+                        key={link.href}
+                        className="fl-nav-item group relative border-b border-atelier-rule"
+                        data-motion={link.motionId}
                       >
-                        <span>{language === "vi" ? link.keyVi : link.keyEn}</span>
-                        <span className={cn("text-xs transition-transform group-hover:translate-x-1", isActive ? "text-white/60" : "text-warm-400")}>
-                          ➔
-                        </span>
-                      </Link>
-                    </safeMotion.div>
-                  );
-                })}
+                        <Link
+                          href={localize(link.href)}
+                          aria-current={isActive ? "page" : undefined}
+                          onClick={() => setMobileOpen(false)}
+                          className={cn(
+                            "flex min-h-11 items-center justify-between whitespace-nowrap text-fl-md",
+                            isActive ? "text-atelier-ink" : "text-atelier-ink-2",
+                          )}
+                        >
+                          <span>{label(link)}</span>
+                        </Link>
+                        <NavSignature kind={link.motionId} active={isActive} />
+                      </li>
+                    );
+                  })}
+                </ul>
               </nav>
 
-              {/* Account Section */}
-              <div className="border-t border-warm-100 pt-4 flex flex-col gap-3">
-                {mounted && status === "authenticated" && user ? (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3 bg-warm-50/70 p-3 rounded-2xl border border-warm-100">
-                      <div className="h-8 w-8 bg-jotun-teal text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">
-                        {(user.name || user.email || "??").slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="min-w-0 flex-grow">
-                        <p className="text-xs font-bold text-warm-900 truncate">{user.name || "User"}</p>
-                        <p className="text-[10px] text-warm-500 truncate font-mono">{user.email}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-fl-2xs">
+                {isAuthenticated ? (
+                  <>
+                    <p className="fl-label">{user?.email}</p>
+                    <Link
+                      href={localize("/profile")}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink"
+                    >
+                      {t.headerAccount}
+                    </Link>
+                    {userRole === "ADMIN" ? (
                       <Link
-                        href={localize("/profile")}
+                        href={localize("/admin")}
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center justify-center px-4 py-2.5 bg-warm-50 hover:bg-warm-100 text-warm-800 text-xs font-bold rounded-xl border border-warm-200 transition-colors"
+                        className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink"
                       >
-                        {language === "vi" ? "Tài khoản" : "Account"}
+                        Admin
                       </Link>
-                      {userRole === "ADMIN" && (
-                        <Link
-                          href={localize("/admin")}
-                          onClick={() => setMobileOpen(false)}
-                          className="flex items-center justify-center px-4 py-2.5 bg-jotun-teal/10 hover:bg-jotun-teal/15 text-jotun-teal text-xs font-bold rounded-xl border border-jotun-teal/20 transition-colors"
-                        >
-                          Admin
-                        </Link>
-                      )}
-                      <button
-                        onClick={async () => {
-                          setMobileOpen(false);
-                          await signOut({ redirect: false });
-                          window.location.href = `${window.location.origin}${localize("/")}`;
-                        }}
-                        className={cn(
-                          "flex items-center justify-center px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-500 text-xs font-bold rounded-xl border border-red-100 transition-colors",
-                          userRole !== "ADMIN" ? "col-span-1" : "col-span-2"
-                        )}
-                      >
-                        {language === "vi" ? "Đăng xuất" : "Logout"}
-                      </button>
-                    </div>
-                  </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="flex min-h-11 items-center whitespace-nowrap text-left text-fl-sm text-atelier-danger"
+                    >
+                      {t.headerLogout}
+                    </button>
+                  </>
                 ) : (
                   <Link
                     href={localize("/login")}
                     onClick={() => setMobileOpen(false)}
-                    className="w-full flex items-center justify-center py-3 bg-warm-900 hover:bg-warm-850 text-white text-xs font-bold rounded-2xl shadow-sm transition-all text-center"
+                    className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm text-atelier-accent-ink"
                   >
-                    {language === "vi" ? "Đăng nhập tài khoản" : "Log In Account"}
+                    {t.headerLogin}
                   </Link>
                 )}
               </div>
 
-              {/* Language Section */}
-              <div className="flex items-center justify-between border-t border-warm-100 pt-4">
-                <span className="text-[11px] font-bold text-warm-500 uppercase tracking-wider">
-                  {language === "vi" ? "Ngôn ngữ" : "Language"}
-                </span>
+              <div className="flex items-center justify-between border-t border-atelier-rule pt-fl-xs">
+                <span className="fl-label">{t.headerLanguage}</span>
                 <button
+                  type="button"
                   onClick={switchLanguage}
-                  className="px-3 py-1.5 bg-warm-50 hover:bg-warm-100 border border-warm-200 rounded-full text-[10px] font-bold text-warm-800 transition-all"
+                  className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink"
                   aria-label={
                     language === "vi"
                       ? "Switch language to English"
                       : "Chuyển ngôn ngữ sang Tiếng Việt"
                   }
                 >
-                  {language === "vi" ? "ENGLISH 🇬🇧" : "TIẾNG VIỆT 🇻🇳"}
+                  {language === "vi" ? "English" : "Tiếng Việt"}
                 </button>
               </div>
             </safeMotion.div>
           </div>
-        )}
+        ) : null}
       </AnimatePresence>
     </>
   );
 }
 
+function NavSignature({ kind, active }: { kind: NavMotionId; active: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="fl-nav-signature"
+      data-kind={kind}
+      data-active={active ? "true" : "false"}
+    >
+      <span className="fl-nav-mark fl-nav-mark-a" />
+      <span className="fl-nav-mark fl-nav-mark-b" />
+      <span className="fl-nav-mark fl-nav-mark-c" />
+    </span>
+  );
+}
 
+/* ---------------------------------------------------------------- panels -- */
 
+function MegaPanel({
+  id,
+  open,
+  children,
+}: {
+  id: string;
+  open: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      id={id}
+      hidden={!open}
+      className="fl-panel-in absolute inset-x-0 top-full border-t border-atelier-rule bg-atelier-paper shadow-[0_16px_40px_rgb(0_0_0/0.10)]"
+    >
+      <div className="mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] py-fl-lg">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+type PanelCopy = ReturnType<typeof useTrans>;
+
+function PanelPromo({
+  title,
+  body,
+  cta,
+  href,
+  onNavigate,
+}: {
+  title: string;
+  body: string;
+  cta: string;
+  href: string;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-fl-2xs border-l border-atelier-rule pl-fl-md">
+      <h3 className="font-serif text-fl-xl text-atelier-ink">{title}</h3>
+      <p className="fl-measure-tight text-fl-sm text-atelier-ink-2">{body}</p>
+      <TypographicLink href={href} onClick={onNavigate} className="mt-fl-2xs">
+        {cta}
+      </TypographicLink>
+    </div>
+  );
+}
+
+function ColourPanel({
+  t,
+  localize,
+  onNavigate,
+}: {
+  t: PanelCopy;
+  localize: (href: string) => string;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="grid grid-cols-12 gap-fl-lg">
+      <div className="col-span-8">
+        <p className="fl-label">{t.headerColourPanelTitle}</p>
+        <p className="fl-measure mt-fl-2xs text-fl-sm text-atelier-ink-2">
+          {t.headerColourPanelNote}
+        </p>
+        <ul className="mt-fl-md grid grid-cols-3 gap-x-fl-md">
+          {COLOR_FAMILIES.map((family) => (
+            <li key={family.value} className="border-b border-atelier-rule">
+              <Link
+                href={localize(`/colors?family=${family.value}`)}
+                onClick={onNavigate}
+                className="flex min-h-11 items-center gap-fl-xs whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent"
+              >
+                <ColorSwatch
+                  color={family.swatch}
+                  className="fl-swatch h-5 w-5 shrink-0 rounded-swatch"
+                />
+                {t[family.labelKey]}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <TypographicLink
+          href={localize("/colors")}
+          onClick={onNavigate}
+          className="mt-fl-md"
+        >
+          {t.headerViewAllColours}
+        </TypographicLink>
+      </div>
+
+      <div className="col-span-4">
+        <PanelPromo
+          title={t.headerPromoVisualizerTitle}
+          body={t.headerPromoVisualizerBody}
+          cta={t.navVisualizer}
+          href={localize("/color-visualizer")}
+          onNavigate={onNavigate}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProductPanel({
+  t,
+  localize,
+  onNavigate,
+}: {
+  t: PanelCopy;
+  localize: (href: string) => string;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="grid grid-cols-12 gap-fl-lg">
+      <div className="col-span-8">
+        <p className="fl-label">{t.headerProductPanelTitle}</p>
+        <p className="fl-measure mt-fl-2xs text-fl-sm text-atelier-ink-2">
+          {t.headerProductPanelNote}
+        </p>
+        <ul className="mt-fl-md grid grid-cols-2 gap-x-fl-md">
+          {PRODUCT_CATEGORIES.map((category) => (
+            <li key={category.slug} className="border-b border-atelier-rule">
+              <Link
+                href={localize(`/products?category=${category.slug}`)}
+                onClick={onNavigate}
+                className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent"
+              >
+                {t[category.labelKey]}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <TypographicLink
+          href={localize("/products")}
+          onClick={onNavigate}
+          className="mt-fl-md"
+        >
+          {t.headerViewAllProducts}
+        </TypographicLink>
+      </div>
+
+      <div className="col-span-4">
+        <PanelPromo
+          title={t.headerPromoQuoteTitle}
+          body={t.headerPromoQuoteBody}
+          cta={t.navQuote}
+          href={localize("/quote-request")}
+          onNavigate={onNavigate}
+        />
+      </div>
+    </div>
+  );
+}

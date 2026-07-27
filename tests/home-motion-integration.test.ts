@@ -23,6 +23,47 @@ test("colour explorer wires reveal motion without replacing its state crossfade"
   assert.ok(source.includes("<AnimatePresence mode=\"wait\">"));
 });
 
+test("colour explorer uses a dedicated photographed room for every family without a colour overlay", async () => {
+  const source = await readFile(
+    "src/components/features/home/ColorExplorerSection.tsx",
+    "utf8",
+  );
+
+  for (const family of [
+    "white",
+    "grey",
+    "beige",
+    "peach",
+    "red",
+    "purple",
+    "blue",
+    "green",
+    "yellow",
+  ]) {
+    assert.ok(source.includes(`/color-rooms/living-${family}.webp`));
+  }
+
+  assert.ok(!source.includes("mix-blend-multiply"));
+  assert.ok(!source.includes("opacity={0.28}"));
+});
+
+test("atelier header gives all five destinations a distinct motion signature", async () => {
+  const [source, css] = await Promise.all([
+    readFile("src/components/layout/Header.tsx", "utf8"),
+    readFile("src/app/globals.css", "utf8"),
+  ]);
+
+  for (const motionId of ["products", "colours", "visualizer", "dealers", "trends"]) {
+    assert.ok(source.includes(`motionId: "${motionId}"`));
+    assert.ok(css.includes(`[data-motion="${motionId}"]`));
+  }
+
+  assert.ok(source.includes("function NavSignature"));
+  assert.ok(source.includes('className="fl-masthead-cell'));
+  assert.ok(css.includes("@media (prefers-reduced-motion: reduce)"));
+  assert.ok(css.includes(".fl-nav-signature"));
+});
+
 test("featured products stagger lead and supporting cards", async () => {
   const source = await readFile(
     "src/components/features/home/FeaturedProductsSection.tsx",
