@@ -8,6 +8,7 @@ import {
   stripLocalePrefix,
   SUPPORTED_LOCALES,
 } from "../src/lib/locale.ts";
+import { shouldPersistLocaleCookie } from "../src/lib/locale-response-policy.ts";
 
 test("locale helpers preserve an explicit supported prefix", () => {
   assert.deepEqual(SUPPORTED_LOCALES, ["vi", "en"]);
@@ -41,4 +42,31 @@ test("API, auth callbacks, metadata and static assets are never localized", () =
     assert.equal(localizedPath(pathname, "en"), pathname, pathname);
   }
   assert.equal(isLocaleExcludedPath("/products"), false);
+});
+
+test("locale-prefixed public pages stay CDN-cacheable without Set-Cookie", () => {
+  assert.equal(
+    shouldPersistLocaleCookie({
+      requestHadLocalePrefix: true,
+      currentCookie: undefined,
+      resolvedLocale: "vi",
+    }),
+    false,
+  );
+  assert.equal(
+    shouldPersistLocaleCookie({
+      requestHadLocalePrefix: false,
+      currentCookie: "vi",
+      resolvedLocale: "vi",
+    }),
+    false,
+  );
+  assert.equal(
+    shouldPersistLocaleCookie({
+      requestHadLocalePrefix: false,
+      currentCookie: "en",
+      resolvedLocale: "vi",
+    }),
+    true,
+  );
 });

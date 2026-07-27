@@ -19,6 +19,7 @@ import {
   unsupportedLocalePrefix,
   type Locale,
 } from "@/lib/locale";
+import { shouldPersistLocaleCookie } from "@/lib/locale-response-policy";
 
 const authMiddleware = NextAuth(authConfig).auth;
 const runAuthMiddleware = authMiddleware as unknown as (
@@ -111,21 +112,30 @@ function withLocaleCookie<T extends NextResponse>(
   return response;
 }
 
+function persistLocaleCookieWhenNeeded<T extends NextResponse>(
+  response: T,
+  input: {
+    requestHadLocalePrefix: boolean;
+    currentCookie: string | undefined;
+    resolvedLocale: Locale;
+  },
+) {
+  return shouldPersistLocaleCookie(input)
+    ? withLocaleCookie(response, input.resolvedLocale)
+    : response;
+}
+
 function rewriteWithNonce(
   url: URL,
   requestHeaders: Headers,
   nonce: string,
-  locale: Locale,
 ) {
-  return withLocaleCookie(
-    withCdnCache(
-      withSecurityHeaders(
-        NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
-        nonce,
-      ),
-      url.pathname,
+  return withCdnCache(
+    withSecurityHeaders(
+      NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
+      nonce,
     ),
-    locale,
+    url.pathname,
   );
 }
 
@@ -148,15 +158,20 @@ export default async function middleware(request: NextRequest, event: any) {
     pathname: originalPathname,
     cookie: request.cookies.get(LOCALE_COOKIE)?.value,
   });
+  const currentLocaleCookie = request.cookies.get(LOCALE_COOKIE)?.value;
   const unsupportedPrefix = unsupportedLocalePrefix(originalPathname);
 
   if (unsupportedPrefix) {
     const redirectUrl = request.nextUrl.clone();
     const suffix = originalPathname.slice(unsupportedPrefix.length + 1) || "/";
     redirectUrl.pathname = localizedPath(suffix, DEFAULT_LOCALE);
-    return withLocaleCookie(
+    return persistLocaleCookieWhenNeeded(
       withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
-      DEFAULT_LOCALE,
+      {
+        requestHadLocalePrefix: false,
+        currentCookie: currentLocaleCookie,
+        resolvedLocale: DEFAULT_LOCALE,
+      },
     );
   }
 
@@ -169,9 +184,13 @@ export default async function middleware(request: NextRequest, event: any) {
   if (!prefixed.hadPrefix && !isLocaleExcludedPath(originalPathname)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = localizedPath(originalPathname, locale);
-    return withLocaleCookie(
+    return persistLocaleCookieWhenNeeded(
       withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
-      locale,
+      {
+        requestHadLocalePrefix: false,
+        currentCookie: currentLocaleCookie,
+        resolvedLocale: locale,
+      },
     );
   }
 
@@ -221,7 +240,7 @@ export default async function middleware(request: NextRequest, event: any) {
     if (prefixed.hadPrefix) {
       const rewriteUrl = request.nextUrl.clone();
       rewriteUrl.pathname = pathname;
-      return rewriteWithNonce(rewriteUrl, requestHeaders, nonce, locale);
+      return rewriteWithNonce(rewriteUrl, requestHeaders, nonce);
     }
     return nextWithNonce(requestHeaders, nonce, pathname);
   }
@@ -236,7 +255,7 @@ export default async function middleware(request: NextRequest, event: any) {
   if (!isPassThrough) return withSecurityHeaders(authResponse, nonce);
 
   const response = prefixed.hadPrefix
-    ? rewriteWithNonce(authUrl, requestHeaders, nonce, locale)
+    ? rewriteWithNonce(authUrl, requestHeaders, nonce)
     : nextWithNonce(requestHeaders, nonce, pathname);
   for (const cookie of authResponse?.cookies?.getAll?.() ?? []) {
     response.cookies.set(cookie);
