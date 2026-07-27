@@ -1,129 +1,132 @@
+/* Hallmark · genre: editorial · section: product editorial · knobs: split=7/5 image-dominant, swatch rail crosses boundary, ledger=F3 2-col · design-system: design.md · designed-as-app */
 "use client";
 
 import { CspImage as Image } from "@/components/ui/csp-image";
-import Link from "next/link";
-import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
-import { ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
+import {
+  EditorialSection,
+  SpecLedger,
+  SwatchChip,
+  TypographicLink,
+} from "@/components/ui/editorial";
+import { COLOR_SWATCHES } from "@/lib/constants/home-data";
+
+/** The four shades the rail shows against the Majestic story. Existing catalogue data. */
+const RAIL_CODES = ["7686", "2002", "3004", "8002"];
 
 /**
- * Second hero / featured product band.
- * Dual stacked imagery inspired by coffee landing "booking" collages,
- * product shot quality closer to Aura cosmetics/furniture templates.
+ * Product editorial — the right shade for every surface. Image-dominant 7/5
+ * asymmetric split; a physical swatch rail crosses the image/text boundary so
+ * the two planes read as one composed spread, not a 50/50 template.
  */
 export function PromotionSection() {
   const { language } = useLanguageStore();
-  const reduceMotion = useReducedMotion();
+  const rail = COLOR_SWATCHES.filter((swatch) => RAIL_CODES.includes(swatch.code));
 
   return (
-    <section className="relative py-20 md:py-28 bg-jotun-ivory overflow-hidden">
-      <div className="w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          {/* Dual image stack */}
-          <safeMotion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-6 relative"
+    <EditorialSection rhythm="generous" frame className="fl-rise bg-atelier-paper" data-fl-io>
+      <div className="grid grid-cols-1 items-start gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
+        {/* Image plane — 7 columns, the dominant plate */}
+        <figure className="relative lg:col-span-7">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 200 160"
+            className="fl-orn-arc pointer-events-none absolute -left-fl-lg -top-fl-lg hidden w-40 lg:block"
           >
-            <div className="relative mx-auto max-w-[480px] lg:max-w-none">
-              {/* Main product plate */}
-              <div className="relative aspect-square w-[78%] ml-0 rounded-[1.75rem] overflow-hidden bg-warm-900 shadow-[0_30px_80px_rgba(47,40,34,0.22)]">
-                <Image
-                  src="/product_interior.webp"
-                  alt={language === "vi" ? "Sơn nội thất Majestic" : "Majestic interior paint"}
-                  fill
-                  sizes="(min-width: 1024px) 35vw, 80vw"
-                  className="object-cover"
-                />
-              </div>
-              {/* Overlapping lifestyle tile */}
-              <div className="absolute -bottom-6 -right-2 sm:right-0 w-[48%] aspect-[3/4] rounded-[1.35rem] overflow-hidden border-[6px] border-jotun-ivory shadow-[0_20px_50px_rgba(47,40,34,0.18)] bg-warm-100">
-                <Image
-                  src="/generated/promo-wall-detail.jpg"
-                  alt={language === "vi" ? "Chi tiết tường sơn" : "Painted wall detail"}
-                  fill
-                  sizes="200px"
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </safeMotion.div>
+            <circle className="fl-draw fl-draw-outer" cx="96" cy="80" r="48" fill="none" stroke="var(--fl-drench-clay)" strokeWidth="1.2" />
+            <circle className="fl-draw fl-draw-inner" cx="124" cy="80" r="33" fill="none" stroke="var(--fl-rule-strong)" strokeWidth="1" />
+          </svg>
+          <div className="fl-photo-plate fl-curtain-l relative aspect-[4/3] w-full overflow-hidden rounded-surface bg-atelier-paper-2">
+            <Image
+              src="/product_interior.webp"
+              alt={
+                language === "vi"
+                  ? "Sơn nội thất Majestic trong phòng khách"
+                  : "Majestic interior paint in a living room"
+              }
+              fill
+              sizes="(min-width: 1024px) 55vw, 100vw"
+              className="fl-photo-parallax object-cover"
+            />
+          </div>
+          <figcaption className="fl-label mt-fl-2xs">
+            {language === "vi" ? "Majestic · Sơn nội thất" : "Majestic · Interior paint"}
+          </figcaption>
 
-          {/* Copy */}
-          <safeMotion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: reduceMotion ? 0 : 0.08 }}
-            className="lg:col-span-6 flex flex-col items-start text-left pt-8 lg:pt-0"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <span className="h-px w-8 bg-jotun-teal" />
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-jotun-teal">
-                {language === "vi" ? "Dòng nổi bật" : "Featured line"}
-              </p>
-            </div>
+          {/* Swatch rail — crosses the image/text boundary on desktop; folds
+              into an in-flow row on mobile (design.md § Responsive). The
+              samples sit above the page plane, the one place shadow belongs. */}
+          <div className="fl-stagger mt-fl-md flex gap-fl-xs lg:absolute lg:-right-fl-xl lg:top-fl-xl lg:mt-0 lg:w-fl-4xl lg:flex-col lg:bg-atelier-paper lg:p-fl-2xs lg:shadow-[0_10px_30px_rgb(0_0_0/0.12)]">
+            {rail.map((swatch) => (
+              <SwatchChip
+                key={swatch.code}
+                hex={swatch.hex}
+                name={language === "vi" ? swatch.name : swatch.nameEn}
+                code={swatch.code}
+                layout="chip"
+                className="lg:h-12 lg:w-full"
+              />
+            ))}
+          </div>
+        </figure>
 
-            <h2 className="font-serif font-bold text-3xl md:text-4xl lg:text-[2.75rem] text-warm-950 leading-[1.12]">
-              {language === "vi" ? (
-                <>
-                  Majestic đẹp nguyên bản.
-                  <br />
-                  <span className="text-warm-600 font-normal italic">Sắc sảo & láng mịn.</span>
-                </>
-              ) : (
-                <>
-                  Majestic pure beauty.
-                  <br />
-                  <span className="text-warm-600 font-normal italic">Sharp & smooth finish.</span>
-                </>
-              )}
-            </h2>
+        {/* Copy plane — 5 columns, offset below the image top for asymmetry */}
+        <div className="flex flex-col items-start lg:col-span-5 lg:mt-fl-2xl lg:pl-fl-xl">
+          <p className="fl-label">
+            {language === "vi" ? "Dòng nổi bật" : "Featured line"}
+          </p>
 
-            <p className="mt-5 text-sm md:text-[15px] text-warm-550 leading-relaxed max-w-lg">
+          <div className="fl-mask-line mt-fl-xs">
+            <h2 className="fl-display text-fl-display-s text-atelier-ink">
               {language === "vi"
-                ? "Sơn nội thất cao cấp cho tường trong nhà: màu rực rỡ, dễ lau chùi, bề mặt bền đẹp. Chuẩn sang trọng cho không gian sống hiện đại."
-                : "Premium interior paint for indoor walls: vivid color, easy clean, durable finish. A refined standard for modern living spaces."}
-            </p>
+                ? "Đúng sắc cho từng bề mặt"
+                : "The right shade for every surface"}
+            </h2>
+          </div>
 
-            {/* Feature pills like coffee "đặc trưng" but denser */}
-            <ul className="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
-              {[
-                language === "vi" ? "Lau chùi tốt" : "Washable",
-                language === "vi" ? "Màu sắc nét" : "True color",
-                language === "vi" ? "Bền bề mặt" : "Durable film",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="rounded-2xl border border-warm-200 bg-white px-4 py-3 text-center text-[11px] font-bold text-warm-800"
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
+          <p className="fl-measure-tight mt-fl-md text-fl-md text-atelier-ink-2">
+            {language === "vi"
+              ? "Majestic là sơn nội thất cao cấp cho tường trong nhà: màu rực rỡ, dễ lau chùi, bề mặt bền đẹp qua nhiều năm sử dụng."
+              : "Majestic is a premium interior paint: vivid colour, easy to wipe clean, and a finish that holds up year after year."}
+          </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 rounded-full bg-warm-900 text-white text-xs font-bold px-6 py-3.5 hover:bg-warm-800 transition-colors active:scale-[0.98]"
-              >
-                {language === "vi" ? "Xem sản phẩm" : "View products"}
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-              <Link
-                href="/quote-request"
-                className="inline-flex items-center gap-2 rounded-full border border-warm-300 bg-white text-warm-800 text-xs font-bold px-6 py-3.5 hover:border-jotun-teal/40 hover:text-jotun-teal transition-colors"
-              >
-                {language === "vi" ? "Tư vấn báo giá" : "Request a quote"}
-              </Link>
-            </div>
-          </safeMotion.div>
+          {/* Flat specification ledger — data the story already carries */}
+          <SpecLedger
+            className="fl-stagger mt-fl-lg w-full"
+            columns={2}
+            rows={[
+              {
+                label: language === "vi" ? "Bề mặt" : "Surface",
+                value: language === "vi" ? "Tường nội thất" : "Interior walls",
+              },
+              {
+                label: language === "vi" ? "Không gian" : "Space",
+                value:
+                  language === "vi"
+                    ? "Phòng khách, phòng ngủ"
+                    : "Living rooms, bedrooms",
+              },
+              {
+                label: language === "vi" ? "Đặc tính" : "Character",
+                value: language === "vi" ? "Dễ lau chùi, màu sắc nét" : "Washable, true colour",
+              },
+              {
+                label: language === "vi" ? "Độ bền" : "Durability",
+                value: language === "vi" ? "Màng sơn bền bề mặt" : "Durable paint film",
+              },
+            ]}
+          />
+
+          <div className="mt-fl-lg flex flex-wrap items-center gap-fl-lg">
+            <TypographicLink href="/products">
+              {language === "vi" ? "Xem sản phẩm" : "View products"}
+            </TypographicLink>
+            <TypographicLink href="/quote-request">
+              {language === "vi" ? "Tư vấn báo giá" : "Request a quote"}
+            </TypographicLink>
+          </div>
         </div>
       </div>
-    </section>
+    </EditorialSection>
   );
 }
-
-
