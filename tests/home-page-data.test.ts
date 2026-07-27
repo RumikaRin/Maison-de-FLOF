@@ -33,12 +33,21 @@ test("home page data falls back to curated static content when database is unava
 });
 
 test("home page marks successful database results as commerce-enabled", async () => {
+  let blogQuery: any;
   const data = await getHomePageData({
     paint: { findMany: async () => [] },
     paintColor: { findMany: async () => [] },
-    blog: { findMany: async () => [] },
+    blog: {
+      findMany: async (query) => {
+        blogQuery = query;
+        return [];
+      },
+    },
   });
 
   assert.equal(data.source, "database");
   assert.equal(data.commerceAvailable, true);
+  assert.equal(blogQuery.select.content, undefined);
+  assert.equal(blogQuery.select.contentEn, undefined);
+  assert.deepEqual(blogQuery.select.author, { select: { name: true } });
 });

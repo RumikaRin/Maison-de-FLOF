@@ -1,7 +1,11 @@
 /* Hallmark · genre: editorial · macrostructure: 11 Catalogue · design-system: design.md · designed-as-app */
 import { Metadata } from "next";
 import { db } from "@/lib/db";
-import { serializePublicBlog } from "@/services/blog.service";
+import {
+  PUBLIC_BLOG_CARD_SELECT,
+  serializePublicBlogCard,
+  type PublicBlogCard,
+} from "@/services/blog.service";
 import { BlogListingClient } from "@/components/features/blog/BlogListingClient";
 
 export const revalidate = 300;
@@ -13,14 +17,14 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogListingPage() {
-  let blogs: ReturnType<typeof serializePublicBlog>[];
+  let blogs: PublicBlogCard[];
   try {
     const rawBlogs = await db.blog.findMany({
       where: { isActive: true },
-      include: { author: { select: { name: true } } },
+      select: PUBLIC_BLOG_CARD_SELECT,
       orderBy: { createdAt: "desc" },
     });
-    blogs = rawBlogs.map(serializePublicBlog);
+    blogs = rawBlogs.map(serializePublicBlogCard);
   } catch {
     blogs = [];
   }

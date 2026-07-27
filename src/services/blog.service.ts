@@ -11,7 +11,26 @@ type BlogWithAuthor = Prisma.BlogGetPayload<{
   include: { author: { select: { name: true } } };
 }>;
 
+export const PUBLIC_BLOG_CARD_SELECT = {
+  id: true,
+  title: true,
+  titleEn: true,
+  slug: true,
+  summary: true,
+  summaryEn: true,
+  image: true,
+  category: true,
+  categoryEn: true,
+  createdAt: true,
+  author: { select: { name: true } },
+} satisfies Prisma.BlogSelect;
+
+type BlogCardRow = Prisma.BlogGetPayload<{
+  select: typeof PUBLIC_BLOG_CARD_SELECT;
+}>;
+
 export type PublicBlog = ReturnType<typeof serializePublicBlog>;
+export type PublicBlogCard = ReturnType<typeof serializePublicBlogCard>;
 
 export function rankRelatedPosts<T extends RelatedPostCandidate>(
   posts: readonly T[],
@@ -41,6 +60,23 @@ export function serializePublicBlog(blog: BlogWithAuthor) {
     summaryEn: blog.summaryEn || blog.summary,
     content: blog.content,
     contentEn: blog.contentEn || blog.content,
+    image: blog.image || DEFAULT_BLOG_IMAGE,
+    category: blog.category,
+    categoryEn: blog.categoryEn,
+    author: blog.author.name || "Maison de FLOF",
+    readTime: "5 phút đọc / 5 min read",
+    createdAt: blog.createdAt.toISOString().split("T")[0],
+  };
+}
+
+export function serializePublicBlogCard(blog: BlogCardRow) {
+  return {
+    id: blog.id,
+    title: blog.title,
+    titleEn: blog.titleEn || blog.title,
+    slug: blog.slug,
+    summary: blog.summary,
+    summaryEn: blog.summaryEn || blog.summary,
     image: blog.image || DEFAULT_BLOG_IMAGE,
     category: blog.category,
     categoryEn: blog.categoryEn,

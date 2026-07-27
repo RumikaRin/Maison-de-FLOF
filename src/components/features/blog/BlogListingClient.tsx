@@ -8,16 +8,15 @@ import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
 import {
   EditorialHeading,
   EditorialSection,
   Rule,
 } from "@/components/ui/editorial";
-import type { PublicBlog } from "@/services/blog.service";
+import type { PublicBlogCard } from "@/services/blog.service";
 
 interface BlogListingClientProps {
-  initialBlogs: PublicBlog[];
+  initialBlogs: PublicBlogCard[];
 }
 
 /**
@@ -28,7 +27,6 @@ interface BlogListingClientProps {
 export function BlogListingClient({ initialBlogs }: BlogListingClientProps) {
   const { language } = useLanguageStore();
   const t = useTrans(language);
-  const reduceMotion = useReducedMotion();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -116,13 +114,7 @@ export function BlogListingClient({ initialBlogs }: BlogListingClientProps) {
         </div>
 
         {filteredBlogs.length > 0 ? (
-          <safeMotion.div
-            key={searchQuery + selectedCategory}
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.24 }}
-            className="mt-fl-lg"
-          >
+          <div className="mt-fl-lg">
             {/* Featured article — the crop carries it */}
             {featured ? (
               <article className="grid grid-cols-1 gap-y-fl-md border-t border-atelier-rule pt-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
@@ -206,7 +198,7 @@ export function BlogListingClient({ initialBlogs }: BlogListingClientProps) {
                 })}
               </ul>
             ) : null}
-          </safeMotion.div>
+          </div>
         ) : (
           /* Editorial empty state: a rule, a line of Playfair. */
           <div className="mt-fl-lg border-t border-atelier-rule pt-fl-lg">

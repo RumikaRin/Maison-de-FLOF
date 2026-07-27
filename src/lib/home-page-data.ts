@@ -2,6 +2,10 @@ import { getFallbackColors, getFallbackProducts } from "./catalog-fallback-data.
 import { getProductImage } from "./product-image.ts";
 import type { CatalogAvailability } from "./catalog-result.ts";
 import { writeOperationalLog } from "./operations/log.ts";
+import {
+  PUBLIC_BLOG_CARD_SELECT,
+  serializePublicBlogCard,
+} from "../services/blog.service.ts";
 
 type HomePageDatabase = {
   paint: {
@@ -70,22 +74,7 @@ function mapHomePageData(products: any[], colors: any[], blogs: any[]): HomePage
     colors: product.colors.map((link: any) => link.color.code),
   }));
 
-  const mappedBlogs = blogs.map((blog) => ({
-    id: blog.id,
-    title: blog.title,
-    titleEn: blog.titleEn || blog.title,
-    slug: blog.slug,
-    summary: blog.summary,
-    summaryEn: blog.summaryEn || blog.summary,
-    content: blog.content,
-    contentEn: blog.contentEn || blog.content,
-    image: blog.image || "https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=800",
-    category: "Xu Hướng Thiết Kế",
-    categoryEn: "Design Trends",
-    author: blog.author?.name || "Maison de FLOF",
-    readTime: "5 phút đọc / 5 min read",
-    createdAt: blog.createdAt.toISOString().split("T")[0],
-  }));
+  const mappedBlogs = blogs.map(serializePublicBlogCard);
 
   return {
     source: "database",
@@ -118,7 +107,7 @@ export async function getHomePageData(database: HomePageDatabase): Promise<HomeP
       }),
       database.blog.findMany({
         where: { isActive: true },
-        include: { author: { select: { name: true } } },
+        select: PUBLIC_BLOG_CARD_SELECT,
         orderBy: { createdAt: "desc" },
         take: 3,
       }),

@@ -33,3 +33,15 @@ test("homepage LCP image has no first-paint opacity gate", async () => {
   assert.ok(heroSource.includes("quality={82}"));
   assert.ok(!layoutSource.includes("<safeMotion.main"));
 });
+
+test("blog listing does not hide its LCP image on first paint", async () => {
+  const blogListingSource = await readSource(
+    "src/components/features/blog/BlogListingClient.tsx",
+  );
+
+  assert.ok(
+    !blogListingSource.includes(
+      "initial={reduceMotion ? false : { opacity: 0 }}",
+    ),
+  );
+});
