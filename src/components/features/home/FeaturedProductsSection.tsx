@@ -1,13 +1,19 @@
+/* Hallmark · genre: editorial · section: featured products · knobs: lead=7/5 feature row, supporting=5-up dense catalogue, tabs=C1 outlined chips · design-system: design.md · designed-as-app */
 "use client";
 
 import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
 import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
-import { ArrowRight, ShoppingBag } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
 import { cn, formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
 import { Paint, PaintColor } from "@/types";
+import {
+  EditorialSection,
+  EditorialHeading,
+  Rule,
+  TypographicLink,
+} from "@/components/ui/editorial";
 
 interface FeaturedProductsSectionProps {
   activeTab: "bestseller" | "new" | "promo";
@@ -21,8 +27,9 @@ interface FeaturedProductsSectionProps {
 }
 
 /**
- * Shop-style product grid (coffee "online store" + Aura furniture ecom):
- * soft card plates, clear price hierarchy, add-to-cart affordance.
+ * Featured products — merchandising with hierarchy. The leading product takes
+ * a 7/5 feature row; the supporting five run in a dense catalogue rhythm on
+ * hairlines. No card boxes, no badges: the discount is part of the price line.
  */
 export function FeaturedProductsSection({
   activeTab,
@@ -49,176 +56,229 @@ export function FeaturedProductsSection({
     )
     .slice(0, 6);
 
+  const [lead, ...supporting] = list;
+
+  const priceLine = (paint: Paint) => {
+    const hasDiscount = Boolean(paint.discountPercent && paint.discountPercent > 0);
+    const finalPrice = hasDiscount
+      ? paint.price * (1 - (paint.discountPercent || 0) / 100)
+      : paint.price;
+    return { hasDiscount, finalPrice };
+  };
+
   return (
-    <section className="py-20 md:py-28 bg-white relative overflow-hidden">
-      {/* Soft atmosphere wash */}
-      <div className="pointer-events-none absolute top-0 right-0 w-[40%] h-[50%] bg-[radial-gradient(ellipse_at_top_right,_rgba(0,123,138,0.06),_transparent_60%)]" />
+    <EditorialSection
+      rhythm="generous"
+      frame
+      className="fl-rise bg-atelier-paper-2"
+      data-fl-io
+    >
+      <div className="flex flex-col gap-fl-sm md:flex-row md:items-end md:justify-between">
+        <EditorialHeading
+          as="h2"
+          scale="3xl"
+          label={language === "vi" ? "Cửa hàng" : "Shop"}
+        >
+          {language === "vi" ? "Sản phẩm sơn nổi bật" : "Featured paint products"}
+        </EditorialHeading>
 
-      <div className="relative w-full max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-          <div className="max-w-xl text-left">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="h-px w-8 bg-jotun-teal" />
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-jotun-teal">
-                {language === "vi" ? "Cửa hàng" : "Shop"}
-              </p>
-            </div>
-            <h2 className="text-3xl md:text-4xl lg:text-[2.6rem] font-serif font-bold text-warm-950 leading-tight">
-              {language === "vi" ? "Sản phẩm sơn nước nổi bật" : "Featured paint products"}
-            </h2>
-            <p className="mt-3 text-sm text-warm-550 max-w-md leading-relaxed">
-              {language === "vi"
-                ? "Dòng sơn chính hãng bán chạy, mới ra mắt và đang khuyến mãi."
-                : "Bestsellers, new arrivals, and current promotions."}
-            </p>
-          </div>
-
-          <div className="flex gap-1 p-1 rounded-full bg-warm-100/90 border border-warm-200 self-start md:self-auto shadow-sm">
-            {tabs.map((tab) => (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => {
-                  if (tab.value === activeTab) return;
-                  setIsTabLoading(true);
-                  setTimeout(() => {
-                    setActiveTab(tab.value);
-                    setIsTabLoading(false);
-                  }, 260);
-                }}
-                className={cn(
-                  "px-4 py-2 rounded-full text-xs font-bold transition-all duration-300",
-                  activeTab === tab.value
-                    ? "bg-warm-900 text-white shadow-sm"
-                    : "text-warm-500 hover:text-warm-900",
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative min-h-[300px]">
-          <AnimatePresence mode="wait">
-            {isTabLoading ? (
-              <safeMotion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="min-h-[300px] flex items-center justify-center"
-              >
-                <div className="w-9 h-9 rounded-full border-2 border-warm-200 border-t-jotun-teal animate-spin" />
-              </safeMotion.div>
-            ) : (
-              <safeMotion.div
-                key={activeTab}
-                initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? undefined : { opacity: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6"
-              >
-                {list.map((paint, index) => {
-                  const prod = {
-                    id: paint.id,
-                    name: paint.name,
-                    nameEn: paint.nameEn,
-                    desc: paint.description,
-                    descEn: paint.descriptionEn,
-                  };
-                  const hasDiscount = Boolean(paint.discountPercent && paint.discountPercent > 0);
-                  const finalPrice = hasDiscount
-                    ? paint.price * (1 - (paint.discountPercent || 0) / 100)
-                    : paint.price;
-
-                  return (
-                    <safeMotion.article
-                      key={paint.id}
-                      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.45,
-                        delay: reduceMotion ? 0 : index * 0.04,
-                        ease: [0.16, 1, 0.3, 1],
-                      }}
-                      className="group relative flex flex-col rounded-[1.5rem] bg-jotun-ivory border border-warm-200/90 overflow-hidden shadow-[0_8px_30px_rgba(47,40,34,0.04)] hover:shadow-[0_18px_50px_rgba(47,40,34,0.1)] transition-shadow duration-500"
-                    >
-                      <Link
-                        href={`/products/${paint.slug}`}
-                        className="relative aspect-[4/5] sm:aspect-square bg-white overflow-hidden"
-                      >
-                        <Image
-                          src={getProductImage(paint.images)}
-                          alt={language === "vi" ? prod.name : prod.nameEn || prod.name}
-                          fill
-                          sizes="(min-width: 768px) 30vw, 45vw"
-                          className="object-contain p-6 sm:p-8 transition-transform duration-700 group-hover:scale-105"
-                        />
-                        {hasDiscount && (
-                          <span className="absolute top-3 left-3 rounded-full bg-warm-900 text-white text-[10px] font-bold px-2.5 py-1">
-                            -{paint.discountPercent}%
-                          </span>
-                        )}
-                      </Link>
-
-                      <div className="flex flex-col flex-grow p-4 sm:p-5">
-                        <p className="text-[10px] font-mono font-bold uppercase tracking-[0.12em] text-warm-400">
-                          {paint.supplier?.name || "Maison de FLOF"}
-                        </p>
-                        <Link href={`/products/${paint.slug}`}>
-                          <h3 className="mt-1.5 font-serif font-bold text-sm sm:text-base text-warm-950 group-hover:text-jotun-teal transition-colors line-clamp-2 leading-snug">
-                            {language === "vi" ? prod.name : prod.nameEn || prod.name}
-                          </h3>
-                        </Link>
-
-                        <div className="mt-auto pt-4 flex items-end justify-between gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-sm sm:text-base font-mono font-bold text-warm-950">
-                              {formatPrice(finalPrice)}
-                            </span>
-                            {hasDiscount && (
-                              <span className="text-[11px] font-mono text-warm-400 line-through">
-                                {formatPrice(paint.price)}
-                              </span>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleAddToCart(prod)}
-                            disabled={!commerceAvailable}
-                            aria-disabled={!commerceAvailable}
-                            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-jotun-teal text-white text-[10px] sm:text-[11px] font-bold px-3.5 py-2.5 hover:bg-jotun-teal-dark transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label={language === "vi" ? "Thêm vào giỏ" : "Add to cart"}
-                          >
-                            <ShoppingBag className="w-3.5 h-3.5" />
-                            <span className="hidden xs:inline sm:inline">
-                              {language === "vi" ? "Thêm" : "Add"}
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </safeMotion.article>
-                  );
-                })}
-              </safeMotion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="mt-12 flex justify-center">
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 rounded-full border border-warm-300 bg-white px-6 py-3 text-xs font-bold text-warm-900 hover:border-jotun-teal/40 hover:text-jotun-teal transition-colors"
-          >
-            {language === "vi" ? "Khám phá thêm sản phẩm" : "Explore more products"}
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+        {/* Filter chips — C1 outlined, rectangular */}
+        <div role="group" aria-label={language === "vi" ? "Lọc sản phẩm" : "Filter products"} className="flex gap-fl-2xs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              aria-pressed={activeTab === tab.value}
+              onClick={() => {
+                if (tab.value === activeTab) return;
+                setIsTabLoading(true);
+                setTimeout(() => {
+                  setActiveTab(tab.value);
+                  setIsTabLoading(false);
+                }, 260);
+              }}
+              className={cn(
+                "min-h-11 whitespace-nowrap rounded-control border px-fl-sm text-fl-sm transition-colors duration-fl-fast ease-fl-out md:min-h-10",
+                activeTab === tab.value
+                  ? "border-atelier-ink bg-atelier-ink text-atelier-paper"
+                  : "border-atelier-rule-strong text-atelier-ink-2 hover:border-atelier-ink hover:text-atelier-ink",
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
-    </section>
+
+      <Rule className="mt-fl-md" weight="strong" />
+
+      <div className="relative min-h-[300px]">
+        <AnimatePresence mode="wait">
+          {isTabLoading ? (
+            <safeMotion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex min-h-[300px] items-center justify-center"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="fl-label">
+                {language === "vi" ? "Đang tải…" : "Loading…"}
+              </span>
+            </safeMotion.div>
+          ) : (
+            <safeMotion.div
+              key={activeTab}
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={reduceMotion ? undefined : { opacity: 0 }}
+              transition={{ duration: 0.24 }}
+            >
+              {lead ? (
+                (() => {
+                  const { hasDiscount, finalPrice } = priceLine(lead);
+                  return (
+                    <article className="fl-stagger grid grid-cols-1 gap-y-fl-md py-fl-lg md:grid-cols-12 md:gap-x-fl-lg">
+                      <Link
+                        href={`/products/${lead.slug}`}
+                        className="fl-blurup group relative block aspect-[4/3] overflow-hidden rounded-surface bg-atelier-paper md:col-span-7"
+                      >
+                        <Image
+                          src={getProductImage(lead.images)}
+                          alt={language === "vi" ? lead.name : lead.nameEn || lead.name}
+                          fill
+                          sizes="(min-width: 768px) 55vw, 100vw"
+                          className="object-contain p-fl-lg transition-transform duration-fl-slow ease-fl-out group-hover:scale-[1.03] motion-reduce:transform-none"
+                        />
+                      </Link>
+                      <div className="flex flex-col items-start md:col-span-5 md:pt-fl-md">
+                        <p className="fl-label">
+                          {lead.supplier?.name || "Maison de FLOF"}
+                        </p>
+                        <Link href={`/products/${lead.slug}`}>
+                          <h3 className="fl-display mt-fl-2xs text-fl-2xl text-atelier-ink">
+                            {language === "vi" ? lead.name : lead.nameEn || lead.name}
+                          </h3>
+                        </Link>
+                        <p className="fl-measure-tight mt-fl-sm text-fl-sm text-atelier-ink-2 line-clamp-3">
+                          {language === "vi" ? lead.description : lead.descriptionEn}
+                        </p>
+                        <p className="mt-fl-md flex items-baseline gap-fl-xs">
+                          <span className={cn("text-fl-xl tabular-nums", hasDiscount ? "text-atelier-danger" : "text-atelier-ink")}>
+                            {formatPrice(finalPrice)}
+                          </span>
+                          {hasDiscount ? (
+                            <>
+                              <span className="text-fl-sm tabular-nums text-atelier-ink-3 line-through">
+                                {formatPrice(lead.price)}
+                              </span>
+                              <span className="fl-label !text-atelier-danger">
+                                −{lead.discountPercent}%
+                              </span>
+                            </>
+                          ) : null}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleAddToCart({
+                              id: lead.id,
+                              name: lead.name,
+                              nameEn: lead.nameEn,
+                            })
+                          }
+                          disabled={!commerceAvailable}
+                          aria-disabled={!commerceAvailable}
+                          className="mt-fl-md inline-flex min-h-11 items-center whitespace-nowrap rounded-control bg-atelier-accent px-fl-lg py-fl-xs text-fl-sm font-medium text-atelier-accent-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-accent-hover disabled:cursor-not-allowed disabled:opacity-45 md:min-h-10"
+                        >
+                          {language === "vi" ? "Thêm vào giỏ" : "Add to cart"}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })()
+              ) : (
+                <p className="py-fl-lg text-fl-sm text-atelier-ink-2">
+                  {language === "vi"
+                    ? "Chưa có sản phẩm trong mục này."
+                    : "No products in this list yet."}
+                </p>
+              )}
+
+              {supporting.length > 0 ? (
+                <>
+                  <Rule />
+                  <div className="fl-stagger grid grid-cols-2 gap-x-fl-md md:grid-cols-5">
+                    {supporting.map((paint) => {
+                      const { hasDiscount, finalPrice } = priceLine(paint);
+                      return (
+                        <article
+                          key={paint.id}
+                          className="fl-blurup flex flex-col border-b border-atelier-rule pb-fl-sm pt-fl-sm"
+                        >
+                          <Link
+                            href={`/products/${paint.slug}`}
+                            className="group relative block aspect-square overflow-hidden rounded-surface bg-atelier-paper"
+                          >
+                            <Image
+                              src={getProductImage(paint.images)}
+                              alt={language === "vi" ? paint.name : paint.nameEn || paint.name}
+                              fill
+                              sizes="(min-width: 768px) 18vw, 45vw"
+                              className="object-contain p-fl-xs transition-transform duration-fl-slow ease-fl-out group-hover:scale-[1.03] motion-reduce:transform-none"
+                            />
+                          </Link>
+                          <Link href={`/products/${paint.slug}`} className="mt-fl-xs block">
+                            <h3 className="truncate font-serif text-fl-md text-atelier-ink">
+                              {language === "vi" ? paint.name : paint.nameEn || paint.name}
+                            </h3>
+                          </Link>
+                          <div className="mt-auto flex items-baseline justify-between gap-fl-2xs pt-fl-2xs">
+                            <span className={cn("text-fl-sm tabular-nums", hasDiscount ? "text-atelier-danger" : "text-atelier-ink")}>
+                              {formatPrice(finalPrice)}
+                              {hasDiscount ? (
+                                <span className="ml-1 text-fl-2xs">−{paint.discountPercent}%</span>
+                              ) : null}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleAddToCart({
+                                  id: paint.id,
+                                  name: paint.name,
+                                  nameEn: paint.nameEn,
+                                })
+                              }
+                              disabled={!commerceAvailable}
+                              aria-disabled={!commerceAvailable}
+                              aria-label={
+                                language === "vi"
+                                  ? `Thêm ${paint.name} vào giỏ`
+                                  : `Add ${paint.nameEn || paint.name} to cart`
+                              }
+                              className="min-h-11 whitespace-nowrap text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-45 md:min-h-6"
+                            >
+                              {language === "vi" ? "Thêm" : "Add"}
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : null}
+            </safeMotion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="mt-fl-lg">
+        <TypographicLink href="/products">
+          {language === "vi" ? "Khám phá thêm sản phẩm" : "Explore more products"}
+        </TypographicLink>
+      </div>
+    </EditorialSection>
   );
 }
-
-
