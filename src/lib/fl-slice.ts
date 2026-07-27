@@ -62,8 +62,9 @@ export function initFlSlice(): () => void {
     }
     value = decayVelocity(value, target);
     target *= TARGET_DECAY;
+    const serializedValue = value === 0 ? "0" : value.toFixed(4);
     for (const plate of visible) {
-      plate.style.setProperty("--fl-slice-v", value.toFixed(4));
+      plate.style.setProperty("--fl-slice-v", serializedValue);
     }
     if (value === 0 && Math.abs(target) < EPSILON) {
       running = false;

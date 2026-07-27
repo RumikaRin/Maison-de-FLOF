@@ -3,6 +3,7 @@
 
 import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
+import { useState } from "react";
 import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
 import { useLanguageStore } from "@/store/language-store";
 import { cn, formatPrice } from "@/lib/utils";
@@ -42,6 +43,7 @@ export function FeaturedProductsSection({
 }: FeaturedProductsSectionProps) {
   const { language } = useLanguageStore();
   const reduceMotion = useReducedMotion();
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const tabs = [
     { value: "bestseller" as const, label: language === "vi" ? "Bán chạy" : "Bestsellers" },
@@ -91,6 +93,7 @@ export function FeaturedProductsSection({
               aria-pressed={activeTab === tab.value}
               onClick={() => {
                 if (tab.value === activeTab) return;
+                setHasInteracted(true);
                 setIsTabLoading(true);
                 setTimeout(() => {
                   setActiveTab(tab.value);
@@ -112,7 +115,12 @@ export function FeaturedProductsSection({
 
       <Rule className="mt-fl-md" weight="strong" />
 
-      <div className="relative min-h-[300px]">
+      <div
+        className={cn(
+          "relative min-h-[300px]",
+          hasInteracted && "fl-noreplay",
+        )}
+      >
         <AnimatePresence mode="wait">
           {isTabLoading ? (
             <safeMotion.div

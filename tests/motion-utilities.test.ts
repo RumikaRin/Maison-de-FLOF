@@ -40,3 +40,11 @@ test("motion runtime modules exist", async () => {
   await access("src/lib/fl-reveal.ts");
   await access("src/lib/fl-slice.ts");
 });
+
+test("slice runtime writes the canonical zero value when drift settles", async () => {
+  const source = await readFile("src/lib/fl-slice.ts", "utf8");
+  assert.ok(
+    source.includes('value === 0 ? "0" : value.toFixed(4)'),
+    "settled slice velocity must serialize as exactly 0",
+  );
+});

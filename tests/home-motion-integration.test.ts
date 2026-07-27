@@ -50,6 +50,9 @@ test("featured products stagger lead and supporting cards", async () => {
       'className="fl-blurup flex flex-col border-b border-atelier-rule pb-fl-sm pt-fl-sm"',
     ),
   );
+  assert.ok(source.includes("const [hasInteracted, setHasInteracted] = useState(false)"));
+  assert.ok(source.includes('hasInteracted && "fl-noreplay"'));
+  assert.ok(source.includes("setHasInteracted(true)"));
 });
 
 test("sage visualizer band grows, mosaics room curtains, and draws its blueprint", async () => {
