@@ -328,7 +328,7 @@ export default function Header() {
                 href={localize("/cart")}
                 onClick={() => setMobileOpen(false)}
                 aria-label={t.headerCart}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-fl-pill hover:bg-atelier-paper text-atelier-ink transition-all duration-fl-fast text-fl-sm font-medium"
+                className="flex min-h-11 items-center gap-1.5 px-3 py-1 rounded-fl-pill hover:bg-atelier-paper text-atelier-ink transition-all duration-fl-fast text-fl-sm font-medium md:min-h-10"
               >
                 <ShoppingCart className="h-4 w-4 text-atelier-ink" aria-hidden="true" />
                 <span className="hidden sm:inline text-fl-sm font-medium">{t.headerCart}</span>
@@ -428,7 +428,7 @@ export default function Header() {
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-expanded={mobileOpen}
-              className="flex min-h-10 items-center whitespace-nowrap rounded-fl-pill border border-atelier-rule bg-atelier-paper-2 px-3.5 py-1 text-fl-2xs uppercase tracking-[0.14em] font-semibold text-atelier-ink transition-colors xl:hidden hover:bg-atelier-paper"
+              className="flex min-h-11 items-center whitespace-nowrap rounded-fl-pill border border-atelier-rule bg-atelier-paper-2 px-3.5 py-1 text-fl-2xs uppercase tracking-[0.14em] font-semibold text-atelier-ink transition-colors xl:hidden hover:bg-atelier-paper md:min-h-10"
             >
               {mobileOpen ? t.headerCloseMenu : t.headerMenu}
             </button>
