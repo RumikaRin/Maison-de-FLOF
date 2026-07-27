@@ -17,7 +17,7 @@
 - Modify: `src/middleware.ts`
 - Test: `tests/locale-routing.test.ts`
 
-- [ ] **Step 1: Write the failing locale-cookie policy test**
+- [x] **Step 1: Write the failing locale-cookie policy test**
 
 Add tests importing `shouldPersistLocaleCookie` and asserting:
 
@@ -48,13 +48,13 @@ assert.equal(
 );
 ```
 
-- [ ] **Step 2: Run the focused test and confirm RED**
+- [x] **Step 2: Run the focused test and confirm RED**
 
 Run: `node --experimental-strip-types --test tests/locale-routing.test.ts`
 
 Expected: FAIL because `src/lib/locale-response-policy.ts` does not exist.
 
-- [ ] **Step 3: Implement the pure policy and use it in middleware**
+- [x] **Step 3: Implement the pure policy and use it in middleware**
 
 Create:
 
@@ -77,13 +77,13 @@ In middleware, remove `withLocaleCookie` from `rewriteWithNonce`. Apply the
 cookie only to unprefixed/unsupported redirect responses when the pure policy
 returns true. Preserve security and CDN cache headers.
 
-- [ ] **Step 4: Run the focused test and confirm GREEN**
+- [x] **Step 4: Run the focused test and confirm GREEN**
 
 Run: `node --experimental-strip-types --test tests/locale-routing.test.ts`
 
 Expected: all locale-routing tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/locale-response-policy.ts src/middleware.ts tests/locale-routing.test.ts
@@ -99,7 +99,7 @@ git commit -m "perf: allow locale pages to use vercel cdn cache"
 - Modify: `src/components/layout/MainLayoutWrapper.tsx`
 - Test: `tests/home-performance-contract.test.ts`
 
-- [ ] **Step 1: Write failing source-contract tests**
+- [x] **Step 1: Write failing source-contract tests**
 
 Create assertions that require:
 
@@ -114,14 +114,14 @@ assert.ok(!layoutSource.includes("<safeMotion.main"));
 
 Also require `quality={82}` on the hero image.
 
-- [ ] **Step 2: Run the focused test and confirm RED**
+- [x] **Step 2: Run the focused test and confirm RED**
 
 Run: `node --experimental-strip-types --test tests/home-performance-contract.test.ts`
 
 Expected: FAIL because the hero still lives inside `HomeClient` and both
 first-paint opacity gates remain.
 
-- [ ] **Step 3: Implement the server streaming boundary**
+- [x] **Step 3: Implement the server streaming boundary**
 
 In `src/app/page.tsx`, make the page synchronous, render `<HeroSection />`
 first, and place an async `HomePageSections` server component inside Suspense:
@@ -163,13 +163,13 @@ plain `<main>` in `MainLayoutWrapper`; remove `AnimatePresence` and
 absolutely positioned `div`, remove the first-paint opacity transition, and
 set image quality to 82.
 
-- [ ] **Step 4: Run focused tests and confirm GREEN**
+- [x] **Step 4: Run focused tests and confirm GREEN**
 
 Run: `node --experimental-strip-types --test tests/home-performance-contract.test.ts tests/home-page-data.test.ts`
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/page.tsx src/components/features/home/HomeClient.tsx src/components/features/home/HeroSection.tsx src/components/layout/MainLayoutWrapper.tsx tests/home-performance-contract.test.ts
@@ -187,7 +187,7 @@ git commit -m "perf: stream homepage hero before catalogue data"
 - Test: `tests/home-page-data.test.ts`
 - Test: `tests/home-performance-contract.test.ts`
 
-- [ ] **Step 1: Write failing projection and first-paint tests**
+- [x] **Step 1: Write failing projection and first-paint tests**
 
 Add a service test requiring `serializePublicBlogCard` to omit both `content`
 and `contentEn`. Capture the homepage database query and assert:
@@ -201,7 +201,7 @@ assert.deepEqual(blogQuery.select.author, { select: { name: true } });
 Add a source-contract assertion that `BlogListingClient` does not contain
 `initial={reduceMotion ? false : { opacity: 0 }}`.
 
-- [ ] **Step 2: Run focused tests and confirm RED**
+- [x] **Step 2: Run focused tests and confirm RED**
 
 Run:
 `node --experimental-strip-types --test tests/blog-service.test.ts tests/home-page-data.test.ts tests/home-performance-contract.test.ts`
@@ -209,7 +209,7 @@ Run:
 Expected: FAIL because card serialization/projection does not exist and the
 initial opacity gate remains.
 
-- [ ] **Step 3: Implement the blog-card boundary**
+- [x] **Step 3: Implement the blog-card boundary**
 
 In `blog.service.ts`, add `PUBLIC_BLOG_CARD_SELECT`, `PublicBlogCard`, and
 `serializePublicBlogCard`. The serializer returns only card metadata.
@@ -221,14 +221,14 @@ the article-detail route.
 In `BlogListingClient`, replace the initial `safeMotion.div` results wrapper
 with a plain `div`. Keep search/category state behavior and all visual classes.
 
-- [ ] **Step 4: Run focused tests and confirm GREEN**
+- [x] **Step 4: Run focused tests and confirm GREEN**
 
 Run:
 `node --experimental-strip-types --test tests/blog-service.test.ts tests/home-page-data.test.ts tests/home-performance-contract.test.ts`
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/services/blog.service.ts src/app/blog/page.tsx src/lib/home-page-data.ts src/components/features/blog/BlogListingClient.tsx tests/blog-service.test.ts tests/home-page-data.test.ts tests/home-performance-contract.test.ts
@@ -242,7 +242,7 @@ git commit -m "perf: trim blog cards and remove lcp render delay"
 - Modify: `lighthouserc.json`
 - Modify: `tests/lighthouse-gate.test.ts`
 
-- [ ] **Step 1: Write the failing gate test**
+- [x] **Step 1: Write the failing gate test**
 
 Require the URL list to include `http://127.0.0.1:3100/blog` and require:
 
@@ -253,24 +253,24 @@ assert.deepEqual(config.ci.assert.assertions["largest-contentful-paint"], [
 ]);
 ```
 
-- [ ] **Step 2: Run the focused test and confirm RED**
+- [x] **Step 2: Run the focused test and confirm RED**
 
 Run: `node --experimental-strip-types --test tests/lighthouse-gate.test.ts`
 
 Expected: FAIL because `/blog` and the LCP assertion are absent.
 
-- [ ] **Step 3: Update the gate**
+- [x] **Step 3: Update the gate**
 
 Add `/blog` to both Lighthouse URL lists and add the median LCP limit of 2500
 milliseconds. Keep three runs and existing score/CLS assertions.
 
-- [ ] **Step 4: Run the focused test and confirm GREEN**
+- [x] **Step 4: Run the focused test and confirm GREEN**
 
 Run: `node --experimental-strip-types --test tests/lighthouse-gate.test.ts`
 
 Expected: all Lighthouse configuration tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/run-lighthouse-gate.ts lighthouserc.json tests/lighthouse-gate.test.ts
@@ -282,7 +282,7 @@ git commit -m "test: enforce blog lcp release budget"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-07-27-lcp-cdn-streaming.md`
 
-- [ ] **Step 1: Run static and unit gates**
+- [x] **Step 1: Run static and unit gates**
 
 Run:
 
@@ -295,19 +295,19 @@ npm run test:bundle
 
 Expected: zero failures.
 
-- [ ] **Step 2: Build before browser/type generation checks**
+- [x] **Step 2: Build before browser/type generation checks**
 
 Run: `npm run build`
 
 Expected: optimized production build completes.
 
-- [ ] **Step 3: Verify response headers and payload**
+- [x] **Step 3: Verify response headers and payload**
 
 Start production on port 3100. For `/vi` and `/vi/blog`, record cold/warm TTFB,
 download size, and headers. Expected: locale-prefixed HTML has CDN cache
 directives and no `Set-Cookie`.
 
-- [ ] **Step 4: Run browser and E2E checks**
+- [x] **Step 4: Run browser and E2E checks**
 
 Run:
 
@@ -319,8 +319,38 @@ npm run test:lighthouse
 Expected: Atelier suite passes; Lighthouse median LCP is at most 2.5 seconds on
 all configured routes.
 
-- [ ] **Step 5: Compare before/after evidence and commit the completed plan**
+- [x] **Step 5: Compare before/after evidence and commit the completed plan**
 
 Record homepage/blog LCP, phase breakdown, TTFB, HTML bytes, transfer bytes, and
 any remaining production-only uncertainty. Mark all completed checkboxes and
 commit only the plan/evidence update.
+
+## Verification evidence
+
+Verified on `codex/homepage-luxury-redesign` on 2026-07-27:
+
+- Static gates: `npm run lint`, `npm run typecheck`, `npm test` (198/198),
+  and `npm run test:bundle` passed.
+- Production build: `npm run build` completed. The local Neon production
+  database was unavailable during the final build, so the existing static
+  catalogue fallback was exercised; E2E and Lighthouse used the isolated
+  PostgreSQL test database.
+- Browser gate: `e2e/atelier-redesign.spec.ts` passed 31/31. The first run
+  exposed two undersized mobile header targets; their hit areas were raised to
+  44px and the complete suite was rerun.
+- Locale-prefixed response headers: `/vi` and `/vi/blog` returned
+  `Cache-Control: public, s-maxage=300, stale-while-revalidate=600` without
+  `Set-Cookie`.
+- HTML response size changed from 154,703 to 151,663 bytes on `/vi` and from
+  47,866 to 46,308 bytes on `/vi/blog`.
+- Local cold/warm TTFB after the change: `/vi` 144ms/16ms and `/vi/blog`
+  16ms/12ms. These local values do not measure Vercel edge latency.
+- Final desktop Lighthouse medians (three runs each): `/vi` LCP 1,026ms,
+  `/vi/products` 968ms, `/vi/blog` 907ms, and `/vi/login` 869ms. Performance
+  scores were 98, 98, 99, and 99 respectively.
+- The LCP gate now runs the same desktop profile as the reported Vercel field
+  segment, enforces a 2,500ms median ceiling, and includes `/blog`.
+
+Remaining production-only verification: deploy these commits, then wait for
+the Vercel seven-day field window to confirm p75 LCP under 2.5 seconds. Local
+Lighthouse and response checks cannot prove CDN HIT status or production p75.
