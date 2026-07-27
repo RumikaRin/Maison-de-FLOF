@@ -245,12 +245,8 @@ export function HomeClient({
         handleAddToCart={handleAddToCart}
         commerceAvailable={catalogAvailability.commerceAvailable}
       />
-      {/* Advice strip — one sentence, one action, painted. Clay rather than
-          ochre: ochre was the only band needing dark ink, which made its button
-          read as a heavy slab and put a mustard note against the warm mineral
-          palette. Clay sits in the same warm family as the paper. The band
-          arrives as a painted wave (BandEdge) — the page's single Tier-B
-          enrichment. */}
+      {/* Advice strip — one sentence, one action, painted in brand teal for
+          clear separation from the warm mineral journal that follows. */}
       {/* Colour index drift — real shades only, the page's one marquee. */}
       <SwatchMarquee
         className="bg-atelier-paper-2"
@@ -261,8 +257,8 @@ export function HomeClient({
         }))}
       />
       <div className="fl-rise">
-      <BandEdge color="clay" className="bg-atelier-paper-2" />
-      <DrenchBand color="clay" className="py-fl-2xl md:py-fl-3xl">
+      <BandEdge color="espresso" className="bg-atelier-paper-2 text-atelier-accent" />
+      <DrenchBand color="espresso" className="fl-drench-teal py-fl-2xl md:py-fl-3xl">
         <div className="mx-auto flex w-full max-w-[100rem] flex-col gap-fl-sm px-[clamp(1rem,4vw,1.5rem)] md:flex-row md:items-end md:justify-between">
           <p className="fl-display max-w-2xl text-fl-2xl">
             {language === "vi"
@@ -271,7 +267,7 @@ export function HomeClient({
           </p>
           <Link
             href="/quote-request"
-            className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-control bg-atelier-on-dark px-fl-lg py-fl-xs text-fl-sm font-medium text-atelier-espresso transition-opacity duration-fl-fast ease-fl-out hover:opacity-90 md:min-h-10"
+            className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-control bg-atelier-on-dark px-fl-lg py-fl-xs text-fl-sm font-medium text-atelier-accent-hover transition-opacity duration-fl-fast ease-fl-out hover:opacity-90 md:min-h-10"
           >
             {language === "vi" ? "Đặt lịch tư vấn" : "Book a consultation"}
           </Link>
@@ -282,4 +278,3 @@ export function HomeClient({
     </div>
   );
 }
-

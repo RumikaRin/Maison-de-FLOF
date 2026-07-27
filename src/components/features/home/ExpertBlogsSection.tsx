@@ -1,4 +1,4 @@
-/* Hallmark · genre: editorial · section: expert journal · knobs: drench=espresso, featured=7/5 crop-led, supporting=hairline list rows · design-system: design.md · designed-as-app */ "use client";
+/* Hallmark · genre: editorial · section: expert journal · knobs: drench=mineral, featured=7/5 crop-led, supporting=hairline list rows · design-system: design.md · designed-as-app */ "use client";
 
 import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
@@ -13,7 +13,7 @@ interface ExpertBlogsSectionProps {
 /**
  * Expert journal — advice with editorial authority. One featured article and a
  * compact supporting list; hierarchy comes from crop, title scale and spacing,
- * not from boxed cards. The section sits on the espresso field.
+ * not from boxed cards. The section sits on a light mineral field.
  */
 export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
   const { language } = useLanguageStore();
@@ -27,7 +27,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
     <DrenchBand
       color="espresso"
       id="blogs-section"
-      className="fl-rise fl-band-grow relative py-fl-3xl md:py-fl-4xl"
+      className="fl-drench-mineral fl-rise fl-band-grow relative py-fl-3xl md:py-fl-4xl"
     >
       <DotField
         dotRadius={1.5}
@@ -35,9 +35,9 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
         cursorRadius={220}
         bulgeStrength={44}
         glowRadius={140}
-        gradientFrom="rgba(242, 239, 232, 0.16)"
-        gradientTo="rgba(242, 239, 232, 0.07)"
-        glowColor="rgba(28, 22, 19, 0.6)"
+        gradientFrom="rgba(54, 42, 35, 0.12)"
+        gradientTo="rgba(54, 42, 35, 0.04)"
+        glowColor="rgba(0, 92, 102, 0.12)"
       />
       <div
         className="relative mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]"
@@ -79,7 +79,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
                     className="object-cover transition-transform duration-fl-slow ease-fl-out group-hover:scale-[1.03] motion-reduce:transform-none"
                   />
                 </span>
-                <span className="mt-fl-sm flex items-baseline gap-fl-sm border-t border-atelier-rule-on-dark pt-fl-xs">
+                <span className="mt-fl-sm flex items-baseline gap-fl-sm border-t border-atelier-rule pt-fl-xs">
                   <span className="fl-label">
                     {language === "vi"
                       ? featured.category
@@ -102,7 +102,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
           ) : null}
 
           {/* Supporting list — hairline rows, no boxes */}
-          <div className="lg:col-span-5 lg:border-l lg:border-atelier-rule-on-dark lg:pl-fl-lg">
+          <div className="lg:col-span-5 lg:border-l lg:border-atelier-rule lg:pl-fl-lg">
             <ul className="fl-stagger flex flex-col">
               {rest.map((blog) => {
                 const title = language === "vi" ? blog.title : blog.titleEn || blog.title;
@@ -110,7 +110,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
                   language === "vi" ? blog.summary : blog.summaryEn || blog.summary;
 
                 return (
-                  <li key={blog.id} className="border-b border-atelier-rule-on-dark">
+                  <li key={blog.id} className="border-b border-atelier-rule">
                     <Link
                       href={`/blog/${blog.slug}`}
                       className="group grid grid-cols-5 gap-fl-sm py-fl-md"

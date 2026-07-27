@@ -72,7 +72,7 @@ test("sage visualizer band grows, mosaics room curtains, and draws its blueprint
   assert.ok(source.includes('viewBox="0 0 420 128"'));
 });
 
-test("espresso journal band keeps one image idea and staggers supporting rows", async () => {
+test("expert journal band keeps one image idea and staggers supporting rows", async () => {
   const source = await readFile(
     "src/components/features/home/ExpertBlogsSection.tsx",
     "utf8",
@@ -84,6 +84,19 @@ test("espresso journal band keeps one image idea and staggers supporting rows", 
   assert.ok(source.includes("fl-curtain-u"));
   assert.ok(!source.includes("fl-photo-parallax"));
   assert.ok(source.includes('className="fl-stagger flex flex-col"'));
+});
+
+test("homepage closing bands use the approved teal and light-mineral contrast", async () => {
+  const [home, blogs] = await Promise.all([
+    readFile("src/components/features/home/HomeClient.tsx", "utf8"),
+    readFile("src/components/features/home/ExpertBlogsSection.tsx", "utf8"),
+  ]);
+
+  assert.ok(home.includes('className="bg-atelier-paper-2 text-atelier-accent"'));
+  assert.ok(home.includes('className="fl-drench-teal py-fl-2xl md:py-fl-3xl"'));
+  assert.ok(blogs.includes('className="fl-drench-mineral fl-rise fl-band-grow'));
+  assert.ok(blogs.includes("border-atelier-rule"));
+  assert.ok(!blogs.includes("border-atelier-rule-on-dark"));
 });
 
 test("typographic links keep an idle hairline and draw a stronger underline", async () => {

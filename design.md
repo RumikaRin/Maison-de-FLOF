@@ -134,16 +134,18 @@ Colour-drenched editorial on warm mineral paper. Teal is the only accent.
 --fl-danger:         oklch(48.0% 0.150  27);
 --fl-success:        oklch(46.0% 0.075 150);
 
-/* Colour-drench bands — real paint values. Section backgrounds, full-bleed. */
+/* Colour-drench bands — full-bleed editorial section grounds. */
 --fl-drench-sage:    oklch(51.1% 0.027 149);  /* = Moss Green #8002 (#5C6B5E), a real catalogue shade */
 --fl-drench-clay:    oklch(42.0% 0.072  38);
 --fl-drench-slate:   oklch(40.0% 0.034 238);
 --fl-drench-ochre:   oklch(74.0% 0.095  80);
+--fl-drench-teal:    var(--fl-accent);          /* consultation / action field */
+--fl-drench-mineral: var(--fl-paper-2);         /* light editorial field       */
 
 /* Band-scoped, set by .fl-drench-<name>. Descendants inherit correct contrast
    from these two without any per-element override. Never set by hand. */
 --fl-band:           <the band's drench value>;
---fl-band-ink:       <--fl-on-dark, or --fl-espresso on ochre>;
+--fl-band-ink:       <--fl-on-dark on dark fields, or --fl-ink on light fields>;
 ```
 
 Rules that hold:
@@ -151,8 +153,8 @@ Rules that hold:
 - **Accent footprint ≤ 5% of any viewport.** One solid teal action per viewport.
 - **Drench footprint: 2–3 bands per marketing page.** Never two adjacent bands
   of the same drench, never a drench on an App page.
-- Inside a drench band, links use `--fl-on-dark` + a 1px underline. Teal is
-  invisible on a drench and must not be used there.
+- Inside a dark drench band, links use `--fl-on-dark` + a 1px underline. The
+  light mineral field uses `--fl-ink`; the teal field uses light ink.
 - Existing `jotun.*`, `warm.*` and shadcn HSL tokens stay declared so `/admin`
   and any un-migrated surface keep working. **They must not be redefined.**
 - Every colour in every page must reference a token by name. No inline
@@ -378,7 +380,8 @@ opacity crossfade.
   confirmation dialog.
 - Hover tooltip delay 800ms; focus tooltip delay 0ms.
 - `:focus-visible` ring: 2px `--fl-focus`, offset 2px, **never animated** — it
-  appears instantly. On drench bands the ring switches to `--fl-on-dark`.
+  appears instantly. Dark drench bands use their light ink; the mineral field
+  retains `--fl-focus`.
 - Every interactive element ships all eight states: default · hover ·
   focus-visible · active · disabled · loading · error · success.
 

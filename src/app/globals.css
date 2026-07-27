@@ -554,6 +554,8 @@ body:has(.fullscreen-loader) main {
     --fl-drench-clay: oklch(42% 0.072 38);
     --fl-drench-slate: oklch(40% 0.034 238);
     --fl-drench-ochre: oklch(74% 0.095 80);
+    --fl-drench-teal: var(--fl-accent);
+    --fl-drench-mineral: var(--fl-paper-2);
 
     /* Type scale. 14px (--fl-text-sm) is the floor for customer-facing body. */
     --fl-text-2xs: 0.6875rem;
@@ -607,8 +609,7 @@ body:has(.fullscreen-loader) main {
   }
 
   /* --- Colour-drench bands -------------------------------------------- */
-  /* A band owns its own ink, rules and focus ring. Teal is invisible on a
-     drench and must never be used inside one. */
+  /* A band owns its own ink, rules and focus ring. */
   .fl-drench {
     background-color: var(--fl-band);
     color: var(--fl-band-ink);
@@ -638,6 +639,20 @@ body:has(.fullscreen-loader) main {
   .fl-drench-espresso {
     --fl-band: var(--fl-espresso);
     --fl-band-ink: var(--fl-on-dark);
+  }
+  .fl-drench-teal {
+    --fl-band: var(--fl-drench-teal);
+    --fl-band-ink: var(--fl-on-dark);
+  }
+  .fl-drench-mineral {
+    --fl-band: var(--fl-drench-mineral);
+    --fl-band-ink: var(--fl-ink);
+  }
+  .fl-drench-mineral .fl-rule {
+    border-top-color: var(--fl-rule);
+  }
+  .fl-drench-mineral :focus-visible {
+    outline-color: var(--fl-focus);
   }
 
   /* --- Photographic fold ---------------------------------------------- */
