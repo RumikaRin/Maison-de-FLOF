@@ -9,6 +9,7 @@ import {
   TypographicLink,
 } from "@/components/ui/editorial";
 import { SliceImage } from "@/components/ui/slice-image";
+import { DotField } from "@/components/ui/dot-field";
 
 /**
  * Store overview — the buying paths as one continuous editorial list on
@@ -67,7 +68,16 @@ export function StoreOverviewSection() {
 
   return (
     <EditorialSection rhythm="base" frame className="fl-rise bg-atelier-paper" id="store-overview">
-      <div className="grid grid-cols-1 gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
+      <DotField
+        dotRadius={1}
+        dotSpacing={28}
+        cursorRadius={160}
+        bulgeStrength={18}
+        waveAmplitude={2}
+        gradientFrom="rgba(46, 42, 36, 0.05)"
+        gradientTo="rgba(46, 42, 36, 0.03)"
+      />
+      <div className="relative grid grid-cols-1 gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
         {/* Lead column — heading + one lead image, 8 of 12 */}
         <div className="lg:col-span-8">
           <EditorialHeading

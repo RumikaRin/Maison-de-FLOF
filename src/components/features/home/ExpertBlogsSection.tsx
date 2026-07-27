@@ -4,6 +4,7 @@ import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { DrenchBand, TypographicLink } from "@/components/ui/editorial";
+import { DotField } from "@/components/ui/dot-field";
 
 interface ExpertBlogsSectionProps {
   blogs: any[];
@@ -28,6 +29,16 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
       id="blogs-section"
       className="fl-rise fl-band-grow relative py-fl-3xl md:py-fl-4xl"
     >
+      <DotField
+        dotRadius={1.5}
+        dotSpacing={18}
+        cursorRadius={220}
+        bulgeStrength={44}
+        glowRadius={140}
+        gradientFrom="rgba(242, 239, 232, 0.16)"
+        gradientTo="rgba(242, 239, 232, 0.07)"
+        glowColor="rgba(28, 22, 19, 0.6)"
+      />
       <div
         className="relative mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]"
         data-fl-io

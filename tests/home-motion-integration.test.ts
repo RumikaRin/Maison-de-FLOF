@@ -97,3 +97,31 @@ test("typographic links keep an idle hairline and draw a stronger underline", as
     ),
   );
 });
+
+test("dot field stays decorative, CSP-safe, and viewport-gated", async () => {
+  const source = await readFile("src/components/ui/dot-field.tsx", "utf8");
+
+  assert.ok(source.includes('aria-hidden="true"'));
+  assert.ok(source.includes("new IntersectionObserver"));
+  assert.ok(source.includes("prefers-reduced-motion: reduce"));
+  assert.ok(source.includes("useId()"));
+  assert.ok(!source.includes("style={{"));
+  assert.ok(source.includes("glowRadius > 0 ?"));
+});
+
+test("dot fields decorate only the journal and store overview planes", async () => {
+  const [blogs, store] = await Promise.all([
+    readFile("src/components/features/home/ExpertBlogsSection.tsx", "utf8"),
+    readFile("src/components/features/home/StoreOverviewSection.tsx", "utf8"),
+  ]);
+
+  assert.ok(blogs.includes('import { DotField } from "@/components/ui/dot-field";'));
+  assert.ok(blogs.includes("glowRadius={140}"));
+  assert.ok(store.includes('import { DotField } from "@/components/ui/dot-field";'));
+  assert.ok(store.includes("waveAmplitude={2}"));
+  assert.ok(
+    store.includes(
+      'className="relative grid grid-cols-1 gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg"',
+    ),
+  );
+});
