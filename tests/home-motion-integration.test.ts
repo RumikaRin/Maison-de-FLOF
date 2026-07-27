@@ -82,3 +82,18 @@ test("espresso journal band keeps one image idea and staggers supporting rows", 
   assert.ok(!source.includes("fl-photo-parallax"));
   assert.ok(source.includes('className="fl-stagger flex flex-col"'));
 });
+
+test("typographic links keep an idle hairline and draw a stronger underline", async () => {
+  const [source, css] = await Promise.all([
+    readFile("src/components/ui/editorial/TypographicLink.tsx", "utf8"),
+    readFile("src/app/globals.css", "utf8"),
+  ]);
+
+  assert.ok(source.includes('<span className="fl-underline">{children}</span>'));
+  assert.ok(!source.includes("text-atelier-accent underline decoration-1"));
+  assert.ok(
+    css.includes(
+      "box-shadow: inset 0 -1px 0 0 color-mix(in oklab, currentColor 40%, transparent);",
+    ),
+  );
+});
