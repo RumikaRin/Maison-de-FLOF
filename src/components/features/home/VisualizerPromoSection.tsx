@@ -47,7 +47,7 @@ export function VisualizerPromoSection() {
     <DrenchBand
       color="sage"
       id="visualizer-section"
-      className="fl-rise fl-band-grow relative py-fl-3xl md:py-fl-4xl"
+      className="fl-rise relative py-fl-3xl md:py-fl-4xl"
     >
       <div
         className="fl-orn-blueprint relative mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]"

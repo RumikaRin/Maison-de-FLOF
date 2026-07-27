@@ -55,13 +55,14 @@ test("featured products stagger lead and supporting cards", async () => {
   assert.ok(source.includes("setHasInteracted(true)"));
 });
 
-test("sage visualizer band grows, mosaics room curtains, and draws its blueprint", async () => {
+test("sage visualizer keeps a static band while mosaics and blueprint animate", async () => {
   const source = await readFile(
     "src/components/features/home/VisualizerPromoSection.tsx",
     "utf8",
   );
 
-  assert.ok(source.includes("fl-rise fl-band-grow relative"));
+  assert.ok(source.includes("fl-rise relative"));
+  assert.ok(!source.includes("fl-band-grow"));
   assert.ok(source.includes("fl-orn-blueprint relative"));
   assert.ok(source.includes("data-fl-io"));
   assert.ok(source.includes('className="fl-stagger mt-fl-lg"'));
@@ -78,7 +79,8 @@ test("expert journal band keeps one image idea and staggers supporting rows", as
     "utf8",
   );
 
-  assert.ok(source.includes("fl-rise fl-band-grow relative"));
+  assert.ok(source.includes("fl-rise relative"));
+  assert.ok(!source.includes("fl-band-grow"));
   assert.ok(source.includes("data-fl-io"));
   assert.ok(source.includes('className="fl-mask-line mt-fl-xs"'));
   assert.ok(source.includes("fl-curtain-u"));
@@ -94,7 +96,7 @@ test("homepage closing bands use the approved teal and light-mineral contrast", 
 
   assert.ok(home.includes('className="bg-atelier-paper-2 text-atelier-accent"'));
   assert.ok(home.includes('className="fl-drench-teal py-fl-2xl md:py-fl-3xl"'));
-  assert.ok(blogs.includes('className="fl-drench-mineral fl-rise fl-band-grow'));
+  assert.ok(blogs.includes('className="fl-drench-mineral fl-rise relative'));
   assert.ok(blogs.includes("border-atelier-rule"));
   assert.ok(!blogs.includes("border-atelier-rule-on-dark"));
 });

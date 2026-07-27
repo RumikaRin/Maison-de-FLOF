@@ -27,7 +27,7 @@ export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
     <DrenchBand
       color="espresso"
       id="blogs-section"
-      className="fl-drench-mineral fl-rise fl-band-grow relative py-fl-3xl md:py-fl-4xl"
+      className="fl-drench-mineral fl-rise relative py-fl-3xl md:py-fl-4xl"
     >
       <DotField
         dotRadius={1.5}
