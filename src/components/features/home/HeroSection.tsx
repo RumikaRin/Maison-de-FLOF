@@ -3,7 +3,6 @@
 
 import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
 import { useLanguageStore } from "@/store/language-store";
 import { TypographicLink, CascadeText } from "@/components/ui/editorial";
 
@@ -16,18 +15,12 @@ import { TypographicLink, CascadeText } from "@/components/ui/editorial";
  */
 export function HeroSection() {
   const { language } = useLanguageStore();
-  const reduceMotion = useReducedMotion();
 
   return (
     <>
     <section className="fl-photo-fold fl-photo-plate flex min-h-[620px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[80vh] md:max-h-[860px]">
       {/* Full-bleed media — the one hero load transition the system allows */}
-      <safeMotion.div
-        initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute inset-0"
-      >
+      <div className="absolute inset-0">
         <Image
           src="/generated/hero-cinematic.jpg"
           alt={
@@ -37,9 +30,7 @@ export function HeroSection() {
           }
           fill
           priority
-          // The source is 1280x720. Quality 92 stops next/image adding its own
-          // softness on top of an asset that is already below 2x for this fold.
-          quality={92}
+          quality={82}
           sizes="100vw"
           // Soft fold: the source is only 1280x720, so the scroll-out relaxes
           // from 1.12 scale to rest — scale-only, because a translate at
@@ -48,7 +39,7 @@ export function HeroSection() {
         />
         {/* Legibility scrim, bottom-left weighted like a printed caption field */}
         <div aria-hidden="true" className="fl-photo-scrim" />
-      </safeMotion.div>
+      </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-2xl pt-fl-4xl md:pb-[4rem] md:pt-[12rem]">
         <div className="fl-hero-cascade max-w-2xl text-left text-atelier-on-dark">

@@ -18,7 +18,6 @@ import { initFlReveal } from "@/lib/fl-reveal";
 import { initFlSlice } from "@/lib/fl-slice";
 
 import { BandEdge, DrenchBand, SwatchMarquee } from "@/components/ui/editorial";
-import { HeroSection } from "./HeroSection";
 import { PromotionSection } from "./PromotionSection";
 import { ColorExplorerSection } from "./ColorExplorerSection";
 import { VisualizerPromoSection } from "./VisualizerPromoSection";
@@ -219,7 +218,6 @@ export function HomeClient({
             : "Live product data is temporarily unavailable. You can still browse the catalog, but purchasing is disabled."}
         </div>
       )}
-      <HeroSection />
       <PromotionSection />
       <ColorExplorerSection
         selectedFamily={selectedFamily}

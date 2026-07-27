@@ -4,7 +4,6 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { stripLocalePrefix } from "@/lib/locale";
-import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 
 /**
  * design.md § Motion allows exactly two primitives: a hero media load fade and
@@ -28,22 +27,13 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
 
-  if (!isHomepage) {
-    return <main className={isAdmin ? "flex-grow pt-0" : "flex-grow pt-24 pb-20"}>{children}</main>;
-  }
-
   return (
-    <AnimatePresence mode="wait">
-      <safeMotion.main
-        key={pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-        className="flex-grow pt-24 pb-20"
-      >
-        {children}
-      </safeMotion.main>
-    </AnimatePresence>
+    <main
+      className={
+        isAdmin && !isHomepage ? "flex-grow pt-0" : "flex-grow pt-24 pb-20"
+      }
+    >
+      {children}
+    </main>
   );
 }
