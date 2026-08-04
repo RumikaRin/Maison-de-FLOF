@@ -48,6 +48,13 @@ export function localizedPath(pathname: string, locale: Locale) {
   return unprefixed === "/" ? `/${locale}` : `/${locale}${unprefixed}`;
 }
 
+export function getClientLocaleCookie(): Locale | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=([^;]*)`));
+  const val = match ? decodeURIComponent(match[1]) : null;
+  return isLocale(val) ? val : null;
+}
+
 export function resolveLocale({
   pathname,
   cookie,
@@ -57,7 +64,14 @@ export function resolveLocale({
 }): Locale {
   const explicit = stripLocalePrefix(pathname).locale;
   if (explicit) return explicit;
-  return isLocale(cookie) ? cookie : DEFAULT_LOCALE;
+
+  if (typeof window !== "undefined") {
+    const windowExplicit = stripLocalePrefix(window.location.pathname).locale;
+    if (windowExplicit) return windowExplicit;
+  }
+
+  const effectiveCookie = cookie !== undefined ? cookie : getClientLocaleCookie();
+  return isLocale(effectiveCookie) ? effectiveCookie : DEFAULT_LOCALE;
 }
 
 export function unsupportedLocalePrefix(pathname: string) {

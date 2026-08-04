@@ -1252,28 +1252,28 @@ next-route-announcer > div {
 }
 
 /* Colours: three pigment samples rise in a short stagger. */
-[data-motion="colours"] .fl-nav-mark {
+:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark {
   bottom: 0;
   width: 8px;
   height: 3px;
-  opacity: 0.42;
-  transform: translateY(1px);
+  opacity: 0;
+  transform: translateY(3px);
 }
-[data-motion="colours"] .fl-nav-mark-a {
+:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark-a {
   left: 0;
   background: var(--fl-sage);
 }
-[data-motion="colours"] .fl-nav-mark-b {
+:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark-b {
   left: calc(50% - 4px);
   background: var(--fl-clay);
 }
-[data-motion="colours"] .fl-nav-mark-c {
+:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark-c {
   right: 0;
   background: var(--fl-ochre);
 }
-[data-motion="colours"]:hover .fl-nav-mark,
-[data-motion="colours"]:focus-within .fl-nav-mark,
-[data-motion="colours"] .fl-nav-signature[data-active="true"] .fl-nav-mark {
+:is([data-motion="colours"], [data-motion="colors"]):hover .fl-nav-mark,
+:is([data-motion="colours"], [data-motion="colors"]):focus-within .fl-nav-mark,
+:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-signature[data-active="true"] .fl-nav-mark {
   opacity: 1;
   transform: translateY(-1px);
 }

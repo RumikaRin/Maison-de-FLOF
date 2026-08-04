@@ -35,7 +35,11 @@ export function useLocaleNavigation() {
       typeof window === "undefined"
         ? ""
         : `${window.location.search}${window.location.hash}`;
-    router.push(`${localizedPath(pathname, nextLocale)}${suffix}`);
+    const windowPath =
+      typeof window !== "undefined" ? window.location.pathname : pathname;
+    const targetUrl = `${localizedPath(windowPath, nextLocale)}${suffix}`;
+    router.push(targetUrl);
+    router.refresh();
   }, [pathname, router, setLanguage, urlLocale]);
 
   return {
