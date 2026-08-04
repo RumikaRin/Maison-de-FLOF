@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { SlidersHorizontal, Grid2X2, Square } from "lucide-react";
 import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
@@ -12,6 +13,7 @@ import { getProductImage } from "@/lib/product-image";
 import { Input } from "@/components/ui/input";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { safeMotion, useReducedMotion } from "@/components/ui/motion-safe";
+import { MobileSheet } from "@/components/ui/mobile-sheet";
 import {
   EditorialHeading,
   EditorialSection,
@@ -25,12 +27,120 @@ interface ProductsClientProps {
   commerceAvailable: boolean;
 }
 
-/**
- * The product catalogue — a visual index of inventory. F6 grid, 4-up on
- * desktop, 2-up on mobile; every cell sits on a hairline top rule, never in a
- * filled card box. The discount folds into the price line. Filters are C1
- * outlined rectangular chips; no drawers, no dropdown chrome.
- */
+type FilterOption = { value: string; label: string };
+
+type ProductFilterFieldsProps = {
+  language: "vi" | "en";
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  categoryOptions: FilterOption[];
+  selectedCategory: string;
+  setSelectedCategory: (value: string) => void;
+  supplierOptions: FilterOption[];
+  selectedSupplier: string;
+  setSelectedSupplier: (value: string) => void;
+  finishOptions: FilterOption[];
+  selectedFinish: string;
+  setSelectedFinish: (value: string) => void;
+  sortOptions: FilterOption[];
+  sortBy: string;
+  setSortBy: (value: string) => void;
+  categoryLabel: string;
+  supplierLabel: string;
+  finishLabel: string;
+  sortLabel: string;
+  chipClass: (active: boolean) => string;
+};
+
+function ProductFilterFields({
+  language,
+  searchQuery,
+  setSearchQuery,
+  categoryOptions,
+  selectedCategory,
+  setSelectedCategory,
+  supplierOptions,
+  selectedSupplier,
+  setSelectedSupplier,
+  finishOptions,
+  selectedFinish,
+  setSelectedFinish,
+  sortOptions,
+  sortBy,
+  setSortBy,
+  categoryLabel,
+  supplierLabel,
+  finishLabel,
+  sortLabel,
+  chipClass,
+}: ProductFilterFieldsProps) {
+  return (
+    <div className="flex flex-col gap-fl-md">
+      <div>
+        <label htmlFor="mobile-catalogue-search" className="fl-label block">
+          {language === "vi" ? "Tìm kiếm" : "Search"}
+        </label>
+        <Input
+          id="mobile-catalogue-search"
+          type="text"
+          placeholder={
+            language === "vi" ? "Nhập tên hoặc SKU..." : "Search name or SKU..."
+          }
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          className="mt-fl-2xs"
+        />
+      </div>
+
+      <div>
+        <span className="fl-label block">{categoryLabel}</span>
+        <div className="mt-fl-2xs flex flex-wrap gap-fl-2xs">
+          {categoryOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={selectedCategory === option.value}
+              onClick={() => setSelectedCategory(option.value)}
+              className={chipClass(selectedCategory === option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="fl-label block">{supplierLabel}</span>
+        <div className="mt-fl-2xs">
+          <CustomSelect
+            value={selectedSupplier}
+            onValueChange={setSelectedSupplier}
+            options={supplierOptions}
+          />
+        </div>
+      </div>
+
+      <div>
+        <span className="fl-label block">{finishLabel}</span>
+        <div className="mt-fl-2xs">
+          <CustomSelect
+            value={selectedFinish}
+            onValueChange={setSelectedFinish}
+            options={finishOptions}
+          />
+        </div>
+      </div>
+
+      <div>
+        <span className="fl-label block">{sortLabel}</span>
+        <div className="mt-fl-2xs">
+          <CustomSelect value={sortBy} onValueChange={setSortBy} options={sortOptions} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProductsClient({
   initialPaints,
   initialCategories,
@@ -52,6 +162,10 @@ export function ProductsClient({
   const [selectedSupplier, setSelectedSupplier] = useState("all");
   const [selectedFinish, setSelectedFinish] = useState("all");
   const [sortBy, setSortBy] = useState("default");
+
+  // Mobile optimization states
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [mobileGridCols, setMobileGridCols] = useState<1 | 2>(2);
 
   useEffect(() => {
     const catParam = searchParams.get("category");
@@ -144,6 +258,12 @@ export function ProductsClient({
     return { hasDiscount, finalPrice };
   };
 
+  const mobileFilterTitle = language === "vi" ? "Bộ lọc sản phẩm" : "Product Filters";
+  const mobileResultLabel =
+    language === "vi"
+      ? `Xem (${sortedProducts.length} sản phẩm)`
+      : `View (${sortedProducts.length} items)`;
+
   return (
     <div className="bg-atelier-paper text-atelier-ink">
       <EditorialSection rhythm="tight">
@@ -171,10 +291,55 @@ export function ProductsClient({
 
         <Rule className="mt-fl-lg" weight="strong" />
 
-        {/* Filter rail. Five stacked chip groups pushed the first product below
-            the fold, so only the primary facet stays as chips; the three
-            low-traffic ones collapse into selects on a single toolbar row. */}
-        <div className="mt-fl-md flex flex-col gap-fl-sm">
+        {/* MOBILE STICKY TOOLBAR & GRID TOGGLE (Mobile-first UX) */}
+        <div className="mt-fl-md flex items-center justify-between gap-fl-xs rounded-control border border-atelier-rule-strong bg-atelier-paper-2 p-fl-xs md:hidden">
+          <button
+            type="button"
+            onClick={() => setIsMobileFilterOpen(true)}
+            className="flex items-center gap-2 rounded-control bg-atelier-ink px-3 py-2 text-fl-sm font-medium text-atelier-paper shadow-sm touch-target"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span>{language === "vi" ? "Bộ lọc" : "Filters"}</span>
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-control bg-atelier-accent px-1 text-[11px] font-bold text-atelier-accent-ink">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-fl-xs text-atelier-ink-2">
+              {sortedProducts.length} {t.catalogueItemsLabel}
+            </span>
+            <div className="flex items-center rounded-control border border-atelier-rule p-0.5 bg-atelier-paper">
+              <button
+                type="button"
+                onClick={() => setMobileGridCols(1)}
+                className={cn(
+                  "rounded-control p-1.5 transition-colors touch-target",
+                  mobileGridCols === 1 ? "bg-atelier-ink text-atelier-paper" : "text-atelier-ink-2",
+                )}
+                aria-label="1 column grid"
+              >
+                <Square className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileGridCols(2)}
+                className={cn(
+                  "rounded-control p-1.5 transition-colors touch-target",
+                  mobileGridCols === 2 ? "bg-atelier-ink text-atelier-paper" : "text-atelier-ink-2",
+                )}
+                aria-label="2 columns grid"
+              >
+                <Grid2X2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* DESKTOP FILTER RAIL (Hidden on mobile) */}
+        <div className="mt-fl-md hidden flex-col gap-fl-sm md:flex">
           {/* Toolbar — search, the three secondary facets, and the count */}
           <div className="grid grid-cols-1 gap-fl-sm md:grid-cols-12 md:items-end">
             <div className="md:col-span-4">
@@ -229,7 +394,7 @@ export function ProductsClient({
             </div>
           </div>
 
-          {/* Primary facet stays as chips — it is how people actually browse */}
+          {/* Primary facet stays as chips */}
           <div className="flex flex-wrap items-center gap-fl-2xs">
             <span className="fl-label mr-fl-2xs">{t.productCategory}</span>
             <div role="group" aria-label={t.productCategory} className="flex flex-wrap gap-fl-2xs">
@@ -257,20 +422,72 @@ export function ProductsClient({
           </div>
         </div>
 
-        <div className="mt-fl-md flex items-baseline justify-between gap-fl-sm border-t border-atelier-rule pt-fl-xs">
+        <MobileSheet
+          closeLabel={language === "vi" ? "Đóng bộ lọc" : "Close filters"}
+          onClose={() => setIsMobileFilterOpen(false)}
+          open={isMobileFilterOpen}
+          title={mobileFilterTitle}
+        >
+          <ProductFilterFields
+            language={language}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            categoryOptions={categoryOptions}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            supplierOptions={supplierOptions}
+            selectedSupplier={selectedSupplier}
+            setSelectedSupplier={setSelectedSupplier}
+            finishOptions={finishOptions}
+            selectedFinish={selectedFinish}
+            setSelectedFinish={setSelectedFinish}
+            sortOptions={sortOptions}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            categoryLabel={t.productCategory}
+            supplierLabel={t.productSupplier}
+            finishLabel={t.productFinish}
+            sortLabel={t.catalogueSortLabel}
+            chipClass={chipClass}
+          />
+          <div className="mt-fl-lg flex items-center gap-fl-sm border-t border-atelier-rule pt-fl-sm">
+            {activeFilterCount > 0 ? (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="min-h-11 whitespace-nowrap text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4"
+              >
+                {t.catalogueClearFilters}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setIsMobileFilterOpen(false)}
+              className="ml-auto min-h-11 whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm font-medium text-atelier-accent-ink"
+            >
+              {mobileResultLabel}
+            </button>
+          </div>
+        </MobileSheet>
+
+        <div className="mt-fl-md hidden items-baseline justify-between gap-fl-sm border-t border-atelier-rule pt-fl-xs md:flex">
           <p className="text-fl-sm text-atelier-ink-2" aria-live="polite">
             {sortedProducts.length} {t.catalogueItemsLabel}
           </p>
         </div>
 
-        {/* F6 product grid — 4/3 media, hairline top rules, price is the description */}
+        {/* F6 product grid — dynamic mobile columns */}
         {sortedProducts.length > 0 ? (
           <safeMotion.div
-            key={selectedCategory + selectedSupplier + selectedFinish + searchQuery + sortBy}
+            key={selectedCategory + selectedSupplier + selectedFinish + searchQuery + sortBy + mobileGridCols}
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.24 }}
-            className="mt-fl-sm grid grid-cols-2 gap-x-fl-md gap-y-fl-lg md:grid-cols-4"
+            data-mobile-grid={mobileGridCols}
+            className={cn(
+              "mt-fl-sm grid gap-x-fl-md gap-y-fl-lg md:grid-cols-4",
+              mobileGridCols === 1 ? "grid-cols-1" : "grid-cols-2",
+            )}
           >
             {sortedProducts.map((p) => {
               const { hasDiscount, finalPrice } = priceLine(p);

@@ -85,9 +85,14 @@ export function MobileSheet({
 }: MobileSheetProps) {
   const previousFocus = useRef<HTMLElement | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
   const titleId = useId();
   const descriptionId = useId();
   const reducedMotion = useReducedMotionPreference();
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -106,7 +111,7 @@ export function MobileSheet({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -120,7 +125,7 @@ export function MobileSheet({
       document.removeEventListener("keydown", onKeyDown);
       previousFocus.current?.focus({ preventScroll: true });
     };
-  }, [onClose, open]);
+  }, [open]);
 
   return (
     <AnimatePresence>

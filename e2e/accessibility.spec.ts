@@ -54,6 +54,16 @@ test("products mobile controls and cards have no serious accessibility violation
   await expectNoBlockingViolations(page);
 });
 
+test("opened product filters keep an accessible mobile dialog", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/vi/products");
+  await page.getByRole("button", { name: /Bộ lọc|Filters/i }).click();
+  await expect(
+    page.getByRole("dialog", { name: /Bộ lọc sản phẩm|Product Filters/i }),
+  ).toBeVisible();
+  await expectNoBlockingViolations(page);
+});
+
 test("profile has no serious accessibility violations", async ({ page }) => {
   await loginAsCustomer(page);
   await page.goto("/profile");
