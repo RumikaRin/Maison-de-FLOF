@@ -33,3 +33,19 @@ test("catalogue filter sheet returns focus and preserves the chosen grid density
   await page.getByRole("button", { name: "1 column grid" }).click();
   await expect(page.locator("[data-mobile-grid='1']")).toBeVisible();
 });
+
+test("product purchase action replaces navigation and cart checkout action remains safe-area aware", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(`/vi/products/${TEST_FIXTURES.productSlug}`);
+
+  await page.getByRole("button", { name: /Thêm vào giỏ|Add to cart/i }).first().click();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(page.locator('[data-mobile-action="product-purchase"]')).toBeVisible();
+  await expect(page.getByLabel("Mobile navigation")).toHaveCount(0);
+
+  await page.goto("/vi/cart");
+  await expect(page.locator('[data-mobile-action="cart-checkout"]')).toHaveCount(1);
+  await expect(page.getByLabel("Mobile navigation")).toHaveCount(0);
+});

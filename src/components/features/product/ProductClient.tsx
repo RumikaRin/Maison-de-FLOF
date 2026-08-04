@@ -1,7 +1,7 @@
 /* Hallmark · genre: editorial · macrostructure: 02 Long Document · design-system: design.md · designed-as-app */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
@@ -20,8 +20,11 @@ import {
 } from "@/lib/color-utils";
 import { Star } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { ColorSwatch } from "@/components/ui/color-swatch";
 import { SpecLedger, SwatchChip, Rule, type SpecRow } from "@/components/ui/editorial";
+import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
+import { getMobileSurfacePolicy } from "@/lib/mobile-surface-policy";
 
 interface ProductClientProps {
   initialProduct: any;
@@ -42,6 +45,7 @@ export function ProductClient({
   initialReviews,
 }: ProductClientProps) {
   const router = useRouter();
+  const { routePath } = useLocaleNavigation();
   const { language } = useLanguageStore();
   const t = useTrans(language);
   const { addItem } = useCartStore();
@@ -58,13 +62,27 @@ export function ProductClient({
   const [reviews, setReviews] = useState<any[]>(initialReviews);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
+  const [purchaseControlsVisible, setPurchaseControlsVisible] = useState(true);
+  const purchaseControlsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
     if (paint?.colorDetails?.[0]) {
       setSelectedColor(paint.colorDetails[0]);
     }
+
   }, [paint]);
+
+  useEffect(() => {
+    if (!mounted || !purchaseControlsRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setPurchaseControlsVisible(entry.isIntersecting),
+      { threshold: 0.1 },
+    );
+    observer.observe(purchaseControlsRef.current);
+    return () => observer.disconnect();
+  }, [mounted, paint]);
 
   useEffect(() => {
     if (authStatus !== "authenticated" || !paint) return;
@@ -97,6 +115,9 @@ export function ProductClient({
 
   const category = paint.category;
   const supplier = paint.supplier;
+  const policy = getMobileSurfacePolicy(routePath);
+  const showStickyBuyBar =
+    policy.contextualAction === "product-purchase" && !purchaseControlsVisible;
 
   // Find detailed color objects
   const availableColors = colorCatalog.filter((c) => paint.colors.includes(c.code));
@@ -386,7 +407,10 @@ export function ProductClient({
           )}
 
           {/* Quantity + actions */}
-          <div className="mt-fl-md flex flex-col gap-fl-sm border-t border-atelier-rule pt-fl-md">
+          <div
+            ref={purchaseControlsRef}
+            className="mt-fl-md flex flex-col gap-fl-sm border-t border-atelier-rule pt-fl-md"
+          >
             <div className="inline-flex w-fit items-center rounded-control border border-atelier-rule-strong">
               <button
                 type="button"
@@ -649,6 +673,30 @@ export function ProductClient({
           </div>
         </section>
       )}
+
+      {/* MOBILE STICKY FLOATING PURCHASE BAR */}
+      <AnimatePresence>
+        {showStickyBuyBar && (
+          <safeMotion.div
+            data-mobile-action="product-purchase"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper/95 px-fl-sm pb-[max(var(--fl-space-xs),env(safe-area-inset-bottom))] pt-fl-xs shadow-lg backdrop-blur-md md:hidden"
+          >
+            <span className="min-w-0 truncate text-fl-sm font-medium text-atelier-ink">
+              {language === "vi" ? paint.name : paint.nameEn || paint.name}
+            </span>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="min-h-11 shrink-0 whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm font-medium text-atelier-accent-ink"
+            >
+              {t.addToCart}
+            </button>
+          </safeMotion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -17,9 +17,12 @@ import { ColorSwatch } from "@/components/ui/color-swatch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Rule, TypographicLink } from "@/components/ui/editorial";
+import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
+import { getMobileSurfacePolicy } from "@/lib/mobile-surface-policy";
 
 export default function CartPage() {
   const router = useRouter();
+  const { routePath } = useLocaleNavigation();
   const { language } = useLanguageStore();
   const t = useTrans(language);
   const {
@@ -49,6 +52,7 @@ export default function CartPage() {
   const total = Math.max(0, subtotal + shippingFee - appliedDiscount);
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const amountNeededForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const policy = getMobileSurfacePolicy(routePath);
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -350,7 +354,7 @@ export default function CartPage() {
                 {/* Checkout CTA — hidden on mobile (shown in the fixed bottom bar) */}
                 <Button
                   onClick={() => router.push(`/checkout?discount=${appliedDiscount}&coupon=${couponCode}`)}
-                  className="mt-fl-md hidden w-full sm:inline-flex"
+                  className="mt-fl-md hidden w-full md:inline-flex"
                 >
                   {t.checkoutButton}
                 </Button>
@@ -368,8 +372,11 @@ export default function CartPage() {
       </div>
 
       {/* ── Fixed bottom checkout bar (mobile only) ── */}
-      {items.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] py-fl-xs sm:hidden">
+      {policy.contextualAction === "cart-checkout" && items.length > 0 && (
+        <div
+          data-mobile-action="cart-checkout"
+          className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] pb-[max(var(--fl-space-xs),env(safe-area-inset-bottom))] pt-fl-xs md:hidden"
+        >
           <div className="min-w-0 flex-1">
             <p className="fl-label">{language === "vi" ? "Tổng cộng" : "Total"}</p>
             <p className="text-fl-lg font-medium leading-none tabular-nums">{formatPrice(total)}</p>
