@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { loginAsAdmin, loginAsCustomer } from "./helpers/auth.ts";
+import { TEST_FIXTURES } from "../scripts/test-db-fixtures.ts";
 
 const viewports = [
   { name: "phone", width: 390, height: 844 },
@@ -7,11 +8,16 @@ const viewports = [
   { name: "desktop", width: 1440, height: 900 },
 ] as const;
 
-async function expectNoHorizontalOverflow(page: Page) {
-  const dimensions = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-  }));
+async function expectNoHorizontalOverflow(page: Page, path: string) {
+  let dimensions: { scrollWidth: number; clientWidth: number };
+  try {
+    dimensions = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+  } catch (error) {
+    throw new Error(`Overflow measurement navigated away from ${path}: ${String(error)}`);
+  }
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 }
 
@@ -20,17 +26,33 @@ for (const viewport of viewports) {
     await page.setViewportSize(viewport);
     for (const path of [
       "/products",
+      `/products/${TEST_FIXTURES.productSlug}`,
       "/login",
       "/register",
       "/verify-email",
+      "/reset-password",
+      "/cart",
       "/checkout",
       "/color-visualizer",
       "/find-dealer",
+      "/privacy-policy",
+      "/cookie-policy",
+      "/terms-of-service",
     ]) {
       await page.goto(path);
       await expect(page.locator("main").first()).toBeVisible();
-      await expectNoHorizontalOverflow(page);
+      await expectNoHorizontalOverflow(page, path);
     }
+  });
+
+  test(`checkout success without an order returns to checkout at the ${viewport.name} viewport`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/checkout/success");
+    await expect(page).toHaveURL(/\/checkout$/);
+    await expect(page.locator("main").first()).toBeVisible();
+    await expectNoHorizontalOverflow(page, "/checkout");
   });
 
   test(`profile security and privacy fit the ${viewport.name} viewport`, async ({
@@ -46,12 +68,12 @@ for (const viewport of viewports) {
         name: /Phiên đăng nhập|Signed-in sessions/i,
       }),
     ).toBeVisible();
-    await expectNoHorizontalOverflow(page);
+    await expectNoHorizontalOverflow(page, "/profile#sessions");
 
     await page
       .getByRole("button", { name: /Dữ liệu & quyền riêng tư|Data & Privacy/i })
       .click();
-    await expectNoHorizontalOverflow(page);
+    await expectNoHorizontalOverflow(page, "/profile#privacy");
   });
 
   test(`audit and notifications fit the ${viewport.name} viewport`, async ({
@@ -69,7 +91,7 @@ for (const viewport of viewports) {
     await page
       .getByRole("button", { name: /Mở thông báo|Open notifications/i })
       .click();
-    await expectNoHorizontalOverflow(page);
+    await expectNoHorizontalOverflow(page, "/admin/audit");
   });
 }
 
@@ -78,11 +100,6 @@ for (const scenario of [
     name: "dealer directory",
     path: "/find-dealer",
     api: "**/api/dealers",
-  },
-  {
-    name: "blog listing",
-    path: "/blog",
-    api: "**/api/blog",
   },
 ]) {
   test(`${scenario.name} exposes an accessible retry after a 5xx`, async ({

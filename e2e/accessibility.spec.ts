@@ -1,10 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { loginAsAdmin, loginAsCustomer } from "./helpers/auth.ts";
+import { TEST_FIXTURES } from "../scripts/test-db-fixtures.ts";
 
 const publicPages = [
   "/",
   "/products",
+  `/products/${TEST_FIXTURES.productSlug}`,
   "/colors",
   "/blog",
   "/color-visualizer",
@@ -12,8 +14,13 @@ const publicPages = [
   "/login",
   "/register",
   "/verify-email",
+  "/reset-password",
   "/cart",
+  "/checkout",
   "/quote-request",
+  "/privacy-policy",
+  "/cookie-policy",
+  "/terms-of-service",
 ];
 
 async function expectNoBlockingViolations(page: Page) {

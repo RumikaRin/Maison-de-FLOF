@@ -49,3 +49,13 @@ test("product purchase action replaces navigation and cart checkout action remai
   await expect(page.locator('[data-mobile-action="cart-checkout"]')).toHaveCount(1);
   await expect(page.getByLabel("Mobile navigation")).toHaveCount(0);
 });
+
+test("checkout exposes one compact order-summary disclosure on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/vi/checkout");
+
+  const summary = page.getByRole("button", { name: /Đơn hàng của bạn|Your order/i });
+  await expect(summary).toBeVisible();
+  await summary.click();
+  await expect(page.locator("details").getByText(/Tạm tính|Subtotal/i)).toBeVisible();
+});

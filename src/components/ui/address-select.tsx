@@ -83,7 +83,7 @@ export function AddressSelect({
               : "border-atelier-rule-strong text-atelier-ink hover:border-atelier-ink-3",
         )}
       >
-        <span className={cn("truncate", !value && "text-atelier-ink-3")}>
+        <span className={cn("truncate", !value && "text-atelier-ink-2")}>
           {value || placeholder}
         </span>
         <ChevronDown

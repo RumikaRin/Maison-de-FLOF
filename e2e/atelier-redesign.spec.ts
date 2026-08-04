@@ -9,18 +9,28 @@
 
 import { expect, test, type Page } from "@playwright/test";
 
+import { TEST_FIXTURES } from "../scripts/test-db-fixtures.ts";
+
 const PUBLIC_ROUTES = [
   "/",
   "/products",
+  `/products/${TEST_FIXTURES.productSlug}`,
   "/colors",
   "/color-visualizer",
   "/blog",
   "/find-dealer",
   "/quote-request",
   "/cart",
+  "/checkout",
+  "/profile",
   "/login",
   "/register",
   "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/privacy-policy",
+  "/cookie-policy",
+  "/terms-of-service",
 ] as const;
 
 const LOCALES = ["vi", "en"] as const;
