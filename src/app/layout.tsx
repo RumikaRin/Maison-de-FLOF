@@ -7,6 +7,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { SessionProvider } from "@/providers/session-provider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
 import { CartSync } from "@/components/layout/CartSync";
 import { CspToaster } from "@/components/ui/csp-toast";
@@ -102,6 +103,7 @@ export default async function RootLayout({
                 {children}
               </MainLayoutWrapper>
               <Footer />
+              <MobileBottomBar />
               <CspToaster />
               <ScrollToTop />
               <LazyChatBubble />

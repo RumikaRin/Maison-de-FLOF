@@ -4,6 +4,8 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { stripLocalePrefix } from "@/lib/locale";
+import { getMobileSurfacePolicy } from "@/lib/mobile-surface-policy";
+import { cn } from "@/lib/utils";
 
 /**
  * design.md § Motion allows exactly two primitives: a hero media load fade and
@@ -20,7 +22,8 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
   // matching — otherwise admin routes get public padding and the homepage
   // never matches its own path.
   const routePath = stripLocalePrefix(pathname || "/").pathname;
-  const isAdmin = routePath.startsWith("/admin");
+  const policy = getMobileSurfacePolicy(routePath);
+  const isAdmin = policy.mode === "admin";
   const isHomepage = routePath === "/";
 
   useEffect(() => {
@@ -29,9 +32,20 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
 
   return (
     <main
-      className={
-        isAdmin && !isHomepage ? "flex-grow pt-0" : "flex-grow pt-24 pb-20"
-      }
+      data-mobile-mode={policy.mode}
+      className={cn(
+        "flex-grow",
+        isAdmin && !isHomepage
+          ? "pt-0"
+          : [
+              "pt-24",
+              policy.bottomNavigation
+                ? "pb-mobile-navigation md:pb-fl-xl"
+                : policy.contextualAction !== "none"
+                  ? "pb-mobile-action md:pb-fl-xl"
+                  : "pb-fl-2xl md:pb-fl-xl",
+            ],
+      )}
     >
       {children}
     </main>

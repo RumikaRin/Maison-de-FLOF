@@ -11,8 +11,8 @@ import { useSession, signOut } from "next-auth/react";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ShoppingCart, X } from "lucide-react";
-import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
+import { ChevronDown, ShoppingCart } from "lucide-react";
+import { MobileSheet } from "@/components/ui/mobile-sheet";
 import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
 import { ColorSwatch } from "@/components/ui/color-swatch";
 import { TypographicLink } from "@/components/ui/editorial";
@@ -428,7 +428,7 @@ export default function Header() {
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-expanded={mobileOpen}
-              className="flex min-h-11 items-center whitespace-nowrap rounded-fl-pill border border-atelier-rule bg-atelier-paper-2 px-3.5 py-1 text-fl-2xs uppercase tracking-[0.14em] font-semibold text-atelier-ink transition-colors xl:hidden hover:bg-atelier-paper md:min-h-10"
+              className="flex min-h-11 items-center whitespace-nowrap rounded-control border border-atelier-rule bg-atelier-paper-2 px-3.5 py-1 text-fl-2xs font-semibold uppercase tracking-[0.14em] text-atelier-ink transition-colors hover:bg-atelier-paper xl:hidden md:min-h-10"
             >
               {mobileOpen ? t.headerCloseMenu : t.headerMenu}
             </button>
@@ -447,141 +447,111 @@ export default function Header() {
         ) : null}
       </header>
 
-      {/* Mobile Drawer Overlay */}
-      <AnimatePresence>
-        {mobileOpen ? (
-          <div className="fixed inset-0 z-40 flex flex-col justify-end p-fl-sm sm:justify-center sm:items-center">
-            <safeMotion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.16 }}
-              onClick={() => setMobileOpen(false)}
-              className="absolute inset-0 bg-atelier-espresso/35"
-            />
-
-            <safeMotion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 16 }}
-              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 flex w-full max-w-sm flex-col gap-fl-md rounded-surface border border-atelier-rule bg-atelier-paper p-fl-md text-left shadow-[0_16px_48px_rgb(0_0_0/0.18)] overflow-hidden"
-            >
-              {/* Decorative mini paint chart strip */}
-              <div aria-hidden="true" className="flex h-[3px] w-full -mt-fl-md -mx-fl-md w-[calc(100%+2*var(--fl-space-md))] rounded-t-[1px] overflow-hidden">
-                <span className="flex-1 bg-atelier-sage" />
-                <span className="flex-1 bg-atelier-clay" />
-                <span className="flex-1 bg-atelier-slate" />
-                <span className="flex-1 bg-atelier-ochre" />
-                <span className="flex-1 bg-atelier-espresso" />
-              </div>
-
-              <div className="flex items-center justify-between border-b border-atelier-rule pb-fl-xs">
-                <span className="font-serif text-fl-xl font-bold tracking-[0.2em] text-atelier-ink">
-                  FLOF
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setMobileOpen(false)}
-                  aria-label={t.headerCloseMenu}
-                  className="flex h-9 w-9 items-center justify-center rounded-fl-pill bg-atelier-paper-2 text-atelier-ink transition-colors hover:bg-atelier-paper-3"
+      <MobileSheet
+        closeLabel={t.headerCloseMenu}
+        containerClassName="xl:hidden"
+        onClose={() => setMobileOpen(false)}
+        open={mobileOpen}
+        title="FLOF"
+      >
+        <nav aria-label={t.headerMenu}>
+          <ul className="flex flex-col gap-1">
+            {NAV_LINKS.map((link) => {
+              const isActive =
+                routePath === link.href || routePath.startsWith(`${link.href}/`);
+              return (
+                <li
+                  key={link.href}
+                  className="fl-nav-item group relative"
+                  data-motion={link.motionId}
                 >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-
-              <nav aria-label={t.headerMenu}>
-                <ul className="flex flex-col gap-1">
-                  {NAV_LINKS.map((link) => {
-                    const isActive =
-                      routePath === link.href || routePath.startsWith(`${link.href}/`);
-                    return (
-                      <li
-                        key={link.href}
-                        className="fl-nav-item group relative"
-                        data-motion={link.motionId}
-                      >
-                        <Link
-                          href={localize(link.href)}
-                          aria-current={isActive ? "page" : undefined}
-                          onClick={() => setMobileOpen(false)}
-                          className={cn(
-                            "flex min-h-11 items-center justify-between whitespace-nowrap rounded-fl-pill px-4 py-2 text-fl-md font-medium transition-all duration-fl-fast",
-                            isActive
-                              ? "bg-atelier-ink text-atelier-paper font-semibold"
-                              : "text-atelier-ink-2 hover:bg-atelier-paper-2 hover:text-atelier-ink",
-                          )}
-                        >
-                          <span>{label(link)}</span>
-                          <span className={cn("text-fl-xs transition-transform group-hover:translate-x-1", isActive ? "text-atelier-paper/70" : "text-atelier-ink-3")}>
-                            ➔
-                          </span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-
-              <div className="flex flex-col gap-fl-2xs border-t border-atelier-rule/70 pt-fl-xs">
-                {isAuthenticated ? (
-                  <>
-                    <div className="rounded-[2px] bg-atelier-paper-2 p-fl-xs border border-atelier-rule">
-                      <p className="fl-label text-[0.62rem] text-atelier-ink-3 uppercase">Tài khoản</p>
-                      <p className="truncate text-fl-sm font-medium text-atelier-ink">{user?.email}</p>
-                    </div>
-                    <Link
-                      href={localize("/profile")}
-                      onClick={() => setMobileOpen(false)}
-                      className="flex min-h-11 items-center whitespace-nowrap text-fl-sm text-atelier-ink hover:text-atelier-accent font-medium"
-                    >
-                      {t.headerAccount}
-                    </Link>
-                    {userRole === "ADMIN" ? (
-                      <Link
-                        href={localize("/admin")}
-                        onClick={() => setMobileOpen(false)}
-                        className="flex min-h-11 items-center justify-between whitespace-nowrap text-fl-sm text-atelier-ink hover:text-atelier-accent font-medium"
-                      >
-                        <span>Admin</span>
-                        <span className="rounded-[2px] bg-atelier-accent/10 px-1.5 py-0.5 text-[0.62rem] font-semibold uppercase text-atelier-accent">
-                          Admin
-                        </span>
-                      </Link>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={handleSignOut}
-                      className="flex min-h-11 items-center whitespace-nowrap text-left text-fl-sm text-atelier-danger font-medium"
-                    >
-                      {t.headerLogout}
-                    </button>
-                  </>
-                ) : (
                   <Link
-                    href={localize("/login")}
+                    href={localize(link.href)}
+                    aria-current={isActive ? "page" : undefined}
                     onClick={() => setMobileOpen(false)}
-                    className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-fl-pill bg-atelier-accent px-fl-md text-fl-sm font-semibold text-atelier-accent-ink transition-colors hover:bg-atelier-accent-hover"
+                    className={cn(
+                      "flex min-h-11 items-center justify-between whitespace-nowrap rounded-control px-4 py-2 text-fl-md font-medium transition-all duration-fl-fast",
+                      isActive
+                        ? "bg-atelier-ink font-semibold text-atelier-paper"
+                        : "text-atelier-ink-2 hover:bg-atelier-paper-2 hover:text-atelier-ink",
+                    )}
                   >
-                    {t.headerLogin}
+                    <span>{label(link)}</span>
+                    <span
+                      className={cn(
+                        "text-fl-xs transition-transform group-hover:translate-x-1",
+                        isActive ? "text-atelier-paper/70" : "text-atelier-ink-3",
+                      )}
+                    >
+                      ➔
+                    </span>
                   </Link>
-                )}
-              </div>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
-              <div className="flex items-center justify-between border-t border-atelier-rule pt-fl-xs">
-                <span className="fl-label">{t.headerLanguage}</span>
-                <button
-                  type="button"
-                  onClick={switchLanguage}
-                  className="px-3.5 py-1.5 bg-atelier-paper-2 hover:bg-atelier-paper-3 border border-atelier-rule rounded-fl-pill text-fl-2xs font-semibold text-atelier-ink transition-all uppercase tracking-wider"
-                >
-                  {language === "vi" ? "ENGLISH 🇬🇧" : "TIẾNG VIỆT 🇻🇳"}
-                </button>
+        <div className="flex flex-col gap-fl-2xs border-t border-atelier-rule/70 pt-fl-xs">
+          {isAuthenticated ? (
+            <>
+              <div className="rounded-control border border-atelier-rule bg-atelier-paper-2 p-fl-xs">
+                <p className="fl-label text-[0.62rem] uppercase text-atelier-ink-3">
+                  Tài khoản
+                </p>
+                <p className="truncate text-fl-sm font-medium text-atelier-ink">
+                  {user?.email}
+                </p>
               </div>
-            </safeMotion.div>
-          </div>
-        ) : null}
-      </AnimatePresence>
+              <Link
+                href={localize("/profile")}
+                onClick={() => setMobileOpen(false)}
+                className="flex min-h-11 items-center whitespace-nowrap text-fl-sm font-medium text-atelier-ink hover:text-atelier-accent"
+              >
+                {t.headerAccount}
+              </Link>
+              {userRole === "ADMIN" ? (
+                <Link
+                  href={localize("/admin")}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex min-h-11 items-center justify-between whitespace-nowrap text-fl-sm font-medium text-atelier-ink hover:text-atelier-accent"
+                >
+                  <span>Admin</span>
+                  <span className="rounded-control bg-atelier-accent/10 px-1.5 py-0.5 text-[0.62rem] font-semibold uppercase text-atelier-accent">
+                    Admin
+                  </span>
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex min-h-11 items-center whitespace-nowrap text-left text-fl-sm font-medium text-atelier-danger"
+              >
+                {t.headerLogout}
+              </button>
+            </>
+          ) : (
+            <Link
+              href={localize("/login")}
+              onClick={() => setMobileOpen(false)}
+              className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm font-semibold text-atelier-accent-ink transition-colors hover:bg-atelier-accent-hover"
+            >
+              {t.headerLogin}
+            </Link>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-atelier-rule pt-fl-xs">
+          <span className="fl-label">{t.headerLanguage}</span>
+          <button
+            type="button"
+            onClick={switchLanguage}
+            className="min-h-11 rounded-control border border-atelier-rule bg-atelier-paper-2 px-3.5 py-1.5 text-fl-2xs font-semibold uppercase tracking-wider text-atelier-ink transition-all hover:bg-atelier-paper-3"
+          >
+            {language === "vi" ? "ENGLISH 🇬🇧" : "TIẾNG VIỆT 🇻🇳"}
+          </button>
+        </div>
+      </MobileSheet>
     </>
   );
 }

@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { stripLocalePrefix } from "@/lib/locale";
+import { getMobileSurfacePolicy } from "@/lib/mobile-surface-policy";
+import { cn } from "@/lib/utils";
 import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import { Facebook, MessageCircle, Send, X, User as UserIcon } from "lucide-react";
 import { toast } from "@/components/ui/csp-toast";
@@ -20,6 +22,7 @@ type Message = {
 
 export function ChatBubble() {
   const pathname = usePathname();
+  const policy = getMobileSurfacePolicy(pathname || "/");
   const { language } = useLanguageStore();
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
@@ -64,6 +67,13 @@ export function ChatBubble() {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, view]);
+
+  useEffect(() => {
+    if (!policy.chat) {
+      setOpen(false);
+      setView("options");
+    }
+  }, [policy.chat]);
 
   const submitGuestForm = async (event: FormEvent) => {
     event.preventDefault();
@@ -125,10 +135,17 @@ export function ChatBubble() {
   };
 
   // Locale-aware: the raw path is `/vi/admin/...`, so strip the prefix first.
-  if (stripLocalePrefix(pathname || "/").pathname.startsWith("/admin")) return null;
+  if (stripLocalePrefix(pathname || "/").pathname.startsWith("/admin") || !policy.chat) {
+    return null;
+  }
 
   return (
-    <div className="fixed bottom-5 right-4 z-[70] flex flex-col items-end gap-3 sm:bottom-7 sm:right-7">
+    <div
+      className={cn(
+        "fixed right-4 z-30 flex flex-col items-end gap-3 md:right-7 md:bottom-7",
+        policy.bottomNavigation ? "bottom-mobile-navigation" : "bottom-5",
+      )}
+    >
       <AnimatePresence>
         {open && (
           <safeMotion.div

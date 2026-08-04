@@ -112,9 +112,13 @@
   }
   h1, h2, h3 {
     @apply font-serif tracking-wide;
+    overflow-wrap: anywhere;
+    min-width: 0;
   }
   h4, h5, h6 {
     @apply font-sans font-semibold;
+    overflow-wrap: anywhere;
+    min-width: 0;
   }
 }
 
@@ -1372,4 +1376,43 @@ next-route-announcer > div {
   .fl-nav-link {
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ============================================================
+   MOBILE UI OPTIMIZATION & ERGONOMICS (Hallmark discipline)
+   ============================================================ */
+@layer utilities {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .safe-bottom-padding {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pb-mobile-navigation {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pb-mobile-action {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-mobile-navigation {
+    bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Mobile Bottom Sheet overlay animation */
+.mobile-bottom-sheet-scrim {
+  background-color: rgba(26, 24, 20, 0.5);
+  backdrop-filter: blur(4px);
 }

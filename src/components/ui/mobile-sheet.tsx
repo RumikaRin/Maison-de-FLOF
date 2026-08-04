@@ -70,6 +70,7 @@ type MobileSheetProps = {
   description?: string;
   closeLabel?: string;
   className?: string;
+  containerClassName?: string;
 };
 
 export function MobileSheet({
@@ -80,6 +81,7 @@ export function MobileSheet({
   description,
   closeLabel = "Close dialog",
   className,
+  containerClassName = "md:hidden",
 }: MobileSheetProps) {
   const previousFocus = useRef<HTMLElement | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -123,7 +125,7 @@ export function MobileSheet({
   return (
     <AnimatePresence>
       {open ? (
-        <div className="fixed inset-0 z-[60] flex items-end md:hidden">
+        <div className={cn("fixed inset-0 z-[60] flex items-end", containerClassName)}>
           <safeMotion.button
             aria-hidden="true"
             className="absolute inset-0 cursor-default bg-atelier-espresso/35"

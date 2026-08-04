@@ -5,6 +5,8 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { stripLocalePrefix } from "@/lib/locale";
+import { getMobileSurfacePolicy } from "@/lib/mobile-surface-policy";
+import { cn } from "@/lib/utils";
 
 import { EditorialSection, Rule } from "@/components/ui/editorial";
 import { toast } from "@/components/ui/csp-toast";
@@ -48,6 +50,7 @@ export default function Footer() {
   const t = useTrans(language);
   const [email, setEmail] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const policy = getMobileSurfacePolicy(pathname || "/");
 
   // Strip the locale first: the raw pathname is `/vi/admin/...`, so a bare
   // startsWith("/admin") would leak the footer onto every admin route.
@@ -82,7 +85,12 @@ export default function Footer() {
         // viewport corner, so on a phone it lands on the last row unless the
         // content stops short of it. The sm: right padding does the same job
         // horizontally once there is width to spare.
-        className="pb-fl-3xl pt-fl-2xl sm:pb-fl-lg md:pt-fl-3xl"
+        className={cn(
+          "pt-fl-2xl md:pt-fl-3xl",
+          policy.bottomNavigation
+            ? "pb-mobile-navigation md:pb-fl-lg"
+            : "pb-fl-3xl sm:pb-fl-lg",
+        )}
       >
         {/* Primary element — the letter. 7/5 edge to edge, no dead gutter. */}
         <div className="grid gap-fl-xl md:grid-cols-12">
