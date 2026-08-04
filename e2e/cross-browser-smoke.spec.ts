@@ -16,14 +16,18 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
 
   await page.goto("/");
   await expect(page.locator("main")).toBeVisible();
-  const homeInlineStyles = await page.locator("[style]").evaluateAll((nodes) =>
-    nodes.map((node) => ({
-      tag: node.tagName,
-      className: node.getAttribute("class"),
-      style: node.getAttribute("style"),
-    })),
+  const homeAppInlineStyles = await page.locator("[style]").evaluateAll((nodes) =>
+    nodes
+      // MapLibre sizes its rendering canvases at runtime. Those library-owned
+      // attributes do not introduce inline styles in application markup.
+      .filter((node) => node.tagName !== "CANVAS")
+      .map((node) => ({
+        tag: node.tagName,
+        className: node.getAttribute("class"),
+        style: node.getAttribute("style"),
+      })),
   );
-  expect(homeInlineStyles).toEqual([]);
+  expect(homeAppInlineStyles).toEqual([]);
   const homeStyleBlocks = await page.locator("style").evaluateAll((nodes) =>
     nodes.map((node) => ({
       nonce: node.getAttribute("nonce"),

@@ -22,7 +22,7 @@ test("catalogue filter sheet returns focus and preserves the chosen grid density
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/vi/products");
 
-  const trigger = page.getByRole("button", { name: /Bộ lọc|Filters/i });
+  const trigger = page.getByRole("button", { name: /^(Bộ lọc|Filters)$/i });
   await trigger.click();
   await expect(
     page.getByRole("dialog", { name: /Bộ lọc sản phẩm|Product Filters/i }),

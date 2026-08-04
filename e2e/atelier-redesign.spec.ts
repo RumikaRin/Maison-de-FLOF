@@ -48,9 +48,10 @@ const DIACRITIC_PROBE = "ẫộỹềặ";
 
 async function gotoSettled(page: Page, path: string): Promise<void> {
   await page.goto(path, { waitUntil: "domcontentloaded" });
-  // Chat polling and MapLibre tile streams keep the network busy forever, so
-  // networkidle gets a short cap — the DOM is what we assert.
-  await page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => {});
+  // Chat polling and MapLibre tile streams keep network activity open. The
+  // layout assertions need a rendered document, and each overflow check below
+  // already retries after a short settle when it observes a real candidate.
+  await page.locator("main").first().waitFor({ state: "visible" });
 }
 
 test.describe("layout safety across public routes", () => {

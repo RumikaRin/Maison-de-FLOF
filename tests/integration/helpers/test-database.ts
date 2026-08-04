@@ -203,6 +203,9 @@ export async function resetHttpApiFixtures(database: PrismaClient) {
 }
 
 export async function resetCommerceFixtures(database: PrismaClient) {
+  // Cart persistence is independent from orders. Clear it before resetting the
+  // catalogue stock so a prior browser run cannot submit an accumulated cart.
+  await database.cartItem.deleteMany();
   await database.orderStatusHistory.deleteMany();
   await database.inventoryTransaction.deleteMany();
   await database.orderItem.deleteMany();
