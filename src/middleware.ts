@@ -141,7 +141,7 @@ function rewriteWithNonce(
 
 export default async function middleware(request: NextRequest, event: any) {
   const originalPathname = request.nextUrl.pathname;
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const nonce = btoa(crypto.randomUUID());
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set(

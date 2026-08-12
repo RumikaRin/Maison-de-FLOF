@@ -20,7 +20,7 @@ export function buildContentSecurityPolicy(
     environment === "production"
       ? "style-src-attr 'none'"
       : "style-src-attr 'unsafe-inline'",
-    "img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com",
+    "img-src 'self' blob: data: https://*.public.blob.vercel-storage.com https://res.cloudinary.com https://images.unsplash.com https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com",
     "font-src 'self' data:",
     "connect-src 'self' https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com",
     "worker-src 'self' blob:",

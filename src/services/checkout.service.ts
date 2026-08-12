@@ -265,9 +265,25 @@ export async function processCheckout(
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const concurrent = await database.checkoutIdempotency.findUnique({
+      let concurrent = await database.checkoutIdempotency.findUnique({
         where: { key: idempotencyKey! },
       });
+
+      if (
+        concurrent &&
+        concurrent.userId === sessionUser.id &&
+        concurrent.requestHash === requestHash &&
+        !concurrent.orderId
+      ) {
+        for (let i = 0; i < 3; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          concurrent = await database.checkoutIdempotency.findUnique({
+            where: { key: idempotencyKey! },
+          });
+          if (concurrent?.orderId) break;
+        }
+      }
+
       if (
         concurrent?.userId === sessionUser.id &&
         concurrent.requestHash === requestHash &&

@@ -89,6 +89,17 @@ export default async function RootLayout({
             __html: 'document.documentElement.classList.add("fl-js")',
           }}
         />
+        {/* Strip third-party injected attributes (bis_skin_checked from
+            system-level antivirus/security software) BEFORE React hydration
+            compares the DOM. The MutationObserver catches any added
+            mid-hydration. */}
+        <script
+          suppressHydrationWarning
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: '(function(){var a="bis_skin_checked";document.querySelectorAll("["+a+"]").forEach(function(e){e.removeAttribute(a)});new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){ms[i].target.removeAttribute(a)}}).observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:[a]})})();',
+          }}
+        />
         <SessionProvider>
           <QueryProvider>
             <ThemeProvider

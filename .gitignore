@@ -54,3 +54,9 @@ yarn-error.log*
 
 # Visual brainstorming sessions
 .superpowers/
+
+# personal and academic documents
+*.docx
+/BAO_CAO_DO_AN.md
+/scripts/generate_doc.py
+
