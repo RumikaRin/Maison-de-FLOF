@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { CheckCircle, Clock, Search, XCircle, ShieldAlert } from "lucide-react";
-import { motion } from "framer-motion";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 import { InvoiceModal } from "@/components/admin/InvoiceModal";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 
 export default function AdminOrdersPage() {
   const { language } = useLanguageStore();
@@ -32,7 +33,9 @@ export default function AdminOrdersPage() {
     fetch("/api/orders")
       .then(async (response) => {
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Không thể tải đơn hàng");
+        if (!response.ok) {
+          throw new Error(getApiErrorMessage(data, "Không thể tải đơn hàng"));
+        }
         setOrders(data);
       })
       .catch((error) => toast.error(error.message))
@@ -49,7 +52,9 @@ export default function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể cập nhật đơn hàng");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể cập nhật đơn hàng"));
+      }
 
       setOrders((current) =>
         current.map((order) =>
@@ -78,7 +83,9 @@ export default function AdminOrdersPage() {
         body: JSON.stringify({ paymentId: order.paymentId, transactionCode }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể xác nhận thanh toán");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể xác nhận thanh toán"));
+      }
       setOrders((current) =>
         current.map((item) =>
           item.id === order.id
@@ -108,7 +115,9 @@ export default function AdminOrdersPage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể ghi nhận hoàn tiền");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể ghi nhận hoàn tiền"));
+      }
       setOrders((current) =>
         current.map((item) =>
           item.id === order.id ? { ...item, paymentStatus: "REFUNDED" } : item,
@@ -189,7 +198,7 @@ export default function AdminOrdersPage() {
   return (
     <div className="flex flex-col gap-6 text-left">
       {/* Title with spring entry */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -202,7 +211,7 @@ export default function AdminOrdersPage() {
             ? "Xem danh sách các đơn hàng, lọc theo trạng thái và cập nhật thông tin tiến độ giao nhận."
             : "Review client order list, filter by states, and update shipping progress info."}
         </p>
-      </motion.div>
+      </safeMotion.div>
 
       <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm lg:grid-cols-[minmax(260px,1fr)_auto]">
         <label className="relative block">
@@ -231,7 +240,7 @@ export default function AdminOrdersPage() {
               onClick={() => setFilter(tab.key as any)}
               className={`relative flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[11px] font-bold transition-colors ${isActive
                 ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900"
                 }`}
             >
               <span>{tab.label}</span>
@@ -245,7 +254,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Table block with list item animations */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -346,7 +355,7 @@ export default function AdminOrdersPage() {
             </span>
           </div>
         )}
-      </motion.div>
+      </safeMotion.div>
 
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
@@ -374,3 +383,4 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
+

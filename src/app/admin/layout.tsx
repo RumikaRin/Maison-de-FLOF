@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AdminNotificationDropdown } from "@/components/admin/AdminNotificationDropdown";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, safeMotion } from "@/components/ui/motion-safe";
 import {
   BarChart3,
   BookOpenText,
@@ -24,6 +24,7 @@ import {
   PackageOpen,
   Palette,
   ReceiptText,
+  ScrollText,
   ShoppingBag,
   Star,
   Store,
@@ -32,9 +33,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useLanguageStore } from "@/store/language-store";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "@/components/ui/loader-2";
+import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
 
 type MenuItem = {
   name: string;
@@ -49,16 +50,16 @@ type MenuGroup = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const router = useRouter();
-  const { language, toggleLanguage } = useLanguageStore();
+  const { language, routePath: pathname, localize, switchLanguage } =
+    useLocaleNavigation();
   const { data: session, status } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (status === "unauthenticated") router.push(localize("/login"));
+  }, [localize, status, router]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -66,9 +67,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
-    document.body.style.overflow = "hidden";
+    document.body.classList.add("overflow-hidden");
     return () => {
-      document.body.style.overflow = "";
+      document.body.classList.remove("overflow-hidden");
     };
   }, [isMobileMenuOpen]);
 
@@ -111,6 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         items: [
           { name: language === "vi" ? "Chi nhánh" : "Branches", href: "/admin/dealers", icon: Store, adminOnly: true },
           { name: language === "vi" ? "Tài khoản" : "Accounts", href: "/admin/accounts", icon: Users, adminOnly: true },
+          { name: language === "vi" ? "Nhật ký kiểm toán" : "Audit history", href: "/admin/audit", icon: ScrollText, adminOnly: true },
         ],
       },
     ],
@@ -146,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               : "This area is restricted to staff and administrators."}
           </p>
           <div className="mt-6 grid gap-2">
-            <Link href="/" className="rounded-xl bg-warm-900 px-4 py-3 text-xs font-bold text-white hover:bg-warm-800">
+            <Link href={localize("/")} className="rounded-xl bg-warm-900 px-4 py-3 text-xs font-bold text-white hover:bg-warm-800">
               {language === "vi" ? "Quay về cửa hàng" : "Return to storefront"}
             </Link>
             <button onClick={async () => { await signOut({ redirect: false }); window.location.href = "/login"; }} className="rounded-xl border border-warm-200 px-4 py-3 text-xs font-bold text-warm-700 hover:bg-warm-50">
@@ -161,9 +163,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const sidebar = (
     <div className="flex h-full min-h-0 flex-col">
       <div className={cn("flex h-[72px] shrink-0 items-center border-b border-white/10", isCollapsed ? "justify-center px-3" : "justify-between px-5")}>
-        <Link href="/admin" className={cn("min-w-0", isCollapsed && "hidden")}>
+        <Link href={localize("/admin")} className={cn("min-w-0", isCollapsed && "hidden")}>
           <span className="block truncate text-base font-bold tracking-tight text-white">Maison de FLOF</span>
-          <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">Admin workspace</span>
+          <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">Admin workspace</span>
         </Link>
         <button
           type="button"
@@ -181,7 +183,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <nav className="admin-sidebar-scroll flex-1 overflow-y-auto px-3 py-4">
         {visibleGroups.map((group) => (
           <div key={group.label} className="mb-5 last:mb-0">
-            {!isCollapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">{group.label}</p>}
+            {!isCollapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">{group.label}</p>}
             <div className="space-y-1">
               {group.items.map((item) => {
                 const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
@@ -189,7 +191,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={localize(item.href)}
                     title={isCollapsed ? item.name : undefined}
                     className={cn(
                       "group relative flex h-10 items-center rounded-xl text-xs font-semibold transition-colors",
@@ -215,12 +217,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {!isCollapsed && (
             <div className="min-w-0">
               <p className="truncate text-xs font-bold text-white">{session?.user?.name || "FLOF Admin"}</p>
-              <p className="truncate text-[10px] text-white/45">{role}</p>
+              <p className="truncate text-[10px] text-white/60">{role}</p>
             </div>
           )}
         </div>
         <div className={cn("grid gap-1", isCollapsed ? "grid-cols-1" : "grid-cols-2")}>
-          <Link href="/" title={language === "vi" ? "Xem cửa hàng" : "View storefront"} className="flex h-9 items-center justify-center gap-2 rounded-xl text-[11px] font-semibold text-white/60 hover:bg-white/10 hover:text-white">
+          <Link href={localize("/")} title={language === "vi" ? "Xem cửa hàng" : "View storefront"} className="flex h-9 items-center justify-center gap-2 rounded-xl text-[11px] font-semibold text-white/60 hover:bg-white/10 hover:text-white">
             <Store className="h-4 w-4" />
             {!isCollapsed && <span>{language === "vi" ? "Cửa hàng" : "Store"}</span>}
           </Link>
@@ -242,7 +244,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            <motion.button
+            <safeMotion.button
               type="button"
               aria-label="Đóng menu"
               initial={{ opacity: 0 }}
@@ -251,7 +253,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               onClick={() => setIsMobileMenuOpen(false)}
               className="fixed inset-0 z-40 bg-warm-950/45 backdrop-blur-[2px] lg:hidden"
             />
-            <motion.aside
+            <safeMotion.aside
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
@@ -259,7 +261,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="fixed inset-y-0 left-0 z-50 w-[280px] bg-warm-950 lg:hidden"
             >
               {sidebar}
-            </motion.aside>
+            </safeMotion.aside>
           </>
         )}
       </AnimatePresence>
@@ -280,18 +282,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={toggleLanguage}
+              onClick={switchLanguage}
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-warm-250 bg-white/80 text-[11px] font-bold text-warm-700 hover:bg-white"
               title={language === "vi" ? "Đổi sang Tiếng Anh" : "Switch to Vietnamese"}
             >
               {language === "vi" ? "EN" : "VI"}
             </button>
             <AdminNotificationDropdown />
-            <Link href="/admin/orders" className="hidden h-9 items-center gap-2 rounded-xl border border-warm-250 bg-white/80 px-3 text-[11px] font-bold text-warm-700 hover:bg-white sm:flex">
+            <Link href={localize("/admin/orders")} className="hidden h-9 items-center gap-2 rounded-xl border border-warm-250 bg-white/80 px-3 text-[11px] font-bold text-warm-700 hover:bg-white sm:flex">
               <FileText className="h-4 w-4 text-jotun-teal" />
               {language === "vi" ? "Xem đơn hàng" : "View orders"}
             </Link>
-            <Link href="/" className="flex h-9 items-center gap-2 rounded-xl bg-warm-950 px-3 text-[11px] font-bold text-white hover:bg-warm-850">
+            <Link href={localize("/")} className="flex h-9 items-center gap-2 rounded-xl bg-warm-950 px-3 text-[11px] font-bold text-white hover:bg-warm-850">
               <Store className="h-4 w-4" />
               <span className="hidden sm:inline">{language === "vi" ? "Cửa hàng" : "Storefront"}</span>
             </Link>
@@ -300,9 +302,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <main className="admin-content min-w-0 flex-1 overflow-x-hidden px-4 py-5 md:px-7 md:py-7">
           <div className="mx-auto w-full max-w-[1600px]">
-            <motion.div key={pathname} initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }}>
+            <safeMotion.div key={pathname} initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.14 }}>
               {children}
-            </motion.div>
+            </safeMotion.div>
           </div>
         </main>
       </div>
@@ -320,3 +322,4 @@ function AdminLoader({ message }: { message: string }) {
     </div>
   );
 }
+

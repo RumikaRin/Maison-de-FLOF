@@ -5,6 +5,10 @@
 
 # testing
 /coverage
+/.playwright-cli/
+/playwright-report/
+/test-results/
+/.lighthouseci/
 
 # next.js
 /.next/
@@ -34,4 +38,43 @@ yarn-error.log*
 
 # agent / AI tools
 .agent
+/.claude/
+/.ai-understand/
+/.hallmark/
+/output/
+.gstack/
+skills-lock.json
+DESIGN_REVIEW.md
+\#*
+
+
+# python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# design shotgun HTML drafts
+public/*-design-shotgun.html
+public/design-shotgun*.html
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# security scanners and cloned tools
+/tools/skillspector/
+
+# report files and documents
+/reports/
+/PROJECT_AUDIT_REPORT_VI.md
+/PROJECT_ROADMAP_VI.md
+
+# Visual brainstorming sessions
+.superpowers/
+
+# personal and academic documents
+*.docx
+/BAO_CAO_DO_AN.md
+/scripts/generate_doc.py
+
 

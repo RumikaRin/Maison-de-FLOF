@@ -8,6 +8,9 @@ export interface CreatePaymentUrlParams {
 }
 
 export interface PaymentVerificationResult {
+  /** Cryptographic checksum (HMAC-SHA512) validation of the callback. */
+  isVerified: boolean;
+  /** Gateway response code says the transaction succeeded (vnp_ResponseCode=00). */
   isSuccess: boolean;
   message: string;
   orderId?: string;

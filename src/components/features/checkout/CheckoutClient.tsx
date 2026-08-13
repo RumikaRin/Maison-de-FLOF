@@ -1,3 +1,4 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -5,8 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
 import { useCartStore } from "@/store/cart-store";
-import { toast } from "sonner";
-import { ChevronLeft } from "lucide-react";
+import { toast } from "@/components/ui/csp-toast";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
+import { Rule } from "@/components/ui/editorial";
 import { CheckoutSuccess } from "./CheckoutSuccess";
 import { CheckoutForm } from "./CheckoutForm";
 import { CheckoutOrderSummary } from "./CheckoutOrderSummary";
@@ -139,7 +141,7 @@ export function CheckoutClient() {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Không thể tạo đơn hàng");
+        throw new Error(getApiErrorMessage(data, "Không thể tạo đơn hàng"));
       }
 
       clearCart();
@@ -183,21 +185,26 @@ export function CheckoutClient() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-12 max-w-7xl">
-      <div className="flex items-center justify-between border-b border-border pb-6 mb-8">
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold hover:text-jotun-teal"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          {language === "vi" ? "Quay lại giỏ hàng" : "Back to cart"}
-        </button>
-        <span className="text-xs text-muted-foreground font-semibold">
-          {items.length} {language === "vi" ? "sản phẩm" : "items"}
-        </span>
+    <div className="mx-auto w-full max-w-6xl px-[clamp(1rem,4vw,1.5rem)] py-fl-xl text-atelier-ink">
+      <div className="flex items-end justify-between gap-fl-sm">
+        <h1 className="fl-display text-fl-2xl">
+          {language === "vi" ? "Thanh toán" : "Checkout"}
+        </h1>
+        <div className="flex items-center gap-fl-md">
+          <span className="fl-label tabular-nums">
+            {items.length} {language === "vi" ? "sản phẩm" : "items"}
+          </span>
+          <button
+            onClick={() => router.back()}
+            className="min-h-11 whitespace-nowrap text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 md:min-h-6"
+          >
+            {language === "vi" ? "Quay lại giỏ hàng" : "Back to cart"}
+          </button>
+        </div>
       </div>
+      <Rule weight="strong" className="mb-fl-lg mt-fl-sm" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 items-start gap-fl-xl lg:grid-cols-12">
         <CheckoutForm
           language={language}
           savedAddresses={savedAddresses}

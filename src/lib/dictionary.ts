@@ -15,6 +15,7 @@ export const dictionary = {
     navLogin: "Đăng nhập",
     navLogout: "Đăng xuất",
 
+
     // Home Page
     heroTitle: "Tô Màu Không Gian Sống",
     heroSubtitle: "Khám phá hàng ngàn sắc màu cao cấp từ Jotun. Bảo vệ ngôi nhà của bạn bền bỉ cùng thời gian.",
@@ -155,6 +156,87 @@ export const dictionary = {
     placeOrder: "Đặt hàng ngay",
     orderSuccess: "Đặt hàng thành công!",
     orderNumber: "Mã đơn hàng",
+
+    // Footer — Ft7 Newsletter-first
+    footerLetterTitle: "Thư từ xưởng màu",
+    footerLetterNote:
+      "Mỗi tháng một lá thư về màu sắc, chất liệu và những căn phòng vừa hoàn thiện.",
+    footerEmailLabel: "Hộp thư của bạn",
+    footerEmailPlaceholder: "Nhập email của bạn",
+    footerSubscribe: "Đăng ký nhận thư",
+    footerSubscribeSuccess: "Đăng ký nhận bản tin thành công!",
+    footerPrivacyNote:
+      "Chúng tôi chỉ gửi bản tin FLOF và không chia sẻ email của bạn với bên thứ ba.",
+    footerBrandNote:
+      "Hệ thống phân phối sơn trực tuyến chính hãng hàng đầu Việt Nam. Đối tác phân phối chiến lược của Jotun, Dulux, Nippon Paint.",
+    footerAddress: "Số 15 Cầu Giấy, Láng Thượng, Đống Đa, Hà Nội",
+    footerCatInterior: "Sơn nội thất",
+    footerCatExterior: "Sơn ngoại thất",
+    footerCatPrimer: "Sơn lót kháng kiềm",
+    footerCatWaterproof: "Sơn chống thấm",
+    footerPrivacyPolicy: "Chính sách bảo mật",
+    footerTerms: "Điều khoản dịch vụ",
+    footerCookies: "Thiết lập Cookie",
+    footerRights: "Bảo lưu mọi quyền.",
+    footerNavLabel: "Liên kết chân trang",
+    footerSocialLabel: "Mạng xã hội",
+    footerSubscribing: "Đang đăng ký…",
+    footerSubscribeError: "Không thể đăng ký lúc này. Vui lòng thử lại.",
+
+    // Header — N11 Mega-menu
+    headerTagline: "Sơn cao cấp chính hãng",
+    headerColourPanelTitle: "Chọn theo họ màu",
+    headerColourPanelNote:
+      "Chín họ màu, từ trắng ngà tới xanh rêu. Chọn một họ để xem toàn bộ mã màu.",
+    headerProductPanelTitle: "Chọn theo bề mặt",
+    headerProductPanelNote:
+      "Mỗi bề mặt cần một dòng sơn khác nhau. Bắt đầu từ nơi bạn định sơn.",
+    headerViewAllColours: "Xem toàn bộ bảng màu",
+    headerViewAllProducts: "Xem toàn bộ sản phẩm",
+    headerPromoVisualizerTitle: "Thử màu trong phòng thật",
+    headerPromoVisualizerBody:
+      "Đặt màu lên tường, trần và cửa trước khi mua một lon sơn nào.",
+    headerPromoQuoteTitle: "Cần tư vấn cho công trình lớn?",
+    headerPromoQuoteBody: "Gửi yêu cầu báo giá, đội ngũ FLOF phản hồi trong 24 giờ.",
+    headerOpenPanel: "Mở danh mục",
+    headerClosePanel: "Đóng danh mục",
+    headerMenu: "Danh mục",
+    headerCloseMenu: "Đóng",
+    headerAccount: "Tài khoản",
+    headerLogout: "Đăng xuất",
+    headerLogin: "Đăng nhập",
+    headerCart: "Giỏ hàng",
+    headerLanguage: "Ngôn ngữ",
+
+    // ANCHOR:home-vi — homepage redesign copy goes directly below this line.
+    // ANCHOR:colors-vi — /colors and /color-visualizer copy goes below this line.
+    colorsCatalogLabel: "Bảng màu",
+    visualizerPalettesLabel: "Bộ phối màu tuyển chọn",
+    visualizerStageLabel: "Không gian mẫu",
+    // ANCHOR:dealer-vi — /find-dealer and /quote-request copy goes below this line.
+    dealerNetworkLabel: "Đại lý ủy quyền",
+    dealerQuoteBandTitle: "Không tìm thấy đại lý gần bạn? Đội ngũ FLOF báo giá trực tiếp trong 24 giờ.",
+    dealerQuoteBandCta: "Gửi yêu cầu báo giá",
+    quotePageLabel: "Báo giá công trình",
+    // ANCHOR:catalogue-vi — /products and /blog copy goes below this line.
+    catalogueShopEyebrow: "Cửa hàng",
+    catalogueProductsTitle: "Sản phẩm sơn nước",
+    catalogueItemsLabel: "sản phẩm",
+    catalogueViewProduct: "Xem",
+    catalogueClearFilters: "Xóa bộ lọc",
+    catalogueSortLabel: "Sắp xếp",
+    catalogueJournalEyebrow: "Sổ tay FLOF",
+    catalogueJournalTitle: "Xu hướng sơn",
+    catalogueArticlesLabel: "bài viết",
+    catalogueFeaturedLabel: "Bài nổi bật",
+    // ANCHOR:app-vi — cart, checkout, profile and auth copy goes below this line.
+    appQtyDecrease: "Giảm số lượng",
+    appQtyIncrease: "Tăng số lượng",
+    appOrderColOrder: "Mã đơn",
+    appOrderColDate: "Ngày đặt",
+    appOrderColStatus: "Trạng thái",
+    appOrderColItems: "Sản phẩm",
+    appOrderColTotal: "Tổng tiền",
   },
   en: {
     // Navigation
@@ -312,6 +394,87 @@ export const dictionary = {
     placeOrder: "Place Order",
     orderSuccess: "Order placed successfully!",
     orderNumber: "Order Number",
+
+    // Footer — Ft7 Newsletter-first
+    footerLetterTitle: "Letters from the studio",
+    footerLetterNote:
+      "One letter a month on colour, material and the rooms we have just finished.",
+    footerEmailLabel: "Your inbox",
+    footerEmailPlaceholder: "Enter your email",
+    footerSubscribe: "Subscribe",
+    footerSubscribeSuccess: "Successfully subscribed to our newsletter!",
+    footerPrivacyNote:
+      "We only send the FLOF letter, and we never share your email with anyone else.",
+    footerBrandNote:
+      "Vietnam's leading genuine online paint distribution system. Strategic distribution partner of Jotun, Dulux, Nippon Paint.",
+    footerAddress: "15 Cau Giay, Lang Thuong, Dong Da, Hanoi",
+    footerCatInterior: "Interior Paint",
+    footerCatExterior: "Exterior Paint",
+    footerCatPrimer: "Alkali Primer",
+    footerCatWaterproof: "Waterproof Paint",
+    footerPrivacyPolicy: "Privacy Policy",
+    footerTerms: "Terms of Service",
+    footerCookies: "Cookie Settings",
+    footerRights: "All rights reserved.",
+    footerNavLabel: "Footer links",
+    footerSocialLabel: "Social",
+    footerSubscribing: "Subscribing…",
+    footerSubscribeError: "Could not subscribe right now. Please try again.",
+
+    // Header — N11 Mega-menu
+    headerTagline: "Premium & authentic paint",
+    headerColourPanelTitle: "Browse by colour family",
+    headerColourPanelNote:
+      "Nine families, from ivory white to moss green. Pick one to see every code in it.",
+    headerProductPanelTitle: "Browse by surface",
+    headerProductPanelNote:
+      "Every surface wants a different paint. Start from where you are painting.",
+    headerViewAllColours: "See the whole colour range",
+    headerViewAllProducts: "See every product",
+    headerPromoVisualizerTitle: "Test a colour in a real room",
+    headerPromoVisualizerBody:
+      "Put the colour on walls, ceiling and doors before you buy a single tin.",
+    headerPromoQuoteTitle: "Working on something larger?",
+    headerPromoQuoteBody: "Send a quote request and the FLOF team replies within 24 hours.",
+    headerOpenPanel: "Open menu",
+    headerClosePanel: "Close menu",
+    headerMenu: "Menu",
+    headerCloseMenu: "Close",
+    headerAccount: "My account",
+    headerLogout: "Log out",
+    headerLogin: "Log in",
+    headerCart: "Cart",
+    headerLanguage: "Language",
+
+    // ANCHOR:home-en — homepage redesign copy goes directly below this line.
+    // ANCHOR:colors-en — /colors and /color-visualizer copy goes below this line.
+    colorsCatalogLabel: "Colour catalogue",
+    visualizerPalettesLabel: "Curated palettes",
+    visualizerStageLabel: "Sample room",
+    // ANCHOR:dealer-en — /find-dealer and /quote-request copy goes below this line.
+    dealerNetworkLabel: "Authorized dealers",
+    dealerQuoteBandTitle: "No dealer nearby? The FLOF team quotes directly within 24 hours.",
+    dealerQuoteBandCta: "Request a quote",
+    quotePageLabel: "Project quote",
+    // ANCHOR:catalogue-en — /products and /blog copy goes below this line.
+    catalogueShopEyebrow: "Shop",
+    catalogueProductsTitle: "Paint products",
+    catalogueItemsLabel: "products",
+    catalogueViewProduct: "View",
+    catalogueClearFilters: "Clear filters",
+    catalogueSortLabel: "Sort",
+    catalogueJournalEyebrow: "The FLOF journal",
+    catalogueJournalTitle: "Paint trends",
+    catalogueArticlesLabel: "articles",
+    catalogueFeaturedLabel: "Featured",
+    // ANCHOR:app-en — cart, checkout, profile and auth copy goes below this line.
+    appQtyDecrease: "Decrease quantity",
+    appQtyIncrease: "Increase quantity",
+    appOrderColOrder: "Order",
+    appOrderColDate: "Date",
+    appOrderColStatus: "Status",
+    appOrderColItems: "Items",
+    appOrderColTotal: "Total",
   },
 };
 export type DictionaryKey = keyof typeof dictionary.vi;

@@ -1,8 +1,15 @@
+/* Hallmark · genre: editorial · macrostructure: n/a (shared chrome) · design-system: design.md · designed-as-app */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { SiteLoadingScreen } from "@/components/layout/SiteLoadingScreen";
+
+/**
+ * Behaviour only — the loader's entire appearance lives in `SiteLoadingScreen`,
+ * which is now on the atelier tokens. The MINIMUM/MAXIMUM visible windows and
+ * the click/popstate detection below are unchanged.
+ */
 
 const MINIMUM_VISIBLE_TIME = 300;
 const MAXIMUM_VISIBLE_TIME = 8000;

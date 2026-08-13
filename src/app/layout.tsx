@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Noto_Sans, Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -6,29 +7,41 @@ import { QueryProvider } from "@/providers/query-provider";
 import { SessionProvider } from "@/providers/session-provider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import MainLayoutWrapper from "@/components/layout/MainLayoutWrapper";
-import { Toaster } from "sonner";
+import { CartSync } from "@/components/layout/CartSync";
+import { CspToaster } from "@/components/ui/csp-toast";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
-import { ChatBubble } from "@/components/layout/ChatBubble";
+import { LazyChatBubble } from "@/components/layout/LazyChatBubble";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { shouldEnableVercelTelemetry } from "@/lib/vercel-runtime";
+import { resolveLocale } from "@/lib/locale";
 import "./globals.css";
+
+// Dynamic rendering is handled automatically by the headers() call below.
+// Vercel CDN caching (s-maxage) is set in middleware for public pages.
 
 const noto = Noto_Sans({
   subsets: ["vietnamese"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-noto",
+  display: "swap",
 });
 
 const playfair = Playfair_Display({
   subsets: ["vietnamese"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-playfair",
+  display: "swap",
 });
 
 const bromise = localFont({
   src: "./fonts/bromise/bromise.ttf",
   variable: "--font-bromise",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -43,63 +56,77 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+  const locale = resolveLocale({
+    pathname: "/",
+    cookie: requestHeaders.get("x-locale"),
+  });
+  const enableVercelTelemetry = shouldEnableVercelTelemetry({
+    VERCEL: process.env.VERCEL,
+  });
+
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-jotun-ivory grain-overlay`}
+        className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-atelier-paper text-atelier-ink`}
       >
+        {/* Pre-paint fl-js bootstrap (spec M2-M6): sets html.fl-js before the
+            first paint so SSR-visible [data-fl-io] clusters never flash in,
+            hide, then replay once fl-reveal.ts mounts. Nonced per the CSP's
+            script-src 'self' 'nonce-...' 'strict-dynamic'. initFlReveal still
+            sets the class too, as a no-JS-blocked fallback. */}
+        <script
+          suppressHydrationWarning
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: 'document.documentElement.classList.add("fl-js")',
+          }}
+        />
+        {/* Strip third-party injected attributes (bis_skin_checked from
+            system-level antivirus/security software) BEFORE React hydration
+            compares the DOM. The MutationObserver catches any added
+            mid-hydration. */}
+        <script
+          suppressHydrationWarning
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: '(function(){var a="bis_skin_checked";document.querySelectorAll("["+a+"]").forEach(function(e){e.removeAttribute(a)});new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){ms[i].target.removeAttribute(a)}}).observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:[a]})})();',
+          }}
+        />
         <SessionProvider>
           <QueryProvider>
             <ThemeProvider
               attribute="class"
               defaultTheme="light"
-              disableTransitionOnChange
+              enableColorScheme={false}
+              nonce={nonce}
             >
               <Header />
+              <CartSync />
               <MainLayoutWrapper>
                 {children}
               </MainLayoutWrapper>
               <Footer />
-              <Toaster
-                position="top-right"
-                offset={{ top: 96, right: 20 }}
-                expand={false}
-                gap={10}
-                toastOptions={{
-                  duration: 3500,
-                  classNames: {
-                    toast:
-                      "group font-sans text-sm rounded-2xl border border-[#e8e2da] bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.07),0_2px_8px_rgba(0,0,0,0.04)] px-4 py-3.5 flex gap-3 items-start",
-                    title: "font-semibold text-[13px] text-[#1c1917] leading-snug",
-                    description: "text-[11.5px] text-[#78716c] leading-relaxed mt-0.5",
-                    success:
-                      "border-[#d1fae5] bg-white/95 [&>[data-icon]]:text-emerald-500",
-                    error:
-                      "border-[#fee2e2] bg-white/95 [&>[data-icon]]:text-red-500",
-                    warning:
-                      "border-[#fef3c7] bg-white/95 [&>[data-icon]]:text-amber-500",
-                    info:
-                      "border-[#dbeafe] bg-white/95 [&>[data-icon]]:text-sky-500",
-                    closeButton:
-                      "rounded-full bg-[#f5f0eb] hover:bg-[#ebe5de] text-[#78716c] hover:text-[#1c1917] border border-[#e8e2da] transition-colors",
-                    actionButton:
-                      "bg-[#1c1917] text-white text-[11px] font-bold rounded-xl px-3 py-1.5 hover:bg-[#292524] transition-colors",
-                    cancelButton:
-                      "bg-[#f5f0eb] text-[#78716c] text-[11px] font-bold rounded-xl px-3 py-1.5 hover:bg-[#ebe5de] transition-colors",
-                  },
-                }}
-              />
+              <MobileBottomBar />
+              <CspToaster />
               <ScrollToTop />
-              <ChatBubble />
+              <LazyChatBubble />
               <Suspense fallback={null}>
                 <GlobalNavigationLoader />
               </Suspense>
+              {enableVercelTelemetry ? (
+                <>
+                  <Analytics />
+                  <SpeedInsights />
+                </>
+              ) : null}
             </ThemeProvider>
           </QueryProvider>
         </SessionProvider>

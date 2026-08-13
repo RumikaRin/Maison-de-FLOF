@@ -1,19 +1,28 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { formatPrice } from "@/lib/utils";
-import { toast } from "sonner";
-import { ChevronLeft, Minus, Plus, Trash2, Tag, ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
+import { getProductImage } from "@/lib/product-image";
+import { toast } from "@/components/ui/csp-toast";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
+import { Minus, Plus } from "lucide-react";
+import { ColorSwatch } from "@/components/ui/color-swatch";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Rule, TypographicLink } from "@/components/ui/editorial";
+import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
+import { getMobileSurfacePolicy } from "@/lib/mobile-surface-policy";
 
 export default function CartPage() {
   const router = useRouter();
+  const { routePath } = useLocaleNavigation();
   const { language } = useLanguageStore();
   const t = useTrans(language);
   const {
@@ -43,6 +52,7 @@ export default function CartPage() {
   const total = Math.max(0, subtotal + shippingFee - appliedDiscount);
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const amountNeededForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const policy = getMobileSurfacePolicy(routePath);
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +67,7 @@ export default function CartPage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Invalid coupon");
+        throw new Error(getApiErrorMessage(data, "Invalid coupon"));
       }
 
       setCouponCode(data.code);
@@ -81,328 +91,302 @@ export default function CartPage() {
   };
 
   return (
-    <div className="relative w-full bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-screen pt-24 pb-32 md:pb-24 text-left">
-      {/* Subtle grid background */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+    <div className="w-full min-h-screen bg-atelier-paper pb-32 pt-24 text-left text-atelier-ink md:pb-24">
+      <div className="mx-auto w-full max-w-5xl px-[clamp(1rem,4vw,1.5rem)]">
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
-
-        {/* Header bar */}
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-warm-700 hover:text-warm-900 transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{language === "vi" ? "Tiếp tục mua hàng" : "Continue Shopping"}</span>
-            <span className="sm:hidden">{language === "vi" ? "Mua thêm" : "Shop"}</span>
-          </Link>
-          <h1 className="text-lg sm:text-2xl font-serif font-bold text-warm-900">
+        {/* Header line */}
+        <div className="flex items-end justify-between gap-fl-sm">
+          <h1 className="fl-display text-fl-2xl">
             {language === "vi" ? "Giỏ hàng" : "Cart"}
             {items.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-warm-500">({getCartItemCount()})</span>
+              <span className="ml-2 font-sans text-fl-sm tabular-nums text-atelier-ink-2">
+                ({getCartItemCount()})
+              </span>
             )}
           </h1>
+          <TypographicLink href="/products" arrow="→">
+            {language === "vi" ? "Tiếp tục mua hàng" : "Continue shopping"}
+          </TypographicLink>
         </div>
+        <Rule weight="strong" className="mt-fl-sm" />
 
         {items.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-center justify-center py-20 gap-6 text-center"
-          >
-            <div className="w-20 h-20 rounded-full bg-warm-100 border border-warm-200 flex items-center justify-center">
-              <ShoppingBag className="h-9 w-9 text-warm-400" />
+          <div className="py-fl-2xl">
+            <p className="fl-display text-fl-xl">{t.cartEmpty}</p>
+            <p className="fl-measure-tight mt-fl-2xs text-fl-sm text-atelier-ink-2">
+              {language === "vi"
+                ? "Duyệt danh mục sơn nước cao cấp để lựa chọn sản phẩm phù hợp."
+                : "Browse our premium paint catalog to find the right product."}
+            </p>
+            <div className="mt-fl-md">
+              <Button asChild>
+                <Link href="/products">
+                  {language === "vi" ? "Xem sản phẩm" : "Shop products"}
+                </Link>
+              </Button>
             </div>
-            <div>
-              <h2 className="text-xl font-bold font-serif mb-2 text-warm-900">{t.cartEmpty}</h2>
-              <p className="text-sm text-warm-500 leading-relaxed max-w-xs mx-auto font-light">
-                {language === "vi"
-                  ? "Duyệt danh mục sơn nước cao cấp để lựa chọn sản phẩm phù hợp."
-                  : "Browse our premium paint catalog to find the right product."}
-              </p>
-            </div>
-            <Link
-              href="/products"
-              className="btn-island bg-warm-900 hover:bg-warm-800 text-white text-sm font-bold px-8 py-3.5 shadow-sm"
-            >
-              <span>{language === "vi" ? "Mua sắm ngay" : "Shop Now"}</span>
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-white">→</span>
-            </Link>
-          </motion.div>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          <div className="mt-fl-lg grid grid-cols-1 items-start gap-fl-xl lg:grid-cols-12">
 
-            {/* ── LEFT: Cart Items ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:col-span-7 flex flex-col gap-3"
-            >
-              {/* Free shipping progress bar */}
+            {/* ── LEFT: Cart ledger ── */}
+            <div className="lg:col-span-7">
+              {/* Free shipping status line — text plus progress, never colour alone */}
               {amountNeededForFreeShipping > 0 ? (
-                <div className="bg-white border border-warm-200 rounded-2xl px-4 py-3 text-xs text-warm-700">
-                  <div className="flex justify-between mb-1.5">
-                    <span>{language === "vi" ? "🚚 Mua thêm để miễn phí giao hàng" : "🚚 Add more for free shipping"}</span>
-                    <span className="font-bold text-[#88734C]">{formatPrice(amountNeededForFreeShipping)}</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-warm-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#88734C] rounded-full transition-all duration-500"
-                      style={{ width: `${progressToFreeShipping}%` }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 text-xs text-emerald-700 font-semibold">
-                  ✓ {language === "vi" ? "Bạn được miễn phí giao hàng!" : "You qualify for free shipping!"}
-                </div>
-              )}
-
-              {/* Item list */}
-              <div className="bg-white border border-warm-200 rounded-2xl overflow-hidden">
-                <AnimatePresence>
-                  {items.map((item, idx) => {
-                    const itemSupplier = (item.paint as typeof item.paint & { supplier?: { name: string } }).supplier;
-                    const discountedPrice = item.paint.discountPercent && item.paint.discountPercent > 0
-                      ? item.paint.price * (1 - item.paint.discountPercent / 100)
-                      : item.paint.price;
-
-                    return (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className={`p-4 sm:p-5 ${idx !== items.length - 1 ? "border-b border-warm-100" : ""}`}
-                      >
-                        <div className="flex gap-3 sm:gap-4">
-                          {/* Product image */}
-                          <Link href={`/products/${item.paint.slug}`} className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border border-warm-100 bg-warm-50 shrink-0">
-                            <Image src={item.paint.images?.[0] || "/product_interior.png"} alt={item.paint.name} fill className="object-cover" />
-                          </Link>
-
-                          {/* Product info + controls */}
-                          <div className="flex flex-col gap-2 flex-1 min-w-0">
-                            {/* Top: name + remove */}
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <span className="text-[9px] font-bold text-warm-400 uppercase tracking-wider font-mono block">
-                                  {itemSupplier?.name} · {item.paint.volume}{item.paint.volumeUnit}
-                                </span>
-                                <Link href={`/products/${item.paint.slug}`} className="font-bold text-sm text-warm-900 hover:text-jotun-teal transition-colors line-clamp-1 mt-0.5 block">
-                                  {language === "vi" ? item.paint.name : item.paint.nameEn}
-                                </Link>
-                                {item.selectedColor && (
-                                  <div className="flex items-center gap-1.5 mt-1">
-                                    <div
-                                      className="h-3 w-3 rounded-full border border-black/10 shrink-0"
-                                      style={{ backgroundColor: item.selectedColor.hex }}
-                                    />
-                                    <span className="text-[10px] font-medium text-warm-500 truncate">
-                                      {language === "vi" ? item.selectedColor.name : item.selectedColor.nameEn} ({item.selectedColor.code})
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => {
-                                  removeItem(item.id);
-                                  toast.success(language === "vi" ? "Đã xóa sản phẩm." : "Removed item.");
-                                }}
-                                className="p-1.5 text-warm-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0"
-                                title={language === "vi" ? "Xóa" : "Remove"}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-
-                            {/* Bottom: price + quantity */}
-                            <div className="flex items-center justify-between gap-3">
-                              {/* Price */}
-                              <div className="font-mono shrink-0">
-                                {item.paint.discountPercent && item.paint.discountPercent > 0 ? (
-                                  <div className="flex items-baseline gap-1.5">
-                                    <span className="text-sm font-bold text-red-500">{formatPrice(discountedPrice)}</span>
-                                    <span className="text-[9px] text-warm-400 line-through">{formatPrice(item.paint.price)}</span>
-                                  </div>
-                                ) : (
-                                  <span className="text-sm font-bold text-warm-900">{formatPrice(item.paint.price)}</span>
-                                )}
-                              </div>
-
-                              {/* Quantity + subtotal */}
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center border border-warm-200 rounded-xl bg-warm-50 overflow-hidden">
-                                  <button
-                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                    className="w-8 h-8 flex items-center justify-center text-warm-500 hover:text-warm-900 hover:bg-warm-100 transition-all"
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </button>
-                                  <span className="px-2 font-bold font-mono text-sm min-w-6 text-center text-warm-900">
-                                    {item.quantity}
-                                  </span>
-                                  <button
-                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                    className="w-8 h-8 flex items-center justify-center text-warm-500 hover:text-warm-900 hover:bg-warm-100 transition-all"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </button>
-                                </div>
-                                <span className="font-mono font-bold text-sm text-warm-900 min-w-[72px] text-right">
-                                  {formatPrice(discountedPrice * item.quantity)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-
-                {/* Clear cart */}
-                <div className="px-4 sm:px-5 py-3 border-t border-warm-100 bg-warm-50/40 flex justify-end">
-                  <button
-                    onClick={() => {
-                      clearCart();
-                      toast.success(language === "vi" ? "Giỏ hàng đã được xóa." : "Cart cleared.");
-                    }}
-                    className="text-[11px] font-bold text-warm-400 hover:text-red-500 transition-colors flex items-center gap-1"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                    {language === "vi" ? "Xóa toàn bộ" : "Clear all"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* ── RIGHT: Summary & Coupon ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className="lg:col-span-5 flex flex-col gap-4"
-            >
-              {/* Coupon - collapsible on mobile */}
-              <div className="bg-white border border-warm-200 rounded-2xl overflow-hidden">
-                <button
-                  onClick={() => setCouponOpen(!couponOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-bold text-warm-900"
-                >
-                  <span className="flex items-center gap-2">
-                    <Tag className="h-4 w-4 text-[#88734C]" />
-                    {appliedDiscount > 0
-                      ? (language === "vi" ? `Mã đã áp dụng (-${formatPrice(appliedDiscount)})` : `Coupon applied (-${formatPrice(appliedDiscount)})`)
-                      : (language === "vi" ? "Nhập mã giảm giá" : "Enter coupon code")}
-                  </span>
-                  {couponOpen ? <ChevronUp className="h-4 w-4 text-warm-400" /> : <ChevronDown className="h-4 w-4 text-warm-400" />}
-                </button>
-                <AnimatePresence>
-                  {couponOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-4 pt-1 border-t border-warm-100">
-                        <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder={language === "vi" ? "Mã giảm giá..." : "Coupon code..."}
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value)}
-                            className="flex-grow px-3 py-2.5 border border-warm-200 bg-warm-50 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[#88734C] text-warm-850"
-                          />
-                          <button
-                            type="submit"
-                            className="bg-warm-900 hover:bg-warm-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
-                          >
-                            {language === "vi" ? "Áp dụng" : "Apply"}
-                          </button>
-                        </form>
-                        {couponError && <p className="text-red-500 text-[10px] mt-2 font-semibold">{couponError}</p>}
-                        <p className="text-[10px] text-warm-400 mt-2">{language === "vi" ? "Thử: FLOF10 hoặc JOTUN100" : "Try: FLOF10 or JOTUN100"}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Order summary */}
-              <div className="bg-white border border-warm-200 rounded-2xl p-5 flex flex-col gap-4">
-                <h3 className="font-serif font-bold text-base text-warm-900 border-b border-warm-100 pb-3">
-                  {language === "vi" ? "Tổng đơn hàng" : "Order Summary"}
-                </h3>
-
-                <div className="flex flex-col gap-2.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-warm-500">{t.cartItemTotal}</span>
-                    <span className="font-mono font-semibold text-warm-900">{formatPrice(subtotal)}</span>
-                  </div>
-                  {appliedDiscount > 0 && (
-                    <div className="flex justify-between text-green-600 font-semibold">
-                      <span>{language === "vi" ? "Giảm giá" : "Discount"}</span>
-                      <span className="font-mono">-{formatPrice(appliedDiscount)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-warm-500">{t.cartShipping}</span>
-                    <span className={`font-mono font-semibold ${shippingFee === 0 ? "text-green-600" : "text-warm-900"}`}>
-                      {shippingFee === 0 ? (language === "vi" ? "Miễn phí" : "Free") : formatPrice(shippingFee)}
+                <div className="border-b border-atelier-rule pb-fl-sm text-fl-xs text-atelier-ink-2">
+                  <div className="flex justify-between gap-fl-sm">
+                    <span>
+                      {language === "vi"
+                        ? "Mua thêm để miễn phí giao hàng"
+                        : "Add more for free shipping"}
+                    </span>
+                    <span className="font-medium tabular-nums text-atelier-ink">
+                      {formatPrice(amountNeededForFreeShipping)}
                     </span>
                   </div>
+                  <progress
+                    value={progressToFreeShipping}
+                    max={100}
+                    aria-label={language === "vi" ? "Tiến độ miễn phí giao hàng" : "Free shipping progress"}
+                    className="mt-fl-2xs h-1 w-full accent-atelier-accent"
+                  />
                 </div>
+              ) : (
+                <p className="border-b border-atelier-rule pb-fl-sm text-fl-xs font-medium text-atelier-success">
+                  ✓ {language === "vi" ? "Bạn được miễn phí giao hàng." : "You qualify for free shipping."}
+                </p>
+              )}
 
-                <div className="border-t border-warm-100 pt-3 flex justify-between items-end">
-                  <span className="font-serif font-bold text-base text-warm-900">{language === "vi" ? "Tổng cộng" : "Total"}</span>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-warm-900 font-mono block">{formatPrice(total)}</span>
-                    <span className="text-[10px] text-warm-400">{language === "vi" ? "Đã bao gồm VAT" : "VAT included"}</span>
-                  </div>
-                </div>
+              {/* Hairline ledger rows: image · name · colour · qty · price */}
+              <ul>
+                {items.map((item) => {
+                  const itemSupplier = (item.paint as typeof item.paint & { supplier?: { name: string } }).supplier;
+                  const discountedPrice = item.paint.discountPercent && item.paint.discountPercent > 0
+                    ? item.paint.price * (1 - item.paint.discountPercent / 100)
+                    : item.paint.price;
 
-                {/* Checkout CTA - hidden on mobile (shown in sticky bar) */}
+                  return (
+                    <li key={item.id} className="border-b border-atelier-rule py-fl-sm">
+                      <div className="flex gap-fl-sm">
+                        {/* Product image */}
+                        <Link
+                          href={`/products/${item.paint.slug}`}
+                          className="relative h-16 w-16 shrink-0 overflow-hidden rounded-surface border border-atelier-rule bg-atelier-paper-2 sm:h-20 sm:w-20"
+                        >
+                          <Image src={getProductImage(item.paint.images)} alt={item.paint.name} fill className="object-cover" />
+                        </Link>
+
+                        {/* Name · colour · controls */}
+                        <div className="flex min-w-0 flex-1 flex-col gap-fl-2xs">
+                          <div className="flex items-start justify-between gap-fl-2xs">
+                            <div className="min-w-0">
+                              <span className="fl-label block">
+                                {itemSupplier?.name} · {item.paint.volume}{item.paint.volumeUnit}
+                              </span>
+                              <Link
+                                href={`/products/${item.paint.slug}`}
+                                className="mt-0.5 block truncate text-fl-sm font-medium text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent"
+                              >
+                                {language === "vi" ? item.paint.name : item.paint.nameEn}
+                              </Link>
+                              {item.selectedColor && (
+                                <span className="mt-1 flex items-center gap-1.5">
+                                  <ColorSwatch
+                                    color={item.selectedColor.hex}
+                                    className="h-3 w-3 shrink-0 border border-atelier-rule-strong"
+                                  />
+                                  <span className="truncate text-fl-xs text-atelier-ink-2">
+                                    {language === "vi" ? item.selectedColor.name : item.selectedColor.nameEn} ({item.selectedColor.code})
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => {
+                                removeItem(item.id);
+                                toast.success(language === "vi" ? "Đã xóa sản phẩm." : "Removed item.");
+                              }}
+                              className="min-h-11 shrink-0 whitespace-nowrap text-fl-xs text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-danger md:min-h-6"
+                            >
+                              {language === "vi" ? "Xóa" : "Remove"}
+                            </button>
+                          </div>
+
+                          {/* Price · qty stepper · line total */}
+                          <div className="flex flex-wrap items-center justify-between gap-fl-sm">
+                            <span className="shrink-0 text-fl-sm tabular-nums">
+                              {item.paint.discountPercent && item.paint.discountPercent > 0 ? (
+                                <span className="flex items-baseline gap-1.5">
+                                  <span className="font-medium text-atelier-danger">{formatPrice(discountedPrice)}</span>
+                                  <span className="text-fl-xs text-atelier-ink-3 line-through">{formatPrice(item.paint.price)}</span>
+                                </span>
+                              ) : (
+                                <span className="font-medium">{formatPrice(item.paint.price)}</span>
+                              )}
+                            </span>
+
+                            <span className="flex items-center gap-fl-sm">
+                              <span className="flex items-center rounded-control border border-atelier-rule-strong">
+                                <button
+                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                  aria-label={t.appQtyDecrease}
+                                  className="flex h-11 w-11 items-center justify-center text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 hover:text-atelier-ink md:h-9 md:w-9"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <span className="min-w-8 text-center text-fl-sm font-medium tabular-nums">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  aria-label={t.appQtyIncrease}
+                                  className="flex h-11 w-11 items-center justify-center text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 hover:text-atelier-ink md:h-9 md:w-9"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </button>
+                              </span>
+                              <span className="min-w-[72px] text-right text-fl-sm font-medium tabular-nums">
+                                {formatPrice(discountedPrice * item.quantity)}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {/* Clear cart */}
+              <div className="flex justify-end pt-fl-xs">
                 <button
-                  onClick={() => router.push(`/checkout?discount=${appliedDiscount}&coupon=${couponCode}`)}
-                  className="hidden sm:flex btn-island w-full py-4 justify-center bg-[#88734C] hover:bg-[#72603f] text-white text-sm font-bold shadow-sm"
+                  onClick={() => {
+                    clearCart();
+                    toast.success(language === "vi" ? "Giỏ hàng đã được xóa." : "Cart cleared.");
+                  }}
+                  className="min-h-11 whitespace-nowrap text-fl-xs text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-danger md:min-h-6"
                 >
-                  <span>{t.checkoutButton}</span>
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-white">→</span>
+                  {language === "vi" ? "Xóa toàn bộ" : "Clear all"}
                 </button>
+              </div>
+            </div>
 
-                {/* Trust badge */}
-                <div className="bg-warm-50 px-3 py-2.5 rounded-xl border border-warm-100 text-[10px] text-warm-500 leading-relaxed">
+            {/* ── RIGHT: Summary — recessed paper-2 surface ── */}
+            <div className="lg:col-span-5">
+              <div className="rounded-surface bg-atelier-paper-2 p-fl-md">
+                <h2 className="fl-display text-fl-lg">
+                  {language === "vi" ? "Tổng đơn hàng" : "Order summary"}
+                </h2>
+
+                {/* Coupon */}
+                <div className="mt-fl-sm border-y border-atelier-rule py-fl-xs">
+                  <button
+                    onClick={() => setCouponOpen(!couponOpen)}
+                    aria-expanded={couponOpen}
+                    className="flex min-h-11 w-full items-center justify-between text-fl-sm font-medium text-atelier-ink md:min-h-6 md:py-1"
+                  >
+                    <span>
+                      {appliedDiscount > 0
+                        ? (language === "vi" ? `Mã đã áp dụng (−${formatPrice(appliedDiscount)})` : `Coupon applied (−${formatPrice(appliedDiscount)})`)
+                        : (language === "vi" ? "Nhập mã giảm giá" : "Enter coupon code")}
+                    </span>
+                    <span aria-hidden="true" className="text-atelier-ink-3">{couponOpen ? "−" : "+"}</span>
+                  </button>
+                  {couponOpen && (
+                    <div className="pt-fl-2xs">
+                      <form onSubmit={handleApplyCoupon} className="flex gap-fl-2xs">
+                        <Input
+                          type="text"
+                          placeholder={language === "vi" ? "FLOF10" : "FLOF10"}
+                          aria-label={language === "vi" ? "Mã giảm giá" : "Coupon code"}
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          aria-invalid={couponError ? true : undefined}
+                          className="flex-1 bg-atelier-paper uppercase"
+                        />
+                        <Button type="submit" variant="outline">
+                          {language === "vi" ? "Áp dụng" : "Apply"}
+                        </Button>
+                      </form>
+                      {couponError && (
+                        <p className="mt-fl-2xs text-fl-xs text-atelier-danger">{couponError}</p>
+                      )}
+                      <p className="mt-fl-2xs text-fl-xs text-atelier-ink-2">
+                        {language === "vi" ? "Thử: FLOF10 hoặc JOTUN100" : "Try: FLOF10 or JOTUN100"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* SpecLedger-like total block */}
+                <dl className="mt-fl-sm">
+                  <div className="flex items-baseline justify-between border-b border-atelier-rule py-fl-2xs">
+                    <dt className="fl-label">{t.cartItemTotal}</dt>
+                    <dd className="text-fl-sm tabular-nums">{formatPrice(subtotal)}</dd>
+                  </div>
+                  {appliedDiscount > 0 && (
+                    <div className="flex items-baseline justify-between border-b border-atelier-rule py-fl-2xs text-atelier-success">
+                      <dt className="fl-label text-atelier-success">
+                        {language === "vi" ? "Giảm giá" : "Discount"}
+                      </dt>
+                      <dd className="text-fl-sm tabular-nums">−{formatPrice(appliedDiscount)}</dd>
+                    </div>
+                  )}
+                  <div className="flex items-baseline justify-between border-b border-atelier-rule py-fl-2xs">
+                    <dt className="fl-label">{t.cartShipping}</dt>
+                    <dd className="text-fl-sm tabular-nums">
+                      {shippingFee === 0 ? (language === "vi" ? "Miễn phí" : "Free") : formatPrice(shippingFee)}
+                    </dd>
+                  </div>
+                  <div className="flex items-end justify-between border-b border-atelier-rule-strong py-fl-xs">
+                    <dt className="text-fl-sm font-medium">
+                      {language === "vi" ? "Tổng cộng" : "Total"}
+                    </dt>
+                    <dd className="text-right">
+                      <span className="block text-fl-xl font-medium tabular-nums">{formatPrice(total)}</span>
+                      <span className="text-fl-xs text-atelier-ink-2">
+                        {language === "vi" ? "Đã bao gồm VAT" : "VAT included"}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+
+                {/* Checkout CTA — hidden on mobile (shown in the fixed bottom bar) */}
+                <Button
+                  onClick={() => router.push(`/checkout?discount=${appliedDiscount}&coupon=${couponCode}`)}
+                  className="mt-fl-md hidden w-full md:inline-flex"
+                >
+                  {t.checkoutButton}
+                </Button>
+
+                {/* Authenticity note */}
+                <p className="mt-fl-sm text-fl-xs leading-relaxed text-atelier-ink-2">
                   ✓ {language === "vi"
                     ? "Sản phẩm chính hãng từ nhà phân phối ủy quyền — đền bù 200% nếu phát hiện hàng giả."
                     : "100% genuine products from authorized distributors — 200% refund if counterfeit."}
-                </div>
+                </p>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* ── Sticky bottom checkout bar (mobile only) ── */}
-      {items.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden bg-white/95 backdrop-blur-md border-t border-warm-200 px-4 py-3 flex items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-warm-400 font-semibold">{language === "vi" ? "Tổng cộng" : "Total"}</p>
-            <p className="text-lg font-bold font-mono text-warm-900 leading-none">{formatPrice(total)}</p>
+      {/* ── Fixed bottom checkout bar (mobile only) ── */}
+      {policy.contextualAction === "cart-checkout" && items.length > 0 && (
+        <div
+          data-mobile-action="cart-checkout"
+          className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] pb-[max(var(--fl-space-xs),env(safe-area-inset-bottom))] pt-fl-xs md:hidden"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="fl-label">{language === "vi" ? "Tổng cộng" : "Total"}</p>
+            <p className="text-fl-lg font-medium leading-none tabular-nums">{formatPrice(total)}</p>
           </div>
-          <button
+          <Button
             onClick={() => router.push(`/checkout?discount=${appliedDiscount}&coupon=${couponCode}`)}
-            className="btn-island bg-[#88734C] hover:bg-[#72603f] text-white text-sm font-bold px-6 py-3.5 shadow-sm flex-shrink-0"
+            className="shrink-0"
           >
-            <span>{language === "vi" ? "Thanh toán" : "Checkout"}</span>
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-white">→</span>
-          </button>
+            {language === "vi" ? "Thanh toán" : "Checkout"}
+          </Button>
         </div>
       )}
     </div>

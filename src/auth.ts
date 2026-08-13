@@ -5,6 +5,32 @@ import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { authConfig } from "@/auth.config";
 import GoogleProvider from "next-auth/providers/google";
+import { canSignInWithCredentials } from "@/lib/auth/email-verification";
+import {
+  createRegisteredSession,
+  validateRegisteredSession,
+} from "@/lib/auth/session-registry";
+import { writeOperationalLog } from "@/lib/operations/log";
+import { verifyMfaForLogin } from "@/services/mfa.service";
+import { isGoogleProviderConfigured } from "@/lib/auth/google-provider-policy";
+
+function invalidateToken(token: {
+  id?: unknown;
+  email?: unknown;
+  name?: unknown;
+  picture?: unknown;
+  role?: unknown;
+  sessionId?: unknown;
+  sessionVersion?: unknown;
+}) {
+  token.id = undefined;
+  token.email = undefined;
+  token.name = undefined;
+  token.picture = undefined;
+  token.role = undefined;
+  token.sessionId = undefined;
+  token.sessionVersion = undefined;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -24,17 +50,102 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   } as any,
   session: { strategy: "jwt" },
+  events: {
+    async signOut(message) {
+      if (
+        "token" in message &&
+        typeof message.token?.sessionId === "string"
+      ) {
+        await db.authSession.updateMany({
+          where: { id: message.token.sessionId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+      }
+    },
+  },
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user) {
+        const currentUser = await db.user.findUnique({
+          where: { id: user.id },
+          include: { role: true },
+        });
+        if (!currentUser) {
+          invalidateToken(token);
+          return token;
+        }
+        const registeredSession = await createRegisteredSession(db, {
+          userId: currentUser.id,
+        });
+        token.id = currentUser.id;
+        token.email = currentUser.email;
+        token.role = currentUser.role.type;
+        token.sessionId = registeredSession.id;
+        token.sessionVersion = currentUser.sessionVersion;
+        return token;
+      }
+
+      if (
+        typeof token.id !== "string" ||
+        typeof token.sessionId !== "string" ||
+        typeof token.sessionVersion !== "number"
+      ) {
+        invalidateToken(token);
+        return token;
+      }
+
+      try {
+        const state = await validateRegisteredSession(db, {
+          sessionId: token.sessionId,
+          userId: token.id,
+          sessionVersion: token.sessionVersion,
+        });
+        if (!state.valid) {
+          invalidateToken(token);
+          return token;
+        }
+        token.email = state.email;
+        token.role = state.role;
+        token.sessionVersion = state.sessionVersion;
+      } catch (error) {
+        writeOperationalLog("error", "auth.session_registry.validation_failed", {
+          name: error instanceof Error ? error.name : typeof error,
+        });
+        invalidateToken(token);
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = typeof token.id === "string" ? token.id : "";
+        session.user.role =
+          token.role === "ADMIN" || token.role === "STAFF" || token.role === "CUSTOMER"
+            ? token.role
+            : "CUSTOMER";
+        session.user.sessionId =
+          typeof token.sessionId === "string" ? token.sessionId : "";
+      }
+      return session;
+    },
+  },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    }),
+    ...(isGoogleProviderConfigured(process.env)
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking:
+              process.env.AUTH_ALLOW_DANGEROUS_EMAIL_LINKING === "true",
+          }),
+        ]
+      : []),
     Credentials({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        mfaCode: { label: "MFA code", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -47,10 +158,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           include: { role: true },
         });
 
-        if (!user || !user.password) return null;
+        // The UI deliberately shows one generic message so it cannot be used to
+        // enumerate accounts. The precise reason goes to the server log instead,
+        // because "wrong password" and "privileged account with an unverified
+        // address" are indistinguishable to an operator otherwise — that is what
+        // made the seeded README credentials look simply broken.
+        const reject = (reason: string) => {
+          writeOperationalLog("warn", "auth.credentials.rejected", { reason });
+          return null;
+        };
+
+        if (!user) return reject("USER_NOT_FOUND");
+        if (!user.password) return reject("NO_PASSWORD_CREDENTIAL");
+        if (
+          !canSignInWithCredentials({
+            roleType: user.role.type,
+            emailVerified: user.emailVerified,
+          })
+        ) {
+          return reject("PRIVILEGED_EMAIL_NOT_VERIFIED");
+        }
 
         const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) return null;
+        if (!isValid) return reject("PASSWORD_MISMATCH");
+        if (
+          user.role.type === "ADMIN" &&
+          !(await verifyMfaForLogin(
+            user.id,
+            typeof credentials.mfaCode === "string"
+              ? credentials.mfaCode.trim()
+              : undefined,
+          ))
+        ) {
+          return reject("MFA_REQUIRED_OR_INVALID");
+        }
 
         return {
           id: user.id,

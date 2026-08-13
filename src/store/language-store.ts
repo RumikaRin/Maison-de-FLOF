@@ -2,8 +2,15 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { LOCALE_COOKIE, type Locale } from "@/lib/locale";
 
-export type Language = "vi" | "en";
+export type Language = Locale;
+
+function persistLocaleCookie(language: Language) {
+  if (typeof document !== "undefined") {
+    document.cookie = `${LOCALE_COOKIE}=${language}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  }
+}
 
 interface LanguageState {
   language: Language;
@@ -15,9 +22,16 @@ export const useLanguageStore = create<LanguageState>()(
   persist(
     (set) => ({
       language: "vi", // Default language is Vietnamese
-      setLanguage: (lang) => set({ language: lang }),
+      setLanguage: (lang) => {
+        persistLocaleCookie(lang);
+        set({ language: lang });
+      },
       toggleLanguage: () =>
-        set((state) => ({ language: state.language === "vi" ? "en" : "vi" })),
+        set((state) => {
+          const language = state.language === "vi" ? "en" : "vi";
+          persistLocaleCookie(language);
+          return { language };
+        }),
     }),
     {
       name: "sonvn-language", // LocalStorage key

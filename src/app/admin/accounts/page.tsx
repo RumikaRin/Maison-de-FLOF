@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { UserPlus, Shield, User, Key } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 
 export default function AdminAccountsPage() {
@@ -95,7 +95,7 @@ export default function AdminAccountsPage() {
   };
 
   return (
-    <motion.div
+    <safeMotion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -125,7 +125,7 @@ export default function AdminAccountsPage() {
 
       <AnimatePresence mode="wait">
         {isAddingUser && (
-          <motion.div
+          <safeMotion.div
             key="add-user-form"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -178,7 +178,7 @@ export default function AdminAccountsPage() {
                 </button>
               </div>
             </form>
-          </motion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
 
@@ -260,6 +260,7 @@ export default function AdminAccountsPage() {
             : `Are you sure you want to delete user account ${accountToDelete}?`
         }
       />
-    </motion.div>
+    </safeMotion.div>
   );
 }
+

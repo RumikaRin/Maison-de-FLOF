@@ -1,97 +1,53 @@
+/* Hallmark · genre: editorial · macrostructure: n/a (shared chrome) · design-system: design.md · designed-as-app */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { SiteLoadingScreen } from "@/components/layout/SiteLoadingScreen";
+import { stripLocalePrefix } from "@/lib/locale";
+import { getMobileSurfacePolicy } from "@/lib/mobile-surface-policy";
+import { cn } from "@/lib/utils";
 
-// Helper component that runs the observer only when the new page layout mounts
-function ScrollRevealObserver() {
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    let observer: IntersectionObserver | null = null;
-    let observedElements: NodeListOf<Element> | null = null;
-
-    // Wait 50ms to ensure the page children are fully mounted and rendered in the DOM
-    const timer = setTimeout(() => {
-      const observerOptions = {
-        root: null,
-        rootMargin: "0px 0px -10% 0px", // Trigger when element is 10% from the bottom of viewport
-        threshold: 0.05,
-      };
-
-      observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("active");
-            // Stop observing once animated in to keep it active
-            observer?.unobserve(entry.target);
-          }
-        });
-      }, observerOptions);
-
-      observedElements = document.querySelectorAll(".scroll-reveal");
-      observedElements.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        // If the element is already in the viewport (or above the fold) on mount, activate it immediately
-        if (rect.top < window.innerHeight) {
-          el.classList.add("active");
-        } else {
-          observer?.observe(el);
-        }
-      });
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      if (observer && observedElements) {
-        observedElements.forEach((el) => observer?.unobserve(el));
-      }
-    };
-  }, [pathname]);
-
-  return null;
-}
-
+/**
+ * design.md § Motion allows exactly two primitives: a hero media load fade and
+ * a state crossfade. The scroll-triggered entrance observer that used to run
+ * here was a third, and § Notes lists a reveal animation on every section as an
+ * anti-pattern — so it is gone.
+ *
+ * What survives is the single permitted page-load fade on the homepage, now
+ * opacity-only (no `y` translate) at --fl-dur-base / --fl-ease-out.
+ */
 export default function MainLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
-  const isHomepage = pathname === "/";
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // The raw pathname carries the locale (`/vi/admin`, `/vi`), so strip it before
+  // matching — otherwise admin routes get public padding and the homepage
+  // never matches its own path.
+  const routePath = stripLocalePrefix(pathname || "/").pathname;
+  const policy = getMobileSurfacePolicy(routePath);
+  const isAdmin = policy.mode === "admin";
+  const isHomepage = routePath === "/";
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
 
-  if (!mounted) {
-    return <SiteLoadingScreen />;
-  }
-
-  // Apply transitions and scroll reveals ONLY to the homepage
-  if (!isHomepage) {
-    return <main className={isAdmin ? "flex-grow pt-0" : "flex-grow pt-24 pb-20"}>{children}</main>;
-  }
-
   return (
-    <AnimatePresence mode="wait">
-      <motion.main
-        key={pathname}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="flex-grow pt-24 pb-20"
-      >
-        <ScrollRevealObserver />
-        {children}
-      </motion.main>
-    </AnimatePresence>
+    <main
+      data-mobile-mode={policy.mode}
+      className={cn(
+        "flex-grow",
+        isAdmin && !isHomepage
+          ? "pt-0"
+          : [
+              "pt-24",
+              policy.bottomNavigation
+                ? "pb-mobile-navigation md:pb-fl-xl"
+                : policy.contextualAction !== "none"
+                  ? "pb-mobile-action md:pb-fl-xl"
+                  : "pb-fl-2xl md:pb-fl-xl",
+            ],
+      )}
+    >
+      {children}
+    </main>
   );
 }

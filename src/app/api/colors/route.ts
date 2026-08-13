@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { parsePagination } from "@/lib/pagination";
+import { apiErrorResponse } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const pageParam = searchParams.get("page");
-    const limitParam = searchParams.get("limit");
-    
-    let page = 1;
-    let limit = 20;
-    
-    if (pageParam) page = parseInt(pageParam);
-    if (limitParam) limit = parseInt(limitParam);
-
-    const isPaginationRequested = !!pageParam || !!limitParam;
+    const {
+      page,
+      limit,
+      requested: isPaginationRequested,
+    } = parsePagination(searchParams);
 
     const queryOptions: any = {
       include: {
@@ -50,8 +47,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Failed to fetch colors:", error);
-    return NextResponse.json({ error: "Failed to fetch colors" }, { status: 500 });
+    return apiErrorResponse(error, request);
   }
 }
-

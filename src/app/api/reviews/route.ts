@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ApiError, apiErrorResponse, requireUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { submitVerifiedReview } from "@/lib/customer-workflow-service";
 
 const reviewSchema = z.object({
   paintId: z.string().min(1),
@@ -46,49 +47,11 @@ export async function POST(request: Request) {
     const sessionUser = await requireUser();
     const parsed = reviewSchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Đánh giá không hợp lệ");
-    const purchased = await db.order.findFirst({
-      where: {
-        customer: { userId: sessionUser.id },
-        status: "COMPLETED",
-        items: { some: { paintId: parsed.data.paintId } },
-      },
-      select: { id: true },
-    });
-    if (!purchased) {
-      throw new ApiError(403, "Bạn chỉ có thể đánh giá sản phẩm đã mua và hoàn tất");
-    }
-    const review = await db.review.upsert({
-      where: {
-        paintId_userId: {
-          paintId: parsed.data.paintId,
-          userId: sessionUser.id,
-        },
-      },
-      update: {
-        rating: parsed.data.rating,
-        comment: parsed.data.comment,
-      },
-      create: {
-        paintId: parsed.data.paintId,
-        userId: sessionUser.id,
-        rating: parsed.data.rating,
-        comment: parsed.data.comment,
-      },
-      include: { user: { select: { name: true, image: true } } },
-    });
-
-    const staffs = await db.user.findMany({ where: { role: { type: { in: ["ADMIN", "STAFF"] } } }, select: { id: true } });
-    if (staffs.length > 0) {
-      await db.notification.createMany({
-        data: staffs.map((s) => ({
-          userId: s.id,
-          type: "REVIEW",
-          title: "Đánh giá sản phẩm mới",
-          message: `${review.user?.name || "Khách hàng"} đã đánh giá ${parsed.data.rating} sao.`,
-        })),
-      });
-    }
-
+    const review = await submitVerifiedReview(
+      db,
+      sessionUser.id,
+      parsed.data,
+    );
     return Response.json(serializeReview(review), { status: 201 });
   } catch (error) {
     return apiErrorResponse(error);

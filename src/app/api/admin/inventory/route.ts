@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
           type: "IMPORT",
           quantity,
           reason: reason || "Nhập hàng bổ sung kho",
+          referenceType: "IMPORT",
         },
       });
       await createAuditLog(tx, {

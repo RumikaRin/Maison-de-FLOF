@@ -1,26 +1,169 @@
 import { Heart, X } from "lucide-react";
+
+import { ColorSwatch } from "@/components/ui/color-swatch";
+import { MobileSheet } from "@/components/ui/mobile-sheet";
 import { useTrans } from "@/lib/dictionary";
 import { cn } from "@/lib/utils";
 import {
-  getComplementaryColors,
   getAnalogousColors,
+  getComplementaryColors,
   getTriadicColors,
-  hexToRgb,
   hexToHsl,
-  isLightColor,
+  hexToRgb,
 } from "@/lib/color-utils";
 
+type Color = {
+  code: string;
+  name: string;
+  nameEn?: string;
+  hex: string;
+};
+
 interface ColorDetailDrawerProps {
-  selectedColor: {
-    code: string;
-    name: string;
-    nameEn?: string;
-    hex: string;
-  } | null;
+  selectedColor: Color | null;
   onClose: () => void;
   favorites: string[];
   onToggleFavorite: (code: string) => void;
   language: "vi" | "en";
+}
+
+type ColorDetailContentProps = Omit<
+  ColorDetailDrawerProps,
+  "onClose" | "selectedColor"
+> & {
+  selectedColor: Color;
+  showName: boolean;
+};
+
+function ColorDetailContent({
+  selectedColor,
+  favorites,
+  onToggleFavorite,
+  language,
+  showName,
+}: ColorDetailContentProps) {
+  const t = useTrans(language);
+  const compColor = getComplementaryColors(selectedColor.hex)[0];
+  const analogous = getAnalogousColors(selectedColor.hex);
+  const triadic = getTriadicColors(selectedColor.hex);
+  const rgb = hexToRgb(selectedColor.hex);
+  const hsl = hexToHsl(selectedColor.hex);
+  const colorName = language === "vi" ? selectedColor.name : selectedColor.nameEn || selectedColor.name;
+  const isFav = favorites.includes(selectedColor.code);
+
+  return (
+    <div className="flex flex-col gap-fl-md">
+      <div>
+        <ColorSwatch
+          color={selectedColor.hex}
+          className="fl-swatch block h-52 w-full rounded-swatch"
+        />
+        <div className="mt-fl-sm flex items-end justify-between gap-fl-sm">
+          <div>
+            <span className="fl-label block">#{selectedColor.code}</span>
+            {showName ? (
+              <h2 className="fl-display mt-fl-3xs text-fl-2xl text-atelier-ink">
+                {colorName}
+              </h2>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => onToggleFavorite(selectedColor.code)}
+            className="flex min-h-11 shrink-0 items-center gap-fl-2xs rounded-control border border-atelier-rule-strong px-fl-xs py-fl-3xs text-fl-sm font-medium text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 md:min-h-10"
+          >
+            <Heart
+              className={cn(
+                "h-4 w-4 transition-colors duration-fl-fast ease-fl-out",
+                isFav ? "fill-current text-atelier-accent" : "text-atelier-ink-3",
+              )}
+            />
+            <span>
+              {isFav ? (language === "vi" ? "Đã thích" : "Liked") : t.addToFavorites}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-fl-sm border-y border-atelier-rule py-fl-sm">
+        <div>
+          <span className="fl-label mb-fl-3xs block">Hex</span>
+          <span className="text-fl-sm tabular-nums text-atelier-ink">{selectedColor.hex}</span>
+        </div>
+        <div>
+          <span className="fl-label mb-fl-3xs block">RGB</span>
+          <span className="text-fl-sm tabular-nums text-atelier-ink">
+            {rgb.r}, {rgb.g}, {rgb.b}
+          </span>
+        </div>
+        <div>
+          <span className="fl-label mb-fl-3xs block">HSL</span>
+          <span className="text-fl-sm tabular-nums text-atelier-ink">
+            {hsl.h}°, {hsl.s}%, {hsl.l}%
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="fl-display text-fl-xl text-atelier-ink">{t.complementaryColors}</h3>
+        <div className="mt-fl-sm flex items-center gap-fl-sm">
+          <ColorSwatch
+            color={compColor}
+            className="fl-swatch block h-14 w-14 shrink-0 rounded-swatch"
+          />
+          <div>
+            <span className="block text-fl-sm text-atelier-ink-2">
+              {language === "vi" ? "Màu tương phản (180°)" : "Complementary (180°)"}
+            </span>
+            <span className="mt-fl-3xs block text-fl-sm tabular-nums text-atelier-ink">
+              {compColor}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-fl-md flex flex-col gap-fl-md">
+          <div>
+            <h4 className="fl-label mb-fl-2xs block border-t border-atelier-rule pt-fl-2xs">
+              {t.analogousColors}
+            </h4>
+            <div className="grid grid-cols-2 gap-fl-xs">
+              {analogous.map((hex) => (
+                <div key={hex} className="flex items-center gap-fl-2xs">
+                  <ColorSwatch color={hex} className="fl-swatch block h-9 w-9 shrink-0 rounded-swatch" />
+                  <span className="text-fl-sm tabular-nums text-atelier-ink">{hex}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="fl-label mb-fl-2xs block border-t border-atelier-rule pt-fl-2xs">
+              {t.triadicColors}
+            </h4>
+            <div className="grid grid-cols-2 gap-fl-xs">
+              {triadic.map((hex) => (
+                <div key={hex} className="flex items-center gap-fl-2xs">
+                  <ColorSwatch color={hex} className="fl-swatch block h-9 w-9 shrink-0 rounded-swatch" />
+                  <span className="text-fl-sm tabular-nums text-atelier-ink">{hex}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-atelier-rule pt-fl-sm text-fl-sm text-atelier-ink-2">
+        <h4 className="font-medium text-atelier-ink">
+          ✓ {language === "vi" ? "Tương thích pha màu tự động" : "Auto tinting compatible"}
+        </h4>
+        <p className="mt-fl-3xs">
+          {language === "vi"
+            ? "Mã màu này được lập trình cho máy pha sơn tự động của Maison de FLOF, sử dụng cho Majestic và Jotashield."
+            : "This color code is programmed for Maison de FLOF automatic tinting machines for Majestic và Jotashield."}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export function ColorDetailDrawer({
@@ -28,146 +171,54 @@ export function ColorDetailDrawer({
   onClose,
   favorites,
   onToggleFavorite,
-  language
+  language,
 }: ColorDetailDrawerProps) {
-  const t = useTrans(language);
-
   if (!selectedColor) return null;
 
-  const compColor = getComplementaryColors(selectedColor.hex)[0];
-  const analogous = getAnalogousColors(selectedColor.hex);
-  const triadic = getTriadicColors(selectedColor.hex);
-  const rgb = hexToRgb(selectedColor.hex);
-  const rgbVal = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
-  const hsl = hexToHsl(selectedColor.hex);
-  const hslVal = `${hsl.h}°, ${hsl.s}%, ${hsl.l}%`;
-
-  const isFav = favorites.includes(selectedColor.code);
-  const useDarkText = isLightColor(selectedColor.hex);
+  const colorName = language === "vi" ? selectedColor.name : selectedColor.nameEn || selectedColor.name;
 
   return (
-    <div 
-      onClick={onClose}
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-end"
-    >
-      <div 
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white border-l border-warm-200/80 w-full max-w-lg h-screen pt-20 pb-8 px-8 flex flex-col gap-6 overflow-y-auto relative shadow-2xl text-left animate-fade-in-up animate-out-expo"
+    <>
+      <div
+        onClick={onClose}
+        className="fixed inset-0 z-50 hidden items-center justify-end bg-black/45 md:flex"
       >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-6 h-9 w-9 rounded-full border border-warm-200 hover:bg-warm-100 flex items-center justify-center transition-all text-warm-700 hover:scale-105"
-          title={language === "vi" ? "Đóng" : "Close"}
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        {/* Swatch Display */}
         <div
-          className="h-52 w-full rounded-2xl border border-black/5 flex flex-col justify-end p-6 relative shadow-inner mt-2 overflow-hidden"
-          style={{ backgroundColor: selectedColor.hex }}
+          onClick={(event) => event.stopPropagation()}
+          className="relative flex h-screen w-full max-w-lg flex-col gap-fl-md overflow-y-auto border-l border-atelier-rule bg-atelier-paper px-fl-lg pb-fl-lg pt-20 text-left shadow-2xl"
         >
-          <div
-            className={cn(
-              "absolute inset-0 rounded-2xl",
-              useDarkText
-                ? "bg-gradient-to-t from-white/80 via-white/10 to-transparent"
-                : "bg-gradient-to-t from-black/60 via-black/5 to-transparent",
-            )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={language === "vi" ? "Đóng" : "Close"}
+            className="absolute right-fl-sm top-fl-sm flex h-11 w-11 items-center justify-center rounded-control border border-atelier-rule text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-paper-2 hover:text-atelier-ink md:h-10 md:w-10"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <ColorDetailContent
+            selectedColor={selectedColor}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+            language={language}
+            showName
           />
-          <div className="relative z-10 flex justify-between items-end">
-            <div>
-              <span className={cn("text-[11px] font-mono font-bold tracking-wider", useDarkText ? "text-warm-700" : "text-white/85")}>#{selectedColor.code}</span>
-              <h2 className={cn("text-2xl font-bold font-serif mt-1", useDarkText ? "text-warm-950" : "text-white")}>
-                {language === "vi" ? selectedColor.name : (selectedColor.nameEn || selectedColor.name)}
-              </h2>
-            </div>
-            <button
-              onClick={() => onToggleFavorite(selectedColor.code)}
-              className="bg-white/95 hover:bg-white px-4 py-2 rounded-xl flex items-center gap-1.5 text-warm-900 text-xs font-bold transition-all duration-300 shadow-sm"
-            >
-              <Heart className={cn("h-3.5 w-3.5 transition-colors", isFav ? "fill-rose-500 text-rose-500" : "text-warm-400")} />
-              <span>{isFav ? (language === "vi" ? "Đã thích" : "Liked") : t.addToFavorites}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Color Codes SECTION */}
-        <div className="grid grid-cols-3 gap-4 border-y border-warm-200 py-4">
-          <div>
-            <span className="block text-[10px] text-warm-400 uppercase font-bold tracking-wider mb-1">Hex</span>
-            <span className="font-mono text-sm font-semibold text-warm-900">{selectedColor.hex}</span>
-          </div>
-          <div>
-            <span className="block text-[10px] text-warm-400 uppercase font-bold tracking-wider mb-1">RGB</span>
-            <span className="font-mono text-sm font-semibold text-warm-900">{rgbVal}</span>
-          </div>
-          <div>
-            <span className="block text-[10px] text-warm-400 uppercase font-bold tracking-wider mb-1">HSL</span>
-            <span className="font-mono text-sm font-semibold text-warm-900">{hslVal}</span>
-          </div>
-        </div>
-
-        {/* Complementary Colors */}
-        <div>
-          <h3 className="font-serif font-bold text-lg mb-4 text-warm-900">
-            {t.complementaryColors}
-          </h3>
-
-          <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-warm-200 mb-4 shadow-xs">
-            <div
-              className="h-14 w-14 rounded-xl border border-black/5 shrink-0"
-              style={{ backgroundColor: compColor }}
-            />
-            <div>
-              <span className="text-xs text-warm-500 font-semibold block mb-0.5">
-                {language === "vi" ? "Màu tương phản (180°)" : "Complementary (180°)"}
-              </span>
-              <span className="font-mono text-sm font-bold text-warm-900">{compColor}</span>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.analogousColors}</h4>
-              <div className="grid grid-cols-2 gap-3">
-                {analogous.map((hex, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
-                    <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
-                    <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold text-warm-400 uppercase tracking-wider mb-2">{t.triadicColors}</h4>
-              <div className="grid grid-cols-2 gap-3">
-                {triadic.map((hex, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-white border border-warm-200 rounded-xl shadow-xs hover:border-[#88734C]/20 transition-all duration-200">
-                    <div className="h-9 w-9 rounded-lg border border-black/5" style={{ backgroundColor: hex }} />
-                    <span className="font-mono text-xs font-bold text-warm-850">{hex}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Compatibility */}
-        <div className="p-4 border border-[#88734C]/20 bg-[#88734C]/5 rounded-xl flex gap-3 text-xs text-warm-850">
-          <div>
-            <h4 className="font-bold mb-0.5">
-              ✓ {language === "vi" ? "Tương thích pha màu tự động" : "Auto tinting compatible"}
-            </h4>
-            <p className="leading-relaxed opacity-90">
-              {language === "vi"
-                ? "Mã màu này được lập trình cho máy pha sơn tự động của Maison de FLOF, sử dụng cho Majestic và Jotashield."
-                : "This color code is programmed for Maison de FLOF automatic tinting machines for Majestic and Jotashield."}
-            </p>
-          </div>
         </div>
       </div>
-    </div>
+
+      <MobileSheet
+        closeLabel={language === "vi" ? "Đóng chi tiết màu" : "Close colour details"}
+        onClose={onClose}
+        open
+        title={colorName}
+      >
+        <ColorDetailContent
+          selectedColor={selectedColor}
+          favorites={favorites}
+          onToggleFavorite={onToggleFavorite}
+          language={language}
+          showName={false}
+        />
+      </MobileSheet>
+    </>
   );
 }

@@ -1,11 +1,13 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { useLanguageStore } from "@/store/language-store";
-import { toast } from "sonner";
+import { isPasswordStrong, passwordPolicyMessage } from "@/lib/password-policy";
+import { toast } from "@/components/ui/csp-toast";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { ColorDetailDrawer } from "@/components/ui/color-detail-drawer";
 import { ProfileSidebar } from "./ProfileSidebar";
 import { OrderHistoryTab } from "./tabs/OrderHistoryTab";
@@ -13,11 +15,24 @@ import { PersonalInfoTab } from "./tabs/PersonalInfoTab";
 import { PasswordTab } from "./tabs/PasswordTab";
 import { AddressBookTab } from "./tabs/AddressBookTab";
 import { SavedColorsTab } from "./tabs/SavedColorsTab";
+import { SessionsTab } from "./tabs/SessionsTab";
+import { PrivacyTab } from "./tabs/PrivacyTab";
+import { SecurityTab } from "./tabs/SecurityTab";
+import { AsyncState } from "@/components/ui/AsyncState";
+import type {
+  FavoriteProduct,
+  ProfileAddress,
+  ProfileColor,
+  ProfileOrder,
+  ProfileTab,
+} from "./types";
 
 interface UserSession {
   email: string;
   name: string;
   role: "ADMIN" | "STAFF" | "CUSTOMER";
+  mfaEnabled: boolean;
+  emailVerified: boolean;
 }
 
 export function ProfileClient() {
@@ -26,10 +41,13 @@ export function ProfileClient() {
 
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
-  const [activeTab, setActiveTab] = useState<"history" | "profile" | "password" | "addresses" | "favorites">("history");
+  const [profileStatus, setProfileStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("history");
   const [wishlistColors, setWishlistColors] = useState<string[]>([]);
-  const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
-  const [selectedColor, setSelectedColor] = useState<any | null>(null);
+  const [wishlistProducts, setWishlistProducts] = useState<FavoriteProduct[]>([]);
+  const [selectedColor, setSelectedColor] = useState<ProfileColor | null>(null);
 
   // Profile Form state
   const [profileName, setProfileName] = useState("");
@@ -42,10 +60,10 @@ export function ProfileClient() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<ProfileOrder[]>([]);
 
   // Address book state
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<ProfileAddress[]>([]);
   const [isAddingAddr, setIsAddingAddr] = useState(false);
   const [addrId, setAddrId] = useState("");
   const [addrName, setAddrName] = useState("");
@@ -57,8 +75,26 @@ export function ProfileClient() {
 
   const { data: authSession, status: authStatus } = useSession();
 
-  function syncProfileAddressFromDefault(addrs: any[]) {
-    const defaultAddress = addrs.find((address: any) => address.isDefault);
+  const loadProfile = useCallback(async () => {
+    setProfileStatus("loading");
+    try {
+      const response = await fetch("/api/profile");
+      if (!response.ok) throw new Error("PROFILE_FETCH_FAILED");
+      const profile = (await response.json()) as UserSession & {
+        phone?: string | null;
+      };
+      setUser(profile);
+      setProfileName(profile.name || "");
+      setProfileEmail(profile.email || "");
+      setProfilePhone(profile.phone || "");
+      setProfileStatus("ready");
+    } catch {
+      setProfileStatus("error");
+    }
+  }, []);
+
+  function syncProfileAddressFromDefault(addrs: ProfileAddress[]) {
+    const defaultAddress = addrs.find((address) => address.isDefault);
     if (defaultAddress) {
       setProfileAddress(
         [defaultAddress.address, defaultAddress.district, defaultAddress.province]
@@ -87,15 +123,8 @@ export function ProfileClient() {
       }
     };
 
-    // Fetch primary user profile first to render the page quickly
-    fetchJson("/api/profile").then((profile) => {
-      if (profile) {
-        setUser(profile);
-        setProfileName(profile.name || "");
-        setProfileEmail(profile.email || "");
-        setProfilePhone(profile.phone || "");
-      }
-    });
+    // Fetch primary user profile first to render the page quickly.
+    void loadProfile();
 
     // Fetch other data in parallel without blocking user profile
     Promise.all([
@@ -112,10 +141,35 @@ export function ProfileClient() {
       if (Array.isArray(favorites)) setWishlistColors(favorites);
       if (Array.isArray(favoriteProducts)) setWishlistProducts(favoriteProducts);
     });
-  }, [router, authSession, authStatus]);
+  }, [router, authSession, authStatus, loadProfile]);
 
   if (!mounted) return null;
-  if (!user) return null;
+  if (profileStatus === "loading" || authStatus === "loading") {
+    return (
+      <div className="min-h-[70vh] bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] pt-32">
+        <AsyncState
+          status="loading"
+          title={language === "vi" ? "Đang tải hồ sơ…" : "Loading profile…"}
+        />
+      </div>
+    );
+  }
+  if (profileStatus === "error" || !user) {
+    return (
+      <div className="min-h-[70vh] bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] pt-32">
+        <AsyncState
+          status="error"
+          title={
+            language === "vi"
+              ? "Không thể tải hồ sơ"
+              : "Unable to load profile"
+          }
+          retryLabel={language === "vi" ? "Thử lại" : "Retry"}
+          onRetry={() => void loadProfile()}
+        />
+      </div>
+    );
+  }
 
   const handleToggleFavoriteColor = async (code: string) => {
     const previous = wishlistColors;
@@ -176,7 +230,9 @@ export function ProfileClient() {
         body: JSON.stringify({ name: profileName, phone: profilePhone }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể cập nhật hồ sơ");
+      if (!response.ok) {
+        throw new Error(getApiErrorMessage(data, "Không thể cập nhật hồ sơ"));
+      }
       setUser(data);
       toast.success(language === "vi" ? "Cập nhật thông tin thành công!" : "Profile updated successfully!");
     } catch (error) {
@@ -192,6 +248,10 @@ export function ProfileClient() {
     }
     if (newPassword !== confirmPassword) {
       toast.error(language === "vi" ? "Mật khẩu mới không trùng khớp" : "New passwords do not match");
+      return;
+    }
+    if (!isPasswordStrong(newPassword)) {
+      toast.error(passwordPolicyMessage(language === "vi" ? "vi" : "en"));
       return;
     }
     try {
@@ -259,7 +319,7 @@ export function ProfileClient() {
     setAddrIsDefault(false);
   };
 
-  const handleEditAddress = (addr: any) => {
+  const handleEditAddress = (addr: ProfileAddress) => {
     setAddrId(addr.id);
     setAddrName(addr.name);
     setAddrPhone(addr.phone);
@@ -305,9 +365,9 @@ export function ProfileClient() {
   };
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 md:px-12 py-6 sm:py-12 bg-jotun-ivory text-warm-900 transition-colors duration-300 min-h-[80vh]">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left column sidebar settings */}
+    <div className="mx-auto min-h-[80vh] w-full max-w-[100rem] bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] py-fl-lg text-atelier-ink sm:py-fl-xl">
+      <div className="grid grid-cols-1 items-start gap-fl-xl lg:grid-cols-12">
+        {/* Left column — flat text index */}
         <ProfileSidebar
           user={user}
           activeTab={activeTab}
@@ -317,12 +377,7 @@ export function ProfileClient() {
         />
 
         {/* Right column settings panels */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          className="lg:col-span-8 flex flex-col gap-6"
-        >
+        <div className="flex flex-col gap-fl-md lg:col-span-8">
           {activeTab === "history" && (
             <OrderHistoryTab orders={orders} language={language} />
           )}
@@ -340,6 +395,7 @@ export function ProfileClient() {
               profileAddress={profileAddress}
               setProfileAddress={setProfileAddress}
               handleProfileSubmit={handleProfileSubmit}
+              emailVerified={user.emailVerified}
             />
           )}
 
@@ -392,6 +448,20 @@ export function ProfileClient() {
             />
           )}
 
+          {activeTab === "sessions" && <SessionsTab language={language} />}
+          {activeTab === "security" && user.role === "ADMIN" && (
+            <SecurityTab
+              language={language}
+              mfaEnabled={user.mfaEnabled}
+              onMfaStatusChange={(mfaEnabled) =>
+                setUser((current) =>
+                  current ? { ...current, mfaEnabled } : current,
+                )
+              }
+            />
+          )}
+          {activeTab === "privacy" && <PrivacyTab language={language} />}
+
           {/* Color Detail Side Panel */}
           <ColorDetailDrawer
             selectedColor={selectedColor}
@@ -400,8 +470,9 @@ export function ProfileClient() {
             onToggleFavorite={handleToggleFavoriteColor}
             language={language}
           />
-        </motion.div>
+        </div>
       </div>
     </div>
   );
 }
+

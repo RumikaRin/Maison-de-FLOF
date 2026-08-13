@@ -1,15 +1,16 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
 import { PALETTE_COLORS } from "@/lib/color-utils";
+import { ColorSwatch } from "@/components/ui/color-swatch";
+import { Rule, TypographicLink } from "@/components/ui/editorial";
+import type { ProfileColor } from "../types";
 
 interface SavedColorsTabProps {
   language: string;
   wishlistColors: string[];
   handleToggleFavoriteColor: (code: string) => void;
-  setSelectedColor: (color: any) => void;
+  setSelectedColor: (color: ProfileColor) => void;
 }
 
 export function SavedColorsTab({
@@ -19,66 +20,59 @@ export function SavedColorsTab({
   setSelectedColor,
 }: SavedColorsTabProps) {
   return (
-    <motion.div
-      key="favorites"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <div className="bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm text-left">
-        <h3 className="font-serif font-bold text-lg border-b border-warm-100 pb-3 mb-6 text-[#88734C]">
-          {language === "vi" ? "Màu sắc đã lưu" : "Saved Colors"}
-        </h3>
+    <section className="text-left">
+      <h2 className="fl-display text-fl-xl">
+        {language === "vi" ? "Màu sắc đã lưu" : "Saved Colors"}
+      </h2>
+      <Rule weight="strong" className="mt-fl-xs" />
 
-        {wishlistColors.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {wishlistColors.map((code) => {
-              const color = PALETTE_COLORS.find(c => c.code === code);
-              if (!color) return null;
-              return (
-                <div
-                  key={color.code}
+      {wishlistColors.length > 0 ? (
+        <div className="mt-fl-md grid grid-cols-2 gap-x-fl-sm gap-y-fl-md sm:grid-cols-3 md:grid-cols-4">
+          {wishlistColors.map((code) => {
+            const color = PALETTE_COLORS.find(c => c.code === code);
+            if (!color) return null;
+            return (
+              <div key={color.code} className="group min-w-0">
+                {/* Hard-edged chip, like a real paint chip (radius-swatch = 0). */}
+                <button
                   onClick={() => setSelectedColor(color)}
-                  className="bg-white rounded-2xl border border-warm-200 p-3 flex flex-col gap-3 group relative hover:shadow-md transition-all duration-300 cursor-pointer"
+                  aria-label={`${language === "vi" ? color.name : (color.nameEn || color.name)} (${color.code})`}
+                  className="relative block h-24 w-full rounded-swatch border border-atelier-rule"
                 >
-                  <div
-                    className="h-24 rounded-xl border border-black/5 flex items-center justify-center relative shadow-inner"
-                    style={{ backgroundColor: color.hex }}
-                  >
+                  <ColorSwatch color={color.hex} className="absolute inset-0 h-full w-full" />
+                </button>
+                <div className="mt-fl-2xs flex items-start justify-between gap-fl-2xs">
+                  <div className="min-w-0">
+                    <span className="fl-label block">{color.code}</span>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleFavoriteColor(color.code);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 bg-white/95 rounded-full shadow-sm text-rose-500 hover:scale-110 transition-all duration-200 flex items-center justify-center"
-                      title={language === "vi" ? "Bỏ thích" : "Unlike"}
+                      onClick={() => setSelectedColor(color)}
+                      className="block max-w-full truncate text-fl-sm font-medium text-atelier-ink transition-colors duration-fl-fast ease-fl-out hover:text-atelier-accent"
                     >
-                      <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500" />
-                    </button>
-                  </div>
-                  <div>
-                    <span className="text-[9px] font-bold text-warm-400 font-mono tracking-wider block">MÃ: {color.code}</span>
-                    <h4 className="font-bold text-xs text-warm-900 truncate mt-0.5">
                       {language === "vi" ? color.name : (color.nameEn || color.name)}
-                    </h4>
-                    <span className="text-[10px] font-mono text-warm-550 block mt-0.5">{color.hex}</span>
+                    </button>
+                    <span className="block text-fl-xs tabular-nums text-atelier-ink-2">{color.hex}</span>
                   </div>
+                  <button
+                    onClick={() => handleToggleFavoriteColor(color.code)}
+                    className="min-h-11 shrink-0 whitespace-nowrap text-fl-xs text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-danger md:min-h-6"
+                  >
+                    {language === "vi" ? "Bỏ lưu" : "Remove"}
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="py-fl-lg text-fl-sm text-atelier-ink-2">
+          <p>{language === "vi" ? "Bạn chưa lưu màu sắc nào." : "You have no saved colors."}</p>
+          <div className="mt-fl-sm">
+            <TypographicLink href="/colors" arrow="→">
+              {language === "vi" ? "Khám phá bảng màu" : "Explore the palette"}
+            </TypographicLink>
           </div>
-        ) : (
-          <div className="text-center p-10 text-warm-500 text-sm">
-            {language === "vi" ? "Bạn chưa lưu màu sắc nào." : "You have no saved colors."}
-            <div className="mt-4">
-              <Link href="/colors" className="text-jotun-teal font-bold hover:underline">
-                {language === "vi" ? "Khám phá bảng màu ngay" : "Explore Color Palette"}
-              </Link>
-            </div>
-          </div>
-        )}
-      </div>
-    </motion.div>
+        </div>
+      )}
+    </section>
   );
 }

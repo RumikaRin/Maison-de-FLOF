@@ -1,8 +1,10 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Rule } from "@/components/ui/editorial";
+import type { ProfileTab } from "./types";
 
 interface ProfileSidebarProps {
   user: {
@@ -10,12 +12,16 @@ interface ProfileSidebarProps {
     email: string;
     role: string;
   };
-  activeTab: string;
-  setActiveTab: (tab: any) => void;
+  activeTab: ProfileTab;
+  setActiveTab: (tab: ProfileTab) => void;
   language: string;
   handleLogout: () => void;
 }
 
+/**
+ * Flat text index. The active item carries a 2px ink rule on its leading edge —
+ * no pill highlights, no filled buttons (design.md § Shape and depth).
+ */
 export function ProfileSidebar({
   user,
   activeTab,
@@ -23,101 +29,83 @@ export function ProfileSidebar({
   language,
   handleLogout,
 }: ProfileSidebarProps) {
-  return (
-    <motion.aside
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="lg:col-span-4 bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm flex flex-col gap-4 sm:gap-6"
-    >
-      <div className="flex items-center gap-4 border-b border-warm-100 pb-4 sm:pb-5">
-        <div className="h-14 w-14 bg-jotun-teal/10 text-jotun-teal rounded-full flex items-center justify-center font-bold text-lg border border-jotun-teal/20 shadow-sm shrink-0">
-          {(user.name || user.email || "U").slice(0, 2).toUpperCase()}
-        </div>
-        <div className="text-left">
-          <h2 className="font-serif font-bold text-lg text-warm-900 leading-tight">{user.name || "Khách hàng"}</h2>
-          <span className="text-xs text-warm-500 block font-mono mt-0.5">{user.email}</span>
-        </div>
-      </div>
+  const tabs: Array<{ id: ProfileTab; vi: string; en: string; show: boolean }> = [
+    { id: "history", vi: "Lịch sử mua hàng", en: "Purchase History", show: true },
+    { id: "profile", vi: "Thông tin cá nhân", en: "Personal Settings", show: true },
+    { id: "password", vi: "Đổi mật khẩu", en: "Change Password", show: true },
+    { id: "addresses", vi: "Sổ địa chỉ", en: "Address Book", show: true },
+    { id: "favorites", vi: "Màu sắc đã lưu", en: "Saved Colors", show: true },
+    { id: "sessions", vi: "Phiên đăng nhập", en: "Signed-in Sessions", show: true },
+    { id: "privacy", vi: "Dữ liệu & quyền riêng tư", en: "Data & Privacy", show: user.role === "CUSTOMER" },
+  ];
 
-      <div className="grid grid-cols-2 lg:flex lg:flex-col gap-2 lg:gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider w-full">
+  return (
+    <aside className="lg:col-span-4 lg:max-w-xs">
+      {/* Identity */}
+      <p className="fl-display text-fl-xl">{user.name || "Khách hàng"}</p>
+      <p className="mt-fl-3xs break-all text-fl-xs text-atelier-ink-2">{user.email}</p>
+      <Rule weight="strong" className="mt-fl-sm" />
+
+      <nav
+        aria-label={language === "vi" ? "Mục hồ sơ" : "Profile sections"}
+        className="mt-fl-xs flex flex-col"
+      >
         {user.role === "ADMIN" && (
           <Link
             href="/admin"
-            className="flex items-center justify-between px-3.5 py-2.5 lg:p-3 rounded-xl hover:bg-warm-900 hover:text-white text-warm-900 border border-warm-200 transition-all bg-warm-50/50 lg:mb-2 shadow-sm focus:outline-none col-span-2 lg:col-span-1 text-center justify-center lg:justify-between"
+            className="flex min-h-11 items-center gap-2 whitespace-nowrap border-l-2 border-transparent pl-fl-sm text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2"
           >
             <span>{language === "vi" ? "Trang quản trị Admin" : "Admin Dashboard"}</span>
-            <span className="hidden lg:inline">→</span>
+            <span aria-hidden="true">→</span>
           </Link>
         )}
 
-        <button
-          onClick={() => setActiveTab("history")}
-          className={cn(
-            "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
-            activeTab === "history"
-              ? "bg-warm-900 text-white shadow-sm"
-              : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
-          )}
-        >
-          <span>{language === "vi" ? "Lịch sử mua hàng" : "Purchase History"}</span>
-        </button>
+        {tabs
+          .filter((tab) => tab.show)
+          .map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                aria-current={active ? "true" : undefined}
+                className={cn(
+                  "flex min-h-11 items-center whitespace-nowrap border-l-2 pl-fl-sm text-left text-fl-sm transition-colors duration-fl-fast ease-fl-out",
+                  active
+                    ? "border-atelier-ink font-medium text-atelier-ink"
+                    : "border-transparent text-atelier-ink-2 hover:text-atelier-ink",
+                )}
+              >
+                {language === "vi" ? tab.vi : tab.en}
+              </button>
+            );
+          })}
 
-        <button
-          onClick={() => setActiveTab("profile")}
-          className={cn(
-            "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
-            activeTab === "profile"
-              ? "bg-warm-900 text-white shadow-sm"
-              : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
-          )}
-        >
-          <span>{language === "vi" ? "Thông tin cá nhân" : "Personal Settings"}</span>
-        </button>
+        {/* Security stays an explicit administrator-only branch — the
+            profile-security contract test pins this exact gating. */}
+        {user.role === "ADMIN" && (
+          <button
+            onClick={() => setActiveTab("security")}
+            aria-current={activeTab === "security" ? "true" : undefined}
+            className={cn(
+              "flex min-h-11 items-center whitespace-nowrap border-l-2 pl-fl-sm text-left text-fl-sm transition-colors duration-fl-fast ease-fl-out",
+              activeTab === "security"
+                ? "border-atelier-ink font-medium text-atelier-ink"
+                : "border-transparent text-atelier-ink-2 hover:text-atelier-ink",
+            )}
+          >
+            {language === "vi" ? "Bảo mật" : "Security"}
+          </button>
+        )}
+      </nav>
 
-        <button
-          onClick={() => setActiveTab("password")}
-          className={cn(
-            "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
-            activeTab === "password"
-              ? "bg-warm-900 text-white shadow-sm"
-              : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
-          )}
-        >
-          <span>{language === "vi" ? "Đổi mật khẩu" : "Change Password"}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("addresses")}
-          className={cn(
-            "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-1",
-            activeTab === "addresses"
-              ? "bg-warm-900 text-white shadow-sm"
-              : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
-          )}
-        >
-          <span>{language === "vi" ? "Sổ địa chỉ" : "Address Book"}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("favorites")}
-          className={cn(
-            "flex items-center justify-center lg:justify-start gap-2 p-2.5 sm:p-3 rounded-xl text-center lg:text-left transition-colors duration-200 focus:outline-none col-span-2 lg:col-span-1",
-            activeTab === "favorites"
-              ? "bg-warm-900 text-white shadow-sm"
-              : "text-warm-700 hover:bg-warm-100/50 hover:text-warm-900"
-          )}
-        >
-          <span>{language === "vi" ? "Màu sắc đã lưu" : "Saved Colors"}</span>
-        </button>
-
-        <button
-          onClick={handleLogout}
-          className="hidden lg:flex items-center gap-2 px-3.5 py-2.5 lg:p-3 rounded-xl text-red-500 hover:bg-red-500/10 text-left transition-colors duration-200 lg:mt-4 border border-red-500/10 bg-red-500/[0.02] shrink-0 whitespace-nowrap focus:outline-none"
-        >
-          <span>{language === "vi" ? "Đăng xuất" : "Log Out"}</span>
-        </button>
-      </div>
-    </motion.aside>
+      <Rule className="mt-fl-sm" />
+      <button
+        onClick={handleLogout}
+        className="mt-fl-xs hidden min-h-11 items-center whitespace-nowrap border-l-2 border-transparent pl-fl-sm text-left text-fl-sm text-atelier-danger transition-opacity duration-fl-fast ease-fl-out hover:opacity-80 lg:flex"
+      >
+        {language === "vi" ? "Đăng xuất" : "Log Out"}
+      </button>
+    </aside>
   );
 }

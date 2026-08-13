@@ -2,34 +2,18 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
-import { motion } from "framer-motion";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
+import { safeMotion } from "@/components/ui/motion-safe";
 import { ArrowRight, Boxes, MessageSquareQuote, PackagePlus, ShoppingBag } from "lucide-react";
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
+
+const AdminRevenueChart = dynamic(
+  () => import("@/components/admin/AdminRevenueChart").then((mod) => mod.AdminRevenueChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full rounded-xl bg-warm-50 animate-pulse" />,
+  },
 );
 
 export default function AdminDashboardPage() {
@@ -94,89 +78,6 @@ export default function AdminDashboardPage() {
 
   if (!mounted) return null;
 
-  // Revenue chart data fed from dynamic 30-day state
-  const revenueChartData = {
-    labels: dailyLabels,
-    datasets: [
-      {
-        label: language === "vi" ? "Doanh thu (VND)" : "Revenue (VND)",
-        data: dailyRevenue,
-        fill: true,
-        backgroundColor: "rgba(0, 123, 138, 0.12)", // Semi-transparent Jotun Teal
-        borderColor: "rgba(0, 123, 138, 1)", // Jotun Teal primary
-        borderWidth: 2.5,
-        tension: 0.4, // Smooth curve like in the screenshot
-        pointBackgroundColor: "#ffffff",
-        pointBorderColor: "rgba(0, 123, 138, 1)",
-        pointBorderWidth: 2,
-        pointRadius: 3.5,
-        pointHoverRadius: 6,
-        pointHoverBackgroundColor: "rgba(0, 123, 138, 1)",
-        pointHoverBorderColor: "#ffffff",
-        pointHoverBorderWidth: 2,
-      }
-    ]
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: language === "vi" ? "Doanh thu 30 ngày" : "30-day revenue trend",
-        color: "#6B5F52", // warm-550
-        font: {
-          family: "sans-serif",
-          size: 11,
-          weight: "normal" as const
-        },
-        padding: {
-          bottom: 15
-        }
-      },
-      tooltip: {
-        backgroundColor: "#2F2822", // warm-900 background
-        titleColor: "#FAF9F6", // ivory text
-        bodyColor: "#FAF9F6",
-        padding: 10,
-        borderRadius: 8,
-        displayColors: false,
-        callbacks: {
-          label: (context: any) => {
-            return ` ${formatPrice(context.parsed.y)}`;
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: "#F3EFE8", // warm-200 grid lines
-          drawBorder: false,
-        },
-        ticks: {
-          color: "#6B5F52",
-          callback: (value: any) => `${(value / 1000000).toFixed(1)}M`
-        }
-      },
-      x: {
-        grid: {
-          display: false, // Clean horizontal layout
-        },
-        ticks: {
-          color: "#6B5F52",
-          maxRotation: 45,
-          minRotation: 45,
-        }
-      }
-    }
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "COMPLETED":
@@ -235,7 +136,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="flex flex-col gap-6 text-left">
       {/* Title with subtle spring reveal */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -248,7 +149,7 @@ export default function AdminDashboardPage() {
             ? "Theo dõi nhanh doanh số bán hàng, số liệu đơn hàng và các hoạt động báo giá dự án."
             : "Quick analytics monitoring of sales, order statistics, and project quotes."}
         </p>
-      </motion.div>
+      </safeMotion.div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
@@ -275,7 +176,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Grid of stats with staggered spring-up and interactive scale on hover */}
-      <motion.div 
+      <safeMotion.div 
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -283,7 +184,7 @@ export default function AdminDashboardPage() {
       >
         {stats.map((stat, index) => {
           return (
-            <motion.div
+            <safeMotion.div
               variants={itemVariants}
               key={index}
               className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
@@ -299,13 +200,13 @@ export default function AdminDashboardPage() {
                   {language === "vi" ? "Cập nhật từ dữ liệu hệ thống" : "Live system data"}
                 </span>
               </div>
-            </motion.div>
+            </safeMotion.div>
           );
         })}
-      </motion.div>
+      </safeMotion.div>
 
       {/* Main Stats Chart Row with slide-up reveal */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, type: "spring", stiffness: 200, damping: 25 }}
@@ -316,12 +217,12 @@ export default function AdminDashboardPage() {
           {language === "vi" ? "Doanh thu theo ngày" : "Daily Revenue"}
         </h3>
         <div className="h-[320px] w-full">
-          <Line data={revenueChartData} options={chartOptions} />
+          <AdminRevenueChart language={language} dailyLabels={dailyLabels} dailyRevenue={dailyRevenue} />
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Recent Orders and Best Selling Products Row */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, type: "spring", stiffness: 200, damping: 25 }}
@@ -392,7 +293,8 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </div>
-      </motion.div>
+      </safeMotion.div>
     </div>
   );
 }
+

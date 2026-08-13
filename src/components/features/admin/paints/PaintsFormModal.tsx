@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
+import { toast } from "@/components/ui/csp-toast";
 import { Paint, Category, Supplier, PaintColor } from "@/types";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { ColorSwatch } from "@/components/ui/color-swatch";
 
 interface PaintsFormModalProps {
   isOpen: boolean;
@@ -141,14 +142,14 @@ export function PaintsFormModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <safeMotion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 overflow-y-auto text-left"
         >
-          <motion.div
+          <safeMotion.div
             initial={{ scale: 0.95, opacity: 0, y: 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 15 }}
@@ -381,10 +382,7 @@ export function PaintsFormModal({
                           : "bg-white dark:bg-zinc-950 border-border text-foreground hover:border-jotun-teal"
                           }`}
                       >
-                        <div
-                          className="h-4 w-4 rounded border border-black/10 shrink-0"
-                          style={{ backgroundColor: col.hex }}
-                        />
+                        <ColorSwatch color={col.hex} className="h-4 w-4 rounded border border-black/10 shrink-0" />
                         <span>{language === "vi" ? col.name : col.nameEn} ({col.code})</span>
                       </button>
                     );
@@ -409,9 +407,10 @@ export function PaintsFormModal({
                 </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
+          </safeMotion.div>
+        </safeMotion.div>
       )}
     </AnimatePresence>
   );
 }
+

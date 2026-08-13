@@ -2,6 +2,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { ApiError, apiErrorResponse } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { createQuoteRequest } from "@/lib/customer-workflow-service";
 
 const quoteSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
@@ -24,35 +25,14 @@ export async function POST(request: Request) {
       ? await db.customer.findFirst({ where: { user: { email: session.user.email } } })
       : null;
 
-    const created = await db.quoteRequest.create({
-      data: {
-        customerId: customer?.id,
-        fullName: parsed.data.fullName,
-        phone: parsed.data.phone,
-        email: parsed.data.email,
-        companyName: parsed.data.companyName || null,
-        projectName: parsed.data.projectName || null,
-        projectType: parsed.data.projectType,
-        area: parsed.data.area || null,
-        paintType: parsed.data.paintType || null,
-        message: parsed.data.message,
-      },
+    const created = await createQuoteRequest(db, customer?.id || null, {
+      ...parsed.data,
+      companyName: parsed.data.companyName || null,
+      projectName: parsed.data.projectName || null,
+      paintType: parsed.data.paintType || null,
     });
-
-    const staffs = await db.user.findMany({ where: { role: { type: { in: ["ADMIN", "STAFF"] } } }, select: { id: true } });
-    if (staffs.length > 0) {
-      await db.notification.createMany({
-        data: staffs.map((s) => ({
-          userId: s.id,
-          type: "QUOTE",
-          title: "Yêu cầu báo giá mới",
-          message: `Khách hàng ${parsed.data.fullName} yêu cầu báo giá cho dự án ${parsed.data.projectType}.`,
-        })),
-      });
-    }
-
     return Response.json({ success: true, data: created }, { status: 201 });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }

@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { useLanguageStore } from "@/store/language-store";
 import { formatPrice } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { Plus, History, Package, AlertTriangle, Building, FileText } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { CustomSelect } from "@/components/ui/custom-select";
 
 interface InventoryPaint {
@@ -125,7 +125,7 @@ export default function AdminImportPage() {
   return (
     <div className="flex flex-col gap-8 text-left">
       {/* Title */}
-      <motion.div
+      <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -138,7 +138,7 @@ export default function AdminImportPage() {
             ? "Tạo phiếu nhập kho, tăng lượng hàng tồn thực tế và thiết lập giá mua vốn cho sản phẩm sơn."
             : "Create import receipts, increase physical stock levels, and set cost prices for paint products."}
         </p>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Top Banner Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -212,7 +212,7 @@ export default function AdminImportPage() {
               </div>
 
               {selectedPaintId && (
-                <motion.div
+                <safeMotion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   className="bg-warm-50/50 p-4 border border-warm-200 rounded-xl flex flex-col gap-2.5"
@@ -229,7 +229,7 @@ export default function AdminImportPage() {
                       {paints.find(p => p.id === selectedPaintId)?.stock} hộp
                     </span>
                   </div>
-                </motion.div>
+                </safeMotion.div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
@@ -400,3 +400,4 @@ export default function AdminImportPage() {
     </div>
   );
 }
+

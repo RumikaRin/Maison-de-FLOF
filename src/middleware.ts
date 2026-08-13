@@ -1,66 +1,270 @@
 import NextAuth from "next-auth";
 import { authConfig } from "@/auth.config";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { InMemoryRateLimiter } from "@/lib/rate-limiter";
+import { NextRequest, NextResponse } from "next/server";
+import { UnifiedRateLimiter } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
+import { getRateLimitPolicy } from "@/lib/security/rate-limit-policy";
+import { buildContentSecurityPolicy } from "@/lib/security/headers";
+import {
+  createApiErrorResponse,
+  getApiRequestId,
+} from "@/lib/api-error-contract";
+import {
+  DEFAULT_LOCALE,
+  isLocaleExcludedPath,
+  LOCALE_COOKIE,
+  localizedPath,
+  resolveLocale,
+  stripLocalePrefix,
+  unsupportedLocalePrefix,
+  type Locale,
+} from "@/lib/locale";
+import { shouldPersistLocaleCookie } from "@/lib/locale-response-policy";
 
 const authMiddleware = NextAuth(authConfig).auth;
+const runAuthMiddleware = authMiddleware as unknown as (
+  request: NextRequest,
+  event: unknown,
+) => Promise<NextResponse | undefined>;
 
-// Instantiate rate limiters in module scope to persist across requests
-const authLimiter = new InMemoryRateLimiter(60 * 1000, 10); // 10 attempts per minute
-const apiLimiter = new InMemoryRateLimiter(60 * 1000, 60);  // 60 requests per minute
+const isolatedE2eMode =
+  process.env.E2E_TEST_MODE === "1" && process.env.VERCEL !== "1";
+
+const rateLimiters = new Map<string, UnifiedRateLimiter>();
+
+function limiterFor(policy: NonNullable<ReturnType<typeof getRateLimitPolicy>>) {
+  const failureMode =
+    process.env.NODE_ENV === "production" &&
+    !isolatedE2eMode &&
+    policy.limiter !== "api"
+      ? "deny"
+      : "memory";
+  const effectiveLimit =
+    isolatedE2eMode && policy.limiter !== "publicWrite" ? 1000 : policy.limit;
+  const key = `${policy.windowMs}:${effectiveLimit}:${failureMode}`;
+  let limiter = rateLimiters.get(key);
+  if (!limiter) {
+    limiter = new UnifiedRateLimiter(policy.windowMs, effectiveLimit, {
+      failureMode,
+    });
+    rateLimiters.set(key, limiter);
+  }
+  return limiter;
+}
+
+function withSecurityHeaders<T extends Response>(response: T, nonce: string) {
+  response.headers.set(
+    "Content-Security-Policy",
+    buildContentSecurityPolicy(
+      process.env.NODE_ENV === "production" ? "production" : "development",
+      nonce,
+      { upgradeInsecureRequests: !isolatedE2eMode },
+    ),
+  );
+  return response;
+}
+
+/**
+ * Apply Vercel CDN caching headers to public page responses.
+ * s-maxage=300 → Vercel Edge caches the HTML for 5 minutes.
+ * stale-while-revalidate=600 → serves stale content while revalidating in the background.
+ * Browser cache is set to 0 so users always get a CDN-fresh copy.
+ */
+function withCdnCache<T extends Response>(response: T, pathname: string) {
+  const isPublicPage =
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/profile") &&
+    !pathname.startsWith("/checkout") &&
+    !pathname.startsWith("/cart");
+  if (isPublicPage) {
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=300, stale-while-revalidate=600",
+    );
+  }
+  return response;
+}
+
+function nextWithNonce(requestHeaders: Headers, nonce: string, pathname: string) {
+  return withCdnCache(
+    withSecurityHeaders(
+      NextResponse.next({
+        request: { headers: requestHeaders },
+      }),
+      nonce,
+    ),
+    pathname,
+  );
+}
+
+function withLocaleCookie<T extends NextResponse>(
+  response: T,
+  locale: Locale,
+) {
+  response.cookies.set(LOCALE_COOKIE, locale, {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  return response;
+}
+
+function persistLocaleCookieWhenNeeded<T extends NextResponse>(
+  response: T,
+  input: {
+    requestHadLocalePrefix: boolean;
+    currentCookie: string | undefined;
+    resolvedLocale: Locale;
+  },
+) {
+  return shouldPersistLocaleCookie(input)
+    ? withLocaleCookie(response, input.resolvedLocale)
+    : response;
+}
+
+function rewriteWithNonce(
+  url: URL,
+  requestHeaders: Headers,
+  nonce: string,
+) {
+  return withCdnCache(
+    withSecurityHeaders(
+      NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
+      nonce,
+    ),
+    url.pathname,
+  );
+}
 
 export default async function middleware(request: NextRequest, event: any) {
-  const { pathname } = request.nextUrl;
+  const originalPathname = request.nextUrl.pathname;
+  const nonce = btoa(crypto.randomUUID());
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set(
+    "Content-Security-Policy",
+    buildContentSecurityPolicy(
+      process.env.NODE_ENV === "production" ? "production" : "development",
+      nonce,
+      { upgradeInsecureRequests: !isolatedE2eMode },
+    ),
+  );
+
+  const prefixed = stripLocalePrefix(originalPathname);
+  const locale = resolveLocale({
+    pathname: originalPathname,
+    cookie: request.cookies.get(LOCALE_COOKIE)?.value,
+  });
+  const currentLocaleCookie = request.cookies.get(LOCALE_COOKIE)?.value;
+  const unsupportedPrefix = unsupportedLocalePrefix(originalPathname);
+
+  if (unsupportedPrefix) {
+    const redirectUrl = request.nextUrl.clone();
+    const suffix = originalPathname.slice(unsupportedPrefix.length + 1) || "/";
+    redirectUrl.pathname = localizedPath(suffix, DEFAULT_LOCALE);
+    return persistLocaleCookieWhenNeeded(
+      withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
+      {
+        requestHadLocalePrefix: false,
+        currentCookie: currentLocaleCookie,
+        resolvedLocale: DEFAULT_LOCALE,
+      },
+    );
+  }
+
+  if (prefixed.hadPrefix && isLocaleExcludedPath(prefixed.pathname)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = prefixed.pathname;
+    return withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce);
+  }
+
+  if (!prefixed.hadPrefix && !isLocaleExcludedPath(originalPathname)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = localizedPath(originalPathname, locale);
+    return persistLocaleCookieWhenNeeded(
+      withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
+      {
+        requestHadLocalePrefix: false,
+        currentCookie: currentLocaleCookie,
+        resolvedLocale: locale,
+      },
+    );
+  }
+
+  const pathname = prefixed.hadPrefix
+    ? prefixed.pathname
+    : originalPathname;
+  requestHeaders.set("x-locale", locale);
   
   // Extract client IP address securely
   const ip = getClientIp(request);
 
-  // 1. Rate Limit for Credentials Auth (Login brute-force protection)
-  if (pathname === "/api/auth/callback/credentials") {
-    const rateCheck = await authLimiter.checkLimit(`auth_${ip}`);
+  // 1. Rate Limit for sensitive auth endpoints and general API routes
+  const rateLimitPolicy = getRateLimitPolicy(pathname, request.method);
+  if (rateLimitPolicy) {
+    const limiter = limiterFor(rateLimitPolicy);
+    const rateCheck = await limiter.checkLimit(`${rateLimitPolicy.keyPrefix}_${ip}`);
     if (!rateCheck.success) {
-      return new NextResponse(
-        JSON.stringify({ error: "Too many login attempts. Please try again later." }),
+      const backendUnavailable =
+        rateCheck.reason === "BACKEND_UNAVAILABLE";
+      const response = createApiErrorResponse(
         {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": Math.ceil((rateCheck.resetTime - Date.now()) / 1000).toString(),
-          },
-        }
+          status: backendUnavailable ? 503 : 429,
+          code: backendUnavailable ? "SERVICE_UNAVAILABLE" : "RATE_LIMITED",
+          message: backendUnavailable
+            ? "Request protection service is temporarily unavailable."
+            : "Too many requests. Please try again later.",
+        },
+        getApiRequestId(request),
       );
+      response.headers.set(
+        "Retry-After",
+        Math.max(
+          0,
+          Math.ceil((rateCheck.resetTime - Date.now()) / 1000),
+        ).toString(),
+      );
+      return withSecurityHeaders(response, nonce);
     }
   }
 
-  // 2. Rate Limit for general API routes
-  if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
-    const rateCheck = await apiLimiter.checkLimit(`api_${ip}`);
-    if (!rateCheck.success) {
-      return new NextResponse(
-        JSON.stringify({ error: "Too many requests. Please slow down." }),
-        {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": Math.ceil((rateCheck.resetTime - Date.now()) / 1000).toString(),
-          },
-        }
-      );
+  // 2. Run the authentication guard only where it can block navigation.
+  // Public/API routes must preserve the request override so Next.js can apply
+  // the nonce to framework scripts during rendering.
+  const needsAuthGuard =
+    pathname.startsWith("/admin") || pathname.startsWith("/profile");
+  if (!needsAuthGuard) {
+    if (prefixed.hadPrefix) {
+      const rewriteUrl = request.nextUrl.clone();
+      rewriteUrl.pathname = pathname;
+      return rewriteWithNonce(rewriteUrl, requestHeaders, nonce);
     }
+    return nextWithNonce(requestHeaders, nonce, pathname);
   }
 
-  // 3. Delegate to authentication middleware
-  return authMiddleware(request as any, event);
+  const authUrl = request.nextUrl.clone();
+  authUrl.pathname = pathname;
+  const requestWithNonce = new NextRequest(authUrl, { headers: requestHeaders });
+  const authResponse = await runAuthMiddleware(requestWithNonce, event);
+  const isPassThrough =
+    !authResponse || authResponse.headers.get("x-middleware-next") === "1";
+
+  if (!isPassThrough) return withSecurityHeaders(authResponse, nonce);
+
+  const response = prefixed.hadPrefix
+    ? rewriteWithNonce(authUrl, requestHeaders, nonce)
+    : nextWithNonce(requestHeaders, nonce, pathname);
+  for (const cookie of authResponse?.cookies?.getAll?.() ?? []) {
+    response.cookies.set(cookie);
+  }
+  return response;
 }
 
 export const config = {
   matcher: [
-    "/admin/:path*",
-    "/profile/:path*",
-    "/api/auth/:path*",
-    "/api/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-

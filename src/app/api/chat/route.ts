@@ -8,6 +8,7 @@ const chatMessageSchema = z.object({
   email: z.string().trim().email().optional().or(z.literal("")),
   message: z.string().trim().min(5).max(2000),
   pageUrl: z.string().trim().max(500).optional().or(z.literal("")),
+  privacyConsent: z.literal(true),
 }).refine((data) => Boolean(data.phone || data.email), {
   message: "Vui lòng cung cấp số điện thoại hoặc email",
 });
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
         email: parsed.data.email?.toLowerCase() || null,
         message: parsed.data.message,
         pageUrl: parsed.data.pageUrl || null,
+        consentAt: new Date(),
       },
     });
 
@@ -46,6 +48,6 @@ export async function POST(request: Request) {
 
     return Response.json({ success: true, id: message.id }, { status: 201 });
   } catch (error) {
-    return apiErrorResponse(error);
+    return apiErrorResponse(error, request);
   }
 }

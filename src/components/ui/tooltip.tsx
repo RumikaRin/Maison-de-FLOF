@@ -64,17 +64,21 @@ interface TooltipContentProps {
   children: React.ReactNode
 }
 
+/**
+ * A tooltip visibly floats above the page — one of the two surfaces design.md
+ * allows a shadow on. Dark editorial field, square edge, no blur.
+ */
 const TooltipContent: React.FC<TooltipContentProps> = ({ className, children, ...props }) => {
   return (
     <div
       className={cn(
-        "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 overflow-hidden rounded-md px-3 py-1.5 text-xs shadow-md bg-warm-900 text-white border border-warm-800 whitespace-nowrap",
+        "absolute bottom-full left-1/2 z-50 mb-fl-2xs -translate-x-1/2 whitespace-nowrap rounded-surface bg-atelier-espresso px-fl-xs py-fl-3xs text-fl-sm text-atelier-on-dark shadow-md",
         className
       )}
       {...props}
     >
       {children}
-      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-warm-900" />
+      <div className="absolute left-1/2 top-full -mt-1 -translate-x-1/2 border-4 border-transparent border-t-atelier-espresso" />
     </div>
   )
 }

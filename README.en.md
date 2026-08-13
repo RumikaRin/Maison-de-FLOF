@@ -1,160 +1,152 @@
-# Maison de FLOF — Premium Paint Distribution & Consultation Platform
+# Maison de FLOF
 
 [Tiếng Việt](./README.md) | **English**
 
-Maison de FLOF (FLOF Paint Platform) is a modern e-commerce and paint color consultation platform built on top of Next.js 15, React 19, TailwindCSS, Prisma, and PostgreSQL (Neon DB).
+Maison de FLOF is an e-commerce and interactive paint color consultation platform built with Next.js 15 (App Router), React 19, Tailwind CSS, Prisma ORM, and PostgreSQL (Neon).
 
-The project delivers a comprehensive digital experience, ranging from browsing premium paint catalogs, real-time interactive color visualization on sample spaces (Color Visualizer), finding nearby authorized distributors (Find Dealer), to a robust administrative dashboard (Admin Dashboard).
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Framework**: Next.js 15.1 (App Router) & React 19.
-- **Styling**: TailwindCSS & Tailwind Animate.
-- **Effects & Animations**: Framer Motion (Page Transitions, Smooth Entrance Animations).
-- **State Management**: Zustand.
-- **Data Fetching**: `@tanstack/react-query` (React Query).
-- **Form Handling**: React Hook Form with Zod validation.
-- **Map Integration**: MapLibre GL (`maplibre-gl`) for dealer locator.
-- **Charts**: Chart.js & React-Chartjs-2.
-- **Toasts**: Sonner.
-
-### Backend & Database
-- **Database**: PostgreSQL (Hosted on Neon Serverless Database).
-- **ORM**: Prisma Client v6.
-- **Authentication**: NextAuth.js v5 (Beta 25) integrated with Prisma Adapter.
-- **Email Delivery**: Resend SDK.
-- **Media Storage**: Cloudinary.
+The application provides an end-to-end digital experience: browsing color swatches, real-time room paint visualization, locating authorized dealers via interactive maps, online checkout via VNPay, and a comprehensive admin portal.
 
 ---
 
-## ✨ Key Features
+## Tech Stack & Architecture
 
-### 1. Client Portal (B2C)
-- **Homepage**: Elegant "Glassmorphism" styled landing page featuring smooth scrolling entrance animations and the 2026 Color Trends collection.
-- **Products**: Search and filter products by category (primers, interior, exterior, waterproofing) and paint finish (Matte, Satin, Gloss, Semi-Gloss).
-- **Color Visualizer**:
-  - Interactively preview paint colors on 4 rooms: Living Room, Bedroom, Kitchen, and Facade.
-  - Instantly switch colors, save to favorites, and submit a consultation request form.
-- **Find Dealer**: Locates authorized distributor stores by Province and District, displayed interactively using MapLibre GL maps.
-- **Cart & Checkout**: Local cart management using Zustand, coupon code support, and cash-on-delivery (COD) order placement.
-- **Profile**: Manages personal profile details, order history, tracking order status, and viewing favorite paint colors or items.
-
-### 2. Admin Portal
-URL: `/admin` (Requires account with ADMIN or STAFF role)
-- **Dashboard**: Track overall revenue, total orders, customers, items sold, low-stock warnings (minStock alert), and revenue charts using Chart.js.
-- **Orders Management**: Process and update order statuses (PENDING, CONFIRMED, PROCESSING, SHIPPING, COMPLETED, CANCELLED).
-- **Consultation Requests Management**: Review and track color consultation forms submitted from the Color Visualizer.
-- **Categories & Paints Management**: Full CRUD operations for paint products, SKUs, sales price, cost price, stock levels, and gallery images.
-- **Colors Management**: Manage paint color codes, names in English/Vietnamese, HEX/RGB values, and color collections.
-- **Dealers Management**: Manage contact information and coordinates (latitude/longitude) of authorized dealers.
-- **Coupons Management**: Set up discount coupons (percentage or fixed amount), minimum spend limits, usage limits, and active date ranges.
+### Core Stack
+- **Frontend**: Next.js 15.5 (App Router), React 19, Tailwind CSS 3.4, Framer Motion
+- **State & Data**: Zustand (Client UI/Cart state), React Query (Server cache)
+- **Backend**: Next.js Route Handlers, Service Layer Pattern, Zod Validation
+- **Database & ORM**: PostgreSQL (Neon Serverless DB), Prisma 6.0 with 36 Models & 17 CHECK Constraints
+- **Authentication**: Auth.js v5 (NextAuth beta.32) + DB Session Registry, Admin TOTP MFA
+- **Security**: Content Security Policy with dynamic per-request Nonce, Upstash Redis Rate Limiting (fail-closed), VNPay HMAC-SHA512 verification
+- **Storage & Email**: Vercel Blob (`@vercel/blob`), Resend SDK with Transactional Outbox pattern
+- **Maps & Charts**: MapLibre GL, Chart.js
 
 ---
 
-## 📂 Project Folder Structure
+## Key Features
+
+### Storefront (B2C Client Portal)
+- **Color Catalog & Search**: Filter swatches by color family, tone, NCS/RAL systems, and surface application.
+- **Room Visualizer**: Preview paint colors live across 4 room scenes (Living Room, Bedroom, Kitchen, Facade) using CSS blend modes (`multiply` / `soft-light`). Save custom color palettes to user accounts.
+- **Find Dealer**: Map-based locator pinpointing authorized distributors by Province and District using MapLibre GL.
+- **Cart & Checkout**: Zustand cart with local storage persistence that automatically union-merges with server cart on sign-in. Supports COD and VNPay payments (with idempotency protection).
+- **Profile & Customer Care**: Track orders, manage wishlists, submit product reviews, and configure security settings (MFA, password reset, GDPR data export).
+
+### Admin Portal
+- Accessible at `/admin` (Requires `ADMIN` or `STAFF` role).
+- **Dashboard**: Revenue analytics, order volume, low-stock warnings, and performance charts.
+- **Catalog Management**: Full CRUD for paints, SKUs, swatches, annual color collections, and hierarchical category trees.
+- **Orders & Payments**: Process order transitions (PENDING → COMPLETED/CANCELLED), inspect status history, and verify payment callbacks.
+- **Inventory & Transactions**: Track stock movements (InventoryTransaction: IMPORT, EXPORT, ADJUSTMENT).
+- **Media & Content**: Manage Vercel Blob image library and publish bilingual blog posts.
+- **Audit Logging**: Trace administrative actions with automatic PII sanitization.
+
+---
+
+## Directory Structure
 
 ```text
-├── prisma/               # Database Schema configuration & Seeding script
-│   ├── schema.prisma     # Prisma Database Models
-│   └── seed.ts           # Sample seed dataset (roles, users, colors, paints, dealers)
-├── public/               # Static assets (logos, visualizer mockups)
+.
+├── prisma/                  # DB schema, CHECK constraints & data seeding
+├── public/                  # Static assets & room visualizer mockups
 ├── src/
-│   ├── app/              # Next.js App Router Pages
-│   │   ├── admin/        # Admin portal (Dashboard, Orders, Catalog management, etc.)
-│   │   ├── blog/         # News and color trends guides
-│   │   ├── cart/         # Shopping cart page
-│   │   ├── checkout/     # Order checkout processing
-│   │   ├── color-visualizer/ # Interactive B2C room paint visualizer
-│   │   ├── colors/       # Color swatches and collections overview
-│   │   ├── find-dealer/  # Map-based dealer locator
-│   │   ├── globals.css   # Main CSS & Tailwind configuration
-│   │   └── page.tsx      # Maison de FLOF Homepage
-│   ├── components/       # Reusable React components
-│   │   ├── layout/       # Shared layouts (Header, Footer, AdminSidebar)
-│   │   └── ui/           # Standard input, button, map, modal components
-│   ├── lib/              # Helper utilities (translation dictionaries, Prisma client)
-│   │   ├── dictionary.ts # Multilingual dictionary support (VI/EN)
-│   │   └── prisma.ts     # Singleton Prisma Client instance
-│   ├── providers/        # React-Query and Auth context providers
-│   └── store/            # Zustand store (cart, wishlist)
-├── .env.example          # Sample environment variables template
-├── package.json          # Node dependencies & project scripts
-└── tsconfig.json         # TypeScript configuration
+│   ├── app/                 # Next.js App Router (pages, layouts, API routes)
+│   │   ├── admin/           # Admin portal
+│   │   ├── api/             # API Route Handlers (115 operations)
+│   │   ├── color-visualizer/# Interactive room paint visualizer
+│   │   ├── colors/          # Color swatches and collections
+│   │   └── find-dealer/     # Map-based dealer locator
+│   ├── components/          # React components (admin, features, layout, ui)
+│   ├── lib/                 # Core utilities (auth, csp, rate-limit, storage)
+│   ├── services/            # Domain service layer (checkout, order, privacy, mfa)
+│   ├── store/               # Zustand stores (cart, language, theme)
+│   └── middleware.ts        # Edge middleware (nonce CSP, rate limit, i18n, auth guard)
+├── tests/                   # 200 unit tests & 24 DB integration tests
+└── docs/                    # OpenAPI 3.1 specs & ERD diagrams
 ```
 
 ---
 
-## ⚙️ Installation & Setup Guide
+## Setup & Local Development
 
-### Step 1: Clone the Repository
+### Prerequisites
+- Node.js >= 24
+- PostgreSQL 16+ or Neon Database account
+
+### Installation Steps
+
+1. **Clone repository and install dependencies**:
+   ```bash
+   git clone https://github.com/RumikaRin/Maison-de-FLOF.git
+   cd Maison-de-FLOF
+   npm install
+   ```
+
+2. **Configure environment variables**:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Update database connection parameters in `.env.local`:
+   ```env
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/flof_dev"
+   AUTH_SECRET="your-32-character-secret-key"
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   ```
+
+3. **Run Migrations & Seed Data**:
+   ```bash
+   npm run db:migrate
+   npm run db:seed
+   ```
+
+4. **Start Development Server**:
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:3000` in your browser.
+
+---
+
+## Testing & Verification
+
+The repository includes a multi-tiered test suite:
+
 ```bash
-git clone https://github.com/Manh-TH28-31/Maison-de-FLOF.git
-cd Maison-de-FLOF
-```
+# Run ESLint & TypeScript typecheck
+npm run lint
+npm run typecheck
 
-### Step 2: Install Dependencies
-```bash
-npm install
-```
+# Run 200 Unit Tests (Node.js test runner)
+npm test
 
-### Step 3: Configure Environment Variables
-Create a `.env` file in the root folder of the project by copying the `.env.example`:
-```bash
-cp .env.example .env
-```
-Open the `.env` file and populate it with your database and API credentials:
-```env
-# PostgreSQL connection string (e.g., Neon DB)
-DATABASE_URL="postgresql://user:password@ep-host-name.pooler.neon.tech/dbname?sslmode=require"
+# Run 24 PostgreSQL Integration Tests
+npm run test:integration
 
-# NextAuth configuration
-AUTH_SECRET="your-super-secret-auth-key-32-chars"
-NEXTAUTH_URL="http://localhost:3000"
+# Build Production Bundle & Check Bundle Budgets
+npm run build
+npm run test:bundle
 
-# Cloudinary credentials (Optional - for image uploads)
-CLOUDINARY_CLOUD_NAME="your-cloud-name"
-CLOUDINARY_API_KEY="your-api-key"
-CLOUDINARY_API_SECRET="your-api-secret"
+# Validate OpenAPI 3.1 Specification Coverage
+npm run test:openapi
 
-# Resend Mail SDK (Optional - for emails)
-RESEND_API_KEY="re_yourApiKeyHere"
-```
+# Run Playwright E2E Tests
+npm run test:e2e
 
-### Step 4: Apply Migrations & Seed Local/Staging Data
-The project uses committed Prisma migrations so Neon and the application stay on the same schema version. Do not use `prisma db push` in production.
-```bash
-# Apply controlled migrations
-npm run db:migrate
-
-# Seed local/staging only
-npm run db:seed
-```
-
-### Step 5: Run the Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
-
-### Quality Checks Before Deployment
-```bash
+# Gatekeeper command before commit
 npm run check
-npm run db:status
 ```
-
-On Vercel, configure `DATABASE_URL`, `AUTH_SECRET`, Cloudinary, and Resend. Run `npm run db:migrate` in the release workflow before moving traffic to the new deployment.
 
 ---
 
-## 🔐 Sample Credentials (Seeded Users)
+## Demo Accounts
 
-After running the database seed script successfully, you can sign in using these accounts:
+After executing `npm run db:seed`:
 
-| Role | Email | Password | Permissions |
-| :--- | :--- | :--- | :--- |
-| **Quản trị viên (ADMIN)** | `admin@sonvn.com` | `admin123` | Full access to manage catalog, colors, dealers, view sales metrics, and update orders. |
-| **Nhân viên (STAFF)** | `staff@sonvn.com` | `staff123` | Access to manage catalog, process orders, and handle color consultation requests. |
-| **Khách hàng (CUSTOMER)** | `customer1@sonvn.com` | `customer123` | Ability to purchase items, add items to cart/wishlist, and view order history. |
+- **Admin**: `admin@flof.vn` / `Admin@123456` *(Requires TOTP MFA code if enabled)*
+- **Staff**: `staff@flof.vn` / `Staff@123456`
+- **Customer**: `customer@flof.vn` / `Customer@123456`
+
+---
+
+## License
+
+Released under the [MIT License](LICENSE).

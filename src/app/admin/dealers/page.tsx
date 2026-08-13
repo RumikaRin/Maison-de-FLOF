@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useLanguageStore } from "@/store/language-store";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { MapPin, Search, Plus, Trash2, Edit2, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { DeleteConfirmModal } from "@/components/ui/delete-confirm-modal";
 
 const LocationPreviewMap = dynamic(() => import("@/components/maps/location-preview-map"), {
@@ -196,7 +196,7 @@ export default function AdminDealersPage() {
   return (
     <div className="flex flex-col gap-8 text-left">
       {/* Header and Add CTA with spring reveal */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -219,10 +219,10 @@ export default function AdminDealersPage() {
           <Plus className="h-4 w-4" />
           {language === "vi" ? "Thêm Chi Nhánh Mới" : "Add New Branch"}
         </button>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Filter and Search Bar */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.35 }}
@@ -253,10 +253,10 @@ export default function AdminDealersPage() {
             { value: "Đà Nẵng", label: language === "vi" ? "Đà Nẵng" : "Da Nang" },
           ]}
         />
-      </motion.div>
+      </safeMotion.div>
 
       {/* Dealers table */}
-      <motion.div 
+      <safeMotion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.4 }}
@@ -333,12 +333,12 @@ export default function AdminDealersPage() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </safeMotion.div>
 
       {/* Add/Edit Modal with premium spring scale/fade overlay */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -349,7 +349,7 @@ export default function AdminDealersPage() {
             }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs cursor-pointer p-6"
           >
-            <motion.div 
+            <safeMotion.div 
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 15 }}
@@ -583,8 +583,8 @@ export default function AdminDealersPage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </safeMotion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
 
@@ -605,3 +605,4 @@ export default function AdminDealersPage() {
     </div>
   );
 }
+

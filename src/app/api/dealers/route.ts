@@ -1,25 +1,28 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { parsePagination, PaginationError } from "@/lib/pagination";
+import { jsonApiError } from "@/lib/api-error-contract";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 export async function GET(request: NextRequest) {
   try {
     const rateLimitRes = await rateLimit(request);
     if (!rateLimitRes.success) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return jsonApiError(
+        request,
+        429,
+        "TOO_MANY_REQUESTS",
+        "Too many requests",
+      );
     }
 
     const { searchParams } = new URL(request.url);
-    const pageParam = searchParams.get("page");
-    const limitParam = searchParams.get("limit");
-    
-    let page = 1;
-    let limit = 20;
-    
-    if (pageParam) page = parseInt(pageParam);
-    if (limitParam) limit = parseInt(limitParam);
-
-    const isPaginationRequested = !!pageParam || !!limitParam;
+    const {
+      page,
+      limit,
+      requested: isPaginationRequested,
+    } = parsePagination(searchParams);
 
     const queryOptions: any = {
       where: { isActive: true },
@@ -67,7 +70,17 @@ export async function GET(request: NextRequest) {
       headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
     });
   } catch (error) {
-    console.error("Failed to fetch dealers:", error);
+    if (error instanceof PaginationError) {
+      return jsonApiError(
+        request,
+        400,
+        "BAD_REQUEST",
+        error.message,
+      );
+    }
+    writeOperationalLog("warn", "dealers.database_fallback", {
+      fallback: "empty",
+    });
     return NextResponse.json([]);
   }
 }

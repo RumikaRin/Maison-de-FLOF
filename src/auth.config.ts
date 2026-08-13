@@ -1,31 +1,30 @@
 import type { NextAuthConfig } from "next-auth";
+import { stripLocalePrefix } from "@/lib/locale";
 
 export const authConfig = {
   pages: {
     signIn: "/login",
   },
+  // Keep the edge-safe session mapping here so middleware can make an initial
+  // routing decision. Server/API authorization validates the DB registry.
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
+    session({ session, token }) {
       if (session.user) {
         session.user.id = typeof token.id === "string" ? token.id : "";
         session.user.role =
           token.role === "ADMIN" || token.role === "STAFF" || token.role === "CUSTOMER"
             ? token.role
             : "CUSTOMER";
+        session.user.sessionId =
+          typeof token.sessionId === "string" ? token.sessionId : "";
       }
       return session;
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      const isOnProfile = nextUrl.pathname.startsWith("/profile");
+      const pathname = stripLocalePrefix(nextUrl.pathname).pathname;
+      const isOnAdmin = pathname.startsWith("/admin");
+      const isOnProfile = pathname.startsWith("/profile");
 
       if (isOnAdmin) {
         if (!isLoggedIn) return false;

@@ -1,110 +1,148 @@
-"use client";
+/* Hallmark · genre: editorial · section: expert journal · knobs: drench=mineral, featured=7/5 crop-led, supporting=hairline list rows · design-system: design.md · designed-as-app */ "use client";
 
-import Image from "next/image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Sparkles, ArrowRight } from "lucide-react";
 import { useLanguageStore } from "@/store/language-store";
+import { DrenchBand, TypographicLink } from "@/components/ui/editorial";
+import { DotField } from "@/components/ui/dot-field";
 
 interface ExpertBlogsSectionProps {
   blogs: any[];
 }
 
+/**
+ * Expert journal — advice with editorial authority. One featured article and a
+ * compact supporting list; hierarchy comes from crop, title scale and spacing,
+ * not from boxed cards. The section sits on a light mineral field.
+ */
 export function ExpertBlogsSection({ blogs }: ExpertBlogsSectionProps) {
   const { language } = useLanguageStore();
+  const list = blogs.slice(0, 3);
+  const featured = list[0];
+  const rest = list.slice(1);
+
+  if (!list.length) return null;
 
   return (
-    <section id="blogs-section" className="py-16 md:py-28 bg-jotun-ivory-100 border-b border-black/5">
-      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24">
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-          className="text-center mb-16"
-        >
-          <span className="text-[#88734C] font-semibold text-xs tracking-widest mb-3 flex items-center justify-center gap-2 uppercase">
-            <Sparkles className="w-4 h-4 text-[#88734C]" />
-            {language === "vi" ? "CẨM NANG & CẢM HỨNG" : "GUIDES & INSPIRATION"}
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-warm-900 mb-4 leading-tight">
-            {language === "vi" ? "Xu Hướng Từ Chuyên Gia" : "Expert Design Trends"}
-          </h2>
-          <div className="w-16 h-1 bg-[#88734C] mx-auto mt-2 mb-6" />
-          <p className="text-warm-550 text-xs md:text-sm max-w-2xl mx-auto leading-relaxed">
-            {language === "vi"
-              ? "Cập nhật các xu hướng màu sắc mới nhất và những hướng dẫn thi công thực tế từ đội ngũ chuyên gia của chúng tôi."
-              : "Stay updated with the latest color trends and practical application guides from our expert team."}
-          </p>
-        </motion.div>
+    <DrenchBand
+      color="espresso"
+      id="blogs-section"
+      className="fl-drench-mineral fl-rise relative py-fl-3xl md:py-fl-4xl"
+    >
+      <DotField
+        dotRadius={1.5}
+        dotSpacing={18}
+        cursorRadius={220}
+        bulgeStrength={44}
+        glowRadius={140}
+        gradientFrom="rgba(54, 42, 35, 0.12)"
+        gradientTo="rgba(54, 42, 35, 0.04)"
+        glowColor="rgba(0, 92, 102, 0.12)"
+      />
+      <div
+        className="relative mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]"
+        data-fl-io
+      >
+        <div className="flex flex-col gap-fl-sm sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="fl-label">
+              {language === "vi" ? "Sổ tay chuyên gia" : "The journal"}
+            </p>
+            <div className="fl-mask-line mt-fl-xs">
+              <h2 className="fl-display text-fl-3xl">
+                {language === "vi"
+                  ? "Xu hướng từ chuyên gia"
+                  : "Trends from the experts"}
+              </h2>
+            </div>
+          </div>
+          <TypographicLink href="/blog" className="shrink-0">
+            {language === "vi" ? "Tất cả bài viết" : "All articles"}
+          </TypographicLink>
+        </div>
 
-        <div className="flex flex-col gap-10 max-w-[1200px] mx-auto">
-          {blogs.map((blog, idx) => {
-            const title = language === "vi" ? blog.title : (blog.titleEn || blog.title);
-            const summary = language === "vi" ? blog.summary : (blog.summaryEn || blog.summary);
-            const category = language === "vi" ? blog.category : (blog.categoryEn || blog.category);
-
-            return (
-              <motion.div
-                key={blog.id}
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.08 }}
-                transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1], delay: idx * 0.15 }}
-                className="group bg-white rounded-3xl overflow-hidden border border-black/5 hover:border-[#88734C]/30 shadow-sm hover:shadow-xl transition-all duration-500 grid grid-cols-1 md:grid-cols-12 items-stretch"
-              >
-                {/* Blog Image */}
-                <div className="md:col-span-5 relative min-h-[260px] md:min-h-full overflow-hidden">
+        <div className="mt-fl-lg grid grid-cols-1 gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
+          {/* Featured — the crop carries it */}
+          {featured ? (
+            <article className="lg:col-span-7">
+              <Link href={`/blog/${featured.slug}`} className="group block">
+                <span className="fl-photo-plate fl-curtain-u relative block aspect-[16/10] w-full overflow-hidden rounded-surface">
                   <Image
-                    src={blog.image}
-                    alt={title}
+                    src={featured.image}
+                    alt={
+                      language === "vi"
+                        ? featured.title
+                        : featured.titleEn || featured.title
+                    }
                     fill
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    sizes="(min-width: 1024px) 55vw, 100vw"
+                    className="object-cover transition-transform duration-fl-slow ease-fl-out group-hover:scale-[1.03] motion-reduce:transform-none"
                   />
-                  <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors duration-500" />
+                </span>
+                <span className="mt-fl-sm flex items-baseline gap-fl-sm border-t border-atelier-rule pt-fl-xs">
+                  <span className="fl-label">
+                    {language === "vi"
+                      ? featured.category
+                      : featured.categoryEn || featured.category}
+                  </span>
+                  {featured.createdAt ? (
+                    <span className="fl-label">{featured.createdAt}</span>
+                  ) : null}
+                </span>
+                <h3 className="fl-display mt-fl-xs max-w-xl text-fl-2xl transition-opacity duration-fl-fast ease-fl-out group-hover:opacity-85">
+                  {language === "vi" ? featured.title : featured.titleEn || featured.title}
+                </h3>
+                <p className="fl-measure-tight mt-fl-xs text-fl-sm line-clamp-2">
+                  {language === "vi"
+                    ? featured.summary
+                    : featured.summaryEn || featured.summary}
+                </p>
+              </Link>
+            </article>
+          ) : null}
 
-                  {/* Category Tag overlay on image */}
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-[#88734C] border border-[#88734C]/10 text-[9px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full shadow-xs">
-                    {category}
-                  </div>
-                </div>
+          {/* Supporting list — hairline rows, no boxes */}
+          <div className="lg:col-span-5 lg:border-l lg:border-atelier-rule lg:pl-fl-lg">
+            <ul className="fl-stagger flex flex-col">
+              {rest.map((blog) => {
+                const title = language === "vi" ? blog.title : blog.titleEn || blog.title;
+                const summary =
+                  language === "vi" ? blog.summary : blog.summaryEn || blog.summary;
 
-                {/* Blog Content */}
-                <div className="md:col-span-7 p-6 md:p-10 flex flex-col justify-between items-start text-left bg-gradient-to-br from-white to-warm-50/10">
-                  <div className="flex flex-col gap-4 w-full">
-                    {/* Meta info */}
-                    <div className="flex items-center gap-4 text-[10px] text-warm-450 font-bold uppercase tracking-wider">
-                      <span>{blog.author.split(" - ")[0]}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-warm-300" />
-                      <span>{blog.readTime}</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-warm-300 hidden sm:inline" />
-                      <span className="hidden sm:inline">{blog.createdAt}</span>
-                    </div>
-
-                    <h3 className="font-serif font-bold text-xl md:text-2xl text-warm-900 group-hover:text-jotun-teal transition-colors duration-300 leading-tight">
-                      {title}
-                    </h3>
-
-                    <p className="text-xs md:text-sm text-warm-550 leading-relaxed font-light line-clamp-3">
-                      {summary}
-                    </p>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-black/5 w-full flex items-center justify-between">
+                return (
+                  <li key={blog.id} className="border-b border-atelier-rule">
                     <Link
                       href={`/blog/${blog.slug}`}
-                      className="inline-flex items-center gap-2 text-xs font-bold text-warm-900 group-hover:text-jotun-teal transition-all duration-300"
+                      className="group grid grid-cols-5 gap-fl-sm py-fl-md"
                     >
-                      {language === "vi" ? "Đọc tiếp" : "Read more"}
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                      <span className="relative col-span-2 block aspect-[4/3] overflow-hidden rounded-surface">
+                        <Image
+                          src={blog.image}
+                          alt={title}
+                          fill
+                          sizes="200px"
+                          className="object-cover transition-transform duration-fl-slow ease-fl-out group-hover:scale-[1.03] motion-reduce:transform-none"
+                        />
+                      </span>
+                      <span className="col-span-3 flex flex-col justify-center">
+                        {blog.createdAt ? (
+                          <span className="fl-label">{blog.createdAt}</span>
+                        ) : null}
+                        <span className="mt-fl-2xs font-serif text-fl-lg leading-snug transition-opacity duration-fl-fast ease-fl-out group-hover:opacity-85 line-clamp-2">
+                          {title}
+                        </span>
+                        <span className="mt-fl-2xs text-fl-sm line-clamp-2">
+                          {summary}
+                        </span>
+                      </span>
                     </Link>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </div>
       </div>
-    </section>
+    </DrenchBand>
   );
 }

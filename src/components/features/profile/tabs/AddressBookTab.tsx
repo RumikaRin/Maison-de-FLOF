@@ -1,10 +1,18 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AddressSelect } from "@/components/ui/address-select";
+import { Rule } from "@/components/ui/editorial";
+import { loadVnProvinces, type VnProvince } from "@/lib/vn-address";
+import type { ProfileAddress } from "../types";
 
 interface AddressBookTabProps {
   language: string;
-  addresses: any[];
+  addresses: ProfileAddress[];
   isAddingAddr: boolean;
   setIsAddingAddr: (val: boolean) => void;
   addrId: string;
@@ -22,7 +30,7 @@ interface AddressBookTabProps {
   addrIsDefault: boolean;
   setAddrIsDefault: (val: boolean) => void;
   handleSaveAddress: (e: React.FormEvent) => void;
-  handleEditAddress: (addr: any) => void;
+  handleEditAddress: (addr: ProfileAddress) => void;
   handleDeleteAddress: (id: string) => void;
   handleSetDefaultAddress: (id: string) => void;
 }
@@ -51,192 +59,208 @@ export function AddressBookTab({
   handleDeleteAddress,
   handleSetDefaultAddress,
 }: AddressBookTabProps) {
+  const [provinces, setProvinces] = useState<VnProvince[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    loadVnProvinces()
+      .then((data) => {
+        if (!cancelled) setProvinces(data);
+      })
+      .catch(() => {
+        // Stored values still display on the trigger; saving stays possible
+        // once the list loads on a retry visit.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const wardOptions = useMemo(
+    () => provinces.find((p) => p.n === addrProvince)?.w ?? [],
+    [provinces, addrProvince],
+  );
+
   return (
-    <motion.div
-      key="addresses"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <div className="bg-white border border-warm-200/80 p-4 sm:p-6 rounded-2xl shadow-sm text-left">
-        <div className="flex items-center justify-between border-b border-warm-100 pb-3 mb-6">
-          <h3 className="font-serif font-bold text-lg text-[#88734C]">
-            {language === "vi" ? "Sổ địa chỉ nhận hàng" : "Address Book"}
-          </h3>
-          {!isAddingAddr && (
-            <button
-              onClick={() => {
-                setAddrId("");
-                setAddrName("");
-                setAddrPhone("");
-                setAddrProvince("");
-                setAddrDistrict("");
-                setAddrLine("");
-                setAddrIsDefault(false);
-                setIsAddingAddr(true);
-              }}
-              className="bg-warm-900 hover:bg-warm-850 text-white text-[11px] font-bold px-4 py-2 rounded-xl transition-all shadow-xs"
-            >
-              + {language === "vi" ? "Thêm địa chỉ mới" : "Add New Address"}
-            </button>
-          )}
-        </div>
-
-        {isAddingAddr ? (
-          <form onSubmit={handleSaveAddress} className="flex flex-col gap-4">
-            <h4 className="font-bold text-xs uppercase tracking-wide text-warm-500">
-              {addrId ? (language === "vi" ? "Chỉnh sửa địa chỉ" : "Edit Address") : (language === "vi" ? "Thêm địa chỉ mới" : "Add New Address")}
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-warm-400 uppercase tracking-wider">Họ và tên người nhận</label>
-                <input
-                  type="text"
-                  required
-                  value={addrName}
-                  onChange={(e) => setAddrName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all font-semibold text-warm-800"
-                  placeholder={language === "vi" ? "Nguyễn Văn A" : "John Doe"}
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-warm-400 uppercase tracking-wider">Số điện thoại</label>
-                <input
-                  type="tel"
-                  required
-                  value={addrPhone}
-                  onChange={(e) => setAddrPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all font-semibold text-warm-800"
-                  placeholder="0912345678"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-warm-400 uppercase tracking-wider">Tỉnh / Thành phố</label>
-                <input
-                  type="text"
-                  required
-                  value={addrProvince}
-                  onChange={(e) => setAddrProvince(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all font-semibold text-warm-800"
-                  placeholder={language === "vi" ? "Hà Nội" : "Hanoi"}
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-warm-400 uppercase tracking-wider">Quận / Huyện</label>
-                <input
-                  type="text"
-                  required
-                  value={addrDistrict}
-                  onChange={(e) => setAddrDistrict(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all font-semibold text-warm-800"
-                  placeholder={language === "vi" ? "Cầu Giấy" : "Cau Giay"}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-warm-400 uppercase tracking-wider">Địa chỉ chi tiết (Số nhà, đường...)</label>
-              <input
-                type="text"
-                required
-                value={addrLine}
-                onChange={(e) => setAddrLine(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-warm-200 bg-white text-xs focus:outline-hidden focus:ring-2 focus:ring-jotun-teal/30 focus:border-jotun-teal transition-all font-semibold text-warm-800"
-                placeholder={language === "vi" ? "Số 15 Cầu Giấy" : "15 Cau Giay street"}
-              />
-            </div>
-
-            <div className="flex items-center gap-2 mt-2">
-              <input
-                type="checkbox"
-                id="addrIsDefault"
-                checked={addrIsDefault}
-                onChange={(e) => setAddrIsDefault(e.target.checked)}
-                className="h-4 w-4 rounded border-warm-300 text-jotun-teal focus:ring-jotun-teal"
-              />
-              <label htmlFor="addrIsDefault" className="text-xs font-semibold text-warm-700">
-                {language === "vi" ? "Đặt làm địa chỉ mặc định" : "Set as default address"}
-              </label>
-            </div>
-
-            <div className="flex gap-3 mt-4">
-              <button
-                type="submit"
-                className="bg-warm-900 hover:bg-warm-850 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-xs"
-              >
-                {language === "vi" ? "Lưu địa chỉ" : "Save Address"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAddingAddr(false)}
-                className="bg-warm-100 hover:bg-warm-200 text-warm-800 text-xs font-bold px-6 py-2.5 rounded-xl transition-all"
-              >
-                {language === "vi" ? "Hủy" : "Cancel"}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {addresses.length > 0 ? (
-              addresses.map((addr) => (
-                <div
-                  key={addr.id}
-                  className={`p-4 sm:p-5 border rounded-2xl flex flex-col sm:flex-row justify-between sm:items-start gap-4 transition-all duration-300 ${addr.isDefault
-                      ? "border-warm-900 bg-warm-900/[0.02] shadow-sm"
-                      : "border-warm-200/80 bg-warm-50/10 hover:bg-warm-50/50"
-                    }`}
-                >
-                  <div className="flex flex-col gap-1.5 text-left">
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-sm text-warm-900">{addr.name}</span>
-                      <span className="text-xs text-warm-550 font-mono font-semibold">{addr.phone}</span>
-                      {addr.isDefault && (
-                        <span className="px-2 py-0.5 bg-warm-900/10 text-warm-900 text-[9px] font-bold rounded">
-                          {language === "vi" ? "Mặc định" : "Default"}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-warm-700 leading-relaxed font-medium">
-                      {addr.address}, {addr.district}, {addr.province}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 shrink-0 text-xs font-bold mt-2 sm:mt-0">
-                    {!addr.isDefault && (
-                      <button
-                        onClick={() => handleSetDefaultAddress(addr.id)}
-                        className="text-warm-900 hover:underline px-2 py-1 text-left"
-                      >
-                        {language === "vi" ? "Thiết lập mặc định" : "Set Default"}
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleEditAddress(addr)}
-                      className="text-warm-700 hover:text-warm-900 px-2 py-1 border border-warm-200 hover:border-warm-300 rounded-lg bg-white shadow-xs"
-                    >
-                      {language === "vi" ? "Sửa" : "Edit"}
-                    </button>
-                    <button
-                      onClick={() => handleDeleteAddress(addr.id)}
-                      className="text-red-500 hover:text-red-700 px-2 py-1 border border-red-100 hover:border-red-200 rounded-lg bg-red-500/[0.02]"
-                    >
-                      {language === "vi" ? "Xóa" : "Delete"}
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center p-10 text-warm-550 text-xs">
-                {language === "vi" ? "Bạn chưa lưu địa chỉ nào." : "You have no saved addresses."}
-              </div>
-            )}
-          </div>
+    <section className="text-left">
+      <div className="flex flex-wrap items-end justify-between gap-fl-sm">
+        <h2 className="fl-display text-fl-xl">
+          {language === "vi" ? "Sổ địa chỉ nhận hàng" : "Address Book"}
+        </h2>
+        {!isAddingAddr && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setAddrId("");
+              setAddrName("");
+              setAddrPhone("");
+              setAddrProvince("");
+              setAddrDistrict("");
+              setAddrLine("");
+              setAddrIsDefault(false);
+              setIsAddingAddr(true);
+            }}
+          >
+            + {language === "vi" ? "Thêm địa chỉ mới" : "Add New Address"}
+          </Button>
         )}
       </div>
-    </motion.div>
+      <Rule weight="strong" className="mt-fl-xs" />
+
+      {isAddingAddr ? (
+        <form onSubmit={handleSaveAddress} className="mt-fl-md flex flex-col gap-fl-sm">
+          <p className="fl-label">
+            {addrId ? (language === "vi" ? "Chỉnh sửa địa chỉ" : "Edit Address") : (language === "vi" ? "Thêm địa chỉ mới" : "Add New Address")}
+          </p>
+          <div className="grid grid-cols-1 gap-fl-sm md:grid-cols-2">
+            <div className="flex flex-col gap-fl-2xs">
+              <Label htmlFor="addr-name">Họ và tên người nhận</Label>
+              <Input
+                id="addr-name"
+                type="text"
+                required
+                value={addrName}
+                onChange={(e) => setAddrName(e.target.value)}
+                placeholder={language === "vi" ? "Nguyễn Văn A" : "John Doe"}
+              />
+            </div>
+            <div className="flex flex-col gap-fl-2xs">
+              <Label htmlFor="addr-phone">Số điện thoại</Label>
+              <Input
+                id="addr-phone"
+                type="tel"
+                required
+                value={addrPhone}
+                onChange={(e) => setAddrPhone(e.target.value)}
+                placeholder="0912345678"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-fl-sm md:grid-cols-2">
+            <div className="flex flex-col gap-fl-2xs">
+              <Label htmlFor="addr-province">Tỉnh / Thành phố</Label>
+              <AddressSelect
+                id="addr-province"
+                value={addrProvince}
+                onValueChange={(next) => {
+                  setAddrProvince(next);
+                  if (next !== addrProvince) setAddrDistrict("");
+                }}
+                options={provinces.map((p) => p.n)}
+                placeholder={language === "vi" ? "Chọn tỉnh / thành phố" : "Select province / city"}
+                searchPlaceholder={language === "vi" ? "Tìm tỉnh / thành phố..." : "Search province..."}
+                emptyLabel={language === "vi" ? "Không tìm thấy" : "No match"}
+              />
+            </div>
+            <div className="flex flex-col gap-fl-2xs">
+              <Label htmlFor="addr-district">Phường / Xã</Label>
+              <AddressSelect
+                id="addr-district"
+                disabled={!addrProvince}
+                value={addrDistrict}
+                onValueChange={setAddrDistrict}
+                options={wardOptions}
+                placeholder={
+                  !addrProvince
+                    ? language === "vi" ? "Chọn tỉnh / thành phố trước" : "Select a province first"
+                    : language === "vi" ? "Chọn phường / xã" : "Select ward"
+                }
+                searchPlaceholder={language === "vi" ? "Tìm phường / xã..." : "Search ward..."}
+                emptyLabel={language === "vi" ? "Không tìm thấy" : "No match"}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-fl-2xs">
+            <Label htmlFor="addr-line">Địa chỉ chi tiết (Số nhà, đường...)</Label>
+            <Input
+              id="addr-line"
+              type="text"
+              required
+              value={addrLine}
+              onChange={(e) => setAddrLine(e.target.value)}
+              placeholder={language === "vi" ? "Số 15 Cầu Giấy" : "15 Cau Giay street"}
+            />
+          </div>
+
+          <label
+            htmlFor="addrIsDefault"
+            className="flex min-h-11 cursor-pointer items-center gap-fl-2xs text-fl-sm text-atelier-ink md:min-h-6"
+          >
+            <input
+              type="checkbox"
+              id="addrIsDefault"
+              checked={addrIsDefault}
+              onChange={(e) => setAddrIsDefault(e.target.checked)}
+              className="h-4 w-4 accent-atelier-accent"
+            />
+            {language === "vi" ? "Đặt làm địa chỉ mặc định" : "Set as default address"}
+          </label>
+
+          <div className="mt-fl-2xs flex gap-fl-sm">
+            <Button type="submit">
+              {language === "vi" ? "Lưu địa chỉ" : "Save Address"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setIsAddingAddr(false)}>
+              {language === "vi" ? "Hủy" : "Cancel"}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <ul>
+          {addresses.length > 0 ? (
+            addresses.map((addr) => (
+              <li
+                key={addr.id}
+                className="flex flex-col justify-between gap-fl-sm border-b border-atelier-rule py-fl-sm sm:flex-row sm:items-start"
+              >
+                <div className="flex min-w-0 flex-col gap-fl-3xs text-left">
+                  <div className="flex flex-wrap items-baseline gap-x-fl-sm gap-y-fl-3xs">
+                    <span className="text-fl-sm font-medium text-atelier-ink">{addr.name}</span>
+                    <span className="text-fl-xs tabular-nums text-atelier-ink-2">{addr.phone}</span>
+                    {addr.isDefault && (
+                      <span className="fl-label text-atelier-accent">
+                        {language === "vi" ? "Mặc định" : "Default"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-fl-sm leading-relaxed text-atelier-ink-2">
+                    {addr.address}, {addr.district}, {addr.province}
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-x-fl-sm gap-y-fl-3xs">
+                  {!addr.isDefault && (
+                    <button
+                      onClick={() => handleSetDefaultAddress(addr.id)}
+                      className="min-h-11 whitespace-nowrap text-fl-xs font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 md:min-h-6"
+                    >
+                      {language === "vi" ? "Thiết lập mặc định" : "Set Default"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleEditAddress(addr)}
+                    className="min-h-11 whitespace-nowrap text-fl-xs font-medium text-atelier-ink underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 md:min-h-6"
+                  >
+                    {language === "vi" ? "Sửa" : "Edit"}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteAddress(addr.id)}
+                    className="min-h-11 whitespace-nowrap text-fl-xs font-medium text-atelier-danger underline decoration-1 underline-offset-4 transition-opacity duration-fl-fast ease-fl-out hover:opacity-80 md:min-h-6"
+                  >
+                    {language === "vi" ? "Xóa" : "Delete"}
+                  </button>
+                </div>
+              </li>
+            ))
+          ) : (
+            <li className="list-none py-fl-lg text-fl-sm text-atelier-ink-2">
+              {language === "vi" ? "Bạn chưa lưu địa chỉ nào." : "You have no saved addresses."}
+            </li>
+          )}
+        </ul>
+      )}
+    </section>
   );
 }

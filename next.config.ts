@@ -1,6 +1,26 @@
 import type { NextConfig } from "next";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
+const cspAnnouncer = fileURLToPath(
+  new URL("./src/components/csp-app-router-announcer.tsx", import.meta.url),
+);
+const announcerAliases = [
+  require.resolve("next/dist/client/components/app-router-announcer"),
+  require.resolve("next/dist/esm/client/components/app-router-announcer"),
+];
 
 const nextConfig: NextConfig = {
+  webpack(config) {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      ...Object.fromEntries(
+        announcerAliases.map((modulePath) => [modulePath, cspAnnouncer]),
+      ),
+    };
+    return config;
+  },
   async headers() {
     return [
       {
@@ -11,12 +31,15 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://res.cloudinary.com https://images.unsplash.com; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;" },
         ],
       },
     ];
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000, // 1 year — next/image URLs include content hashes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: "https",
@@ -25,6 +48,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
       },
     ],
   },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requirePermission, requireStaff } from "@/lib/api-auth";
+import { createAuditLog } from "@/lib/audit";
 
 const articleSchema = z.object({
   id: z.string().optional(),
@@ -9,6 +10,8 @@ const articleSchema = z.object({
   titleEn: z.string().trim().max(250).optional(),
   summary: z.string().trim().min(3).max(2000),
   summaryEn: z.string().trim().max(2000).optional(),
+  category: z.string().trim().min(2).max(120),
+  categoryEn: z.string().trim().min(2).max(120),
   image: z.string().trim().url().optional().or(z.literal("")),
 });
 
@@ -30,6 +33,8 @@ function serializeArticle(article: {
   content: string;
   contentEn: string | null;
   image: string | null;
+  category: string;
+  categoryEn: string;
   createdAt: Date;
   author: { name: string | null };
 }) {
@@ -43,8 +48,8 @@ function serializeArticle(article: {
     content: article.content,
     contentEn: article.contentEn || article.content,
     image: article.image || "",
-    category: "Xu hướng màu sắc",
-    categoryEn: "Color Trends",
+    category: article.category,
+    categoryEn: article.categoryEn,
     author: article.author.name || "FLOF Editor",
     readTime: "5 phút",
     createdAt: article.createdAt.toISOString().split("T")[0],
@@ -78,12 +83,21 @@ export async function POST(request: NextRequest) {
         slug: `${slugify(parsed.data.title)}-${Date.now().toString(36)}`,
         summary: parsed.data.summary,
         summaryEn: parsed.data.summaryEn,
+        category: parsed.data.category,
+        categoryEn: parsed.data.categoryEn,
         content: parsed.data.summary,
         contentEn: parsed.data.summaryEn || parsed.data.summary,
         image: parsed.data.image || null,
         authorId: author.id,
       },
       include: { author: true },
+    });
+    await createAuditLog(db, {
+      actor: staff,
+      action: "ARTICLE_CREATED",
+      entityType: "Blog",
+      entityId: article.id,
+      afterData: { title: article.title, slug: article.slug },
     });
     return NextResponse.json(serializeArticle(article), { status: 201 });
   } catch (error) {
@@ -93,7 +107,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const staff = await requirePermission("CATALOG_MANAGE");
     const parsed = articleSchema.safeParse(await request.json());
     if (!parsed.success || !parsed.data.id) {
       throw new ApiError(400, "Thông tin bài viết không hợp lệ");
@@ -105,9 +119,18 @@ export async function PATCH(request: NextRequest) {
         titleEn: parsed.data.titleEn,
         summary: parsed.data.summary,
         summaryEn: parsed.data.summaryEn,
+        category: parsed.data.category,
+        categoryEn: parsed.data.categoryEn,
         image: parsed.data.image || null,
       },
       include: { author: true },
+    });
+    await createAuditLog(db, {
+      actor: staff,
+      action: "ARTICLE_UPDATED",
+      entityType: "Blog",
+      entityId: article.id,
+      afterData: { title: article.title, isActive: article.isActive },
     });
     return NextResponse.json(serializeArticle(article));
   } catch (error) {
@@ -117,10 +140,16 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    await requirePermission("CATALOG_MANAGE");
+    const staff = await requirePermission("CATALOG_MANAGE");
     const id = new URL(request.url).searchParams.get("id");
     if (!id) throw new ApiError(400, "Thiếu mã bài viết");
     await db.blog.delete({ where: { id } });
+    await createAuditLog(db, {
+      actor: staff,
+      action: "ARTICLE_DELETED",
+      entityType: "Blog",
+      entityId: id,
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return apiErrorResponse(error);

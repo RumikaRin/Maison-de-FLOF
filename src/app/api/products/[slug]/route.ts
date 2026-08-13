@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
+import { jsonApiError } from "@/lib/api-error-contract";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
@@ -14,7 +15,7 @@ export async function GET(
     },
   });
   if (!product?.isActive) {
-    return Response.json({ error: "Product not found" }, { status: 404 });
+    return jsonApiError(request, 404, "NOT_FOUND", "Product not found");
   }
 
   const relatedProducts = await db.paint.findMany({
@@ -76,7 +77,12 @@ export async function GET(
     price: Number(product.price),
     discountPercent: product.discountPercent,
     stock: product.stock,
-    images: product.images,
+    images: (() => {
+      const list = Array.isArray(product.images)
+        ? product.images.filter((src: unknown) => typeof src === "string" && src.trim().length > 0)
+        : [];
+      return list.length > 0 ? list : ["/product_interior.webp"];
+    })(),
     isFeatured: product.isFeatured,
     soldCount: product.soldCount,
     colors: product.colors.map((link) => link.color.code),

@@ -1,89 +1,43 @@
-"use client";
+/* Hallmark · genre: editorial · section: H6 Photographic fold · knobs: image=full-bleed 72vh, caption=lower-left, text=left-bias · design-system: design.md · designed-as-app */
 
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { useLanguageStore } from "@/store/language-store";
+import { CspImage as Image } from "@/components/ui/csp-image";
+import { HeroContent, HeroMetadataBar } from "./HeroContent";
 
-const heroContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const heroItemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      duration: 0.6,
-      ease: "easeOut",
-    },
-  },
-};
-
+/**
+ * H6 Photographic fold — the room photograph is the hero. Text sits on it,
+ * left-biased, never centred. Deliberately NOT full viewport height so the
+ * product editorial below stays reachable (design spec § Hero).
+ *
+ * Converted to pure React Server Component (RSC) with isolated leaf Client Components
+ * for maximum HTML streaming efficiency and reduced JS bundle footprint.
+ */
 export function HeroSection() {
-  const { language } = useLanguageStore();
-
   return (
-    <section className="relative w-full pt-14 pb-10 md:pt-5 md:pb-10 overflow-hidden bg-jotun-ivory">
-      {/* Subtle grid accent background */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e1d8_1.5px,transparent_1.5px)] [background-size:32px_32px] opacity-40 pointer-events-none" />
+    <>
+      <section className="fl-photo-fold fl-photo-plate flex min-h-[620px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[80vh] md:max-h-[860px]">
+        {/* Full-bleed media — the one hero load transition the system allows */}
+        <div className="absolute inset-0">
+          <Image
+            src="/generated/hero-cinematic.jpg"
+            alt="Maison de FLOF — Không gian sống với màu sơn cao cấp"
+            fill
+            priority
+            fetchPriority="high"
+            quality={82}
+            sizes="100vw"
+            className="fl-photo-zoomout fl-photo-zoomout-soft object-cover object-center"
+          />
+          {/* Legibility scrim, bottom-left weighted like a printed caption field */}
+          <div aria-hidden="true" className="fl-photo-scrim" />
+        </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 xl:px-16 2xl:px-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-        {/* Left Text Column */}
-        <motion.div
-          variants={heroContainerVariants}
-          initial="hidden"
-          animate="visible"
-          className="lg:col-span-5 flex flex-col gap-8 text-left items-start"
-        >
-          <motion.h1
-            variants={heroItemVariants}
-            className="text-3xl sm:text-4xl lg:text-[3rem] font-serif font-bold tracking-tight text-warm-955"
-            style={{ lineHeight: 1.35 }}
-          >
-            {language === "vi" ? (
-              <>Kiến tạo không gian sống <br /><span className="font-normal italic text-jotun-teal">Đậm chất nghệ thuật</span></>
-            ) : (
-              <>Creating living spaces <br /><span className="font-normal italic text-jotun-teal">Full of artistic flavor</span></>
-            )}
-          </motion.h1>
+        <div className="relative z-10 mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-2xl pt-fl-4xl md:pb-[4rem] md:pt-[12rem]">
+          <HeroContent />
+        </div>
+      </section>
 
-          <motion.p
-            variants={heroItemVariants}
-            className="text-warm-600 text-sm lg:text-[1.05rem] font-light leading-relaxed max-w-xl"
-          >
-            {language === "vi"
-              ? "Hơn 1000+ sắc màu sơn cao cấp từ Maison de FLOF mang đến sự kết hợp hoàn mỹ giữa nghệ thuật và công nghệ bảo vệ bề mặt, tôn vinh kiến trúc ngôi nhà Việt."
-              : "Over 1000+ premium paint colors from Maison de FLOF deliver a perfect blend of art and surface protection technology, honoring Vietnamese home architecture."
-            }
-          </motion.p>
-        </motion.div>
-
-        {/* Right Image Column (Double Bezel Layout) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-          className="lg:col-span-7 w-full flex justify-center items-center"
-        >
-          <div className="relative aspect-[4/3] sm:h-[450px] md:h-[620px] lg:h-[720px] xl:h-[800px] lg:aspect-none w-full overflow-hidden bg-white shadow-2xl rounded-3xl border border-black/5 max-w-[960px]">
-            <Image
-              src="/hero_bg.png"
-              alt={language === "vi" ? "Không gian sống cao cấp" : "Premium living space"}
-              fill
-              className="object-cover transition-transform duration-1000 hover:scale-103"
-              priority
-            />
-          </div>
-        </motion.div>
-      </div>
-    </section>
+      {/* Plate line — hairline technical metadata strip */}
+      <HeroMetadataBar />
+    </>
   );
 }

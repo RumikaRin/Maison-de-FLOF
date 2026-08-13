@@ -34,7 +34,7 @@ export const VISUALIZER_ROOMS = [
     id: "living",
     name: "Phòng Khách",
     nameEn: "Living Room",
-    image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200",
+    image: "/product_interior.webp",
     hotspots: [
       { id: "wallMain", top: "25%", left: "67%", label: "Tường chính", labelEn: "Main Wall" },
       { id: "wallMain", top: "47%", left: "57%", label: "Cột tường", labelEn: "Wall Column" },
@@ -47,7 +47,7 @@ export const VISUALIZER_ROOMS = [
     id: "bedroom",
     name: "Phòng Ngủ",
     nameEn: "Bedroom",
-    image: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1200",
+    image: "/product_interior.webp",
     hotspots: [
       { id: "wallMain", top: "50%", left: "35%", label: "Tường chính", labelEn: "Main Wall" },
       { id: "wallAccent", top: "40%", left: "80%", label: "Tường nhấn", labelEn: "Accent Wall" }
@@ -59,7 +59,7 @@ export const VISUALIZER_ROOMS = [
     id: "facade",
     name: "Mặt Tiền Nhà",
     nameEn: "House Facade",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200",
+    image: "/product_interior.webp",
     hotspots: [
       { id: "wallMain", top: "55%", left: "30%", label: "Cột & Tường chính", labelEn: "Main Column & Wall" },
       { id: "wallAccent", top: "48%", left: "65%", label: "Mảng tường nhấn", labelEn: "Accent Wall Panel" }
@@ -70,10 +70,10 @@ export const VISUALIZER_ROOMS = [
 ];
 
 export const PRODUCT_CATEGORIES = [
-  { id: "cat-1", name: "Sơn Nội Thất", nameEn: "Interior Paint", desc: "Màng sơn láng mịn, lau chùi tối đa, an toàn sức khỏe.", descEn: "Smooth finish, maximum washability, and health-safe.", slug: "son-noi-that", image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=600" },
-  { id: "cat-2", name: "Sơn Ngoại Thất", nameEn: "Exterior Paint", desc: "Chống kiềm hóa, cản nắng làm mát, chống rêu mốc tối đa.", descEn: "Alkali-resistant, sun-reflecting, and maximum mold protection.", slug: "son-ngoai-that", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600" },
-  { id: "cat-3", name: "Sơn Chống Thấm", nameEn: "Waterproofing", desc: "Màng bảo vệ đàn hồi co giãn chặn đứng dòng nước ẩm mốc.", descEn: "Elastomeric shield to block moisture and water damage.", slug: "son-chong-tham", image: "https://images.unsplash.com/photo-1542013936693-8848e574047a?q=80&w=600" },
-  { id: "cat-4", name: "Sơn Lót Kháng Kiềm", nameEn: "Alkali Primers", desc: "Tăng cường độ bám và bảo vệ độ phẳng bóng mượt của màu phủ.", descEn: "Enhances adhesion and protects topcoat smoothness.", slug: "son-lot", image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?q=80&w=600" },
+  { id: "cat-1", name: "Sơn Nội Thất", nameEn: "Interior Paint", desc: "Màng sơn láng mịn, lau chùi tối đa, an toàn sức khỏe.", descEn: "Smooth finish, maximum washability, and health-safe.", slug: "son-noi-that", image: "/product_interior.webp" },
+  { id: "cat-2", name: "Sơn Ngoại Thất", nameEn: "Exterior Paint", desc: "Chống kiềm hóa, cản nắng làm mát, chống rêu mốc tối đa.", descEn: "Alkali-resistant, sun-reflecting, and maximum mold protection.", slug: "son-ngoai-that", image: "/product_interior.webp" },
+  { id: "cat-3", name: "Sơn Chống Thấm", nameEn: "Waterproofing", desc: "Màng bảo vệ đàn hồi co giãn chặn đứng dòng nước ẩm mốc.", descEn: "Elastomeric shield to block moisture and water damage.", slug: "son-chong-tham", image: "/product_interior.webp" },
+  { id: "cat-4", name: "Sơn Lót Kháng Kiềm", nameEn: "Alkali Primers", desc: "Tăng cường độ bám và bảo vệ độ phẳng bóng mượt của màu phủ.", descEn: "Enhances adhesion and protects topcoat smoothness.", slug: "son-lot", image: "/product_interior.webp" },
 ];
 
 export const FEATURED_PRODUCTS = [
@@ -87,7 +87,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Màu sắc rực rỡ sắc nét, dễ lau chùi vượt trội.",
     descEn: "Vibrant colors, sharp definition, and outstanding easy clean.",
-    image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#F5F0E8", "#D4C4A8"]
   },
   {
@@ -100,7 +100,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Bề mặt siêu láng mịn và những gam màu sắc nét độc đáo.",
     descEn: "Super smooth surface and unique sharp colors.",
-    image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#F5F0E8", "#AEC6CF"]
   },
   {
@@ -113,7 +113,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Công nghệ tự làm sạch tiên tiến chống bám bẩn vượt trội.",
     descEn: "Self-cleaning technology for superior dirt resistance.",
-    image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#F5F0E8", "#D4C4A8"]
   },
   {
@@ -126,7 +126,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Bảo vệ 12 năm bất chấp khí hậu khắc nghiệt vùng nhiệt đới.",
     descEn: "12-year protection against harsh tropical climates.",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#E2E5E6", "#4A6741", "#6F4E37"]
   },
   {
@@ -139,7 +139,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Bảo vệ kết cấu bê tông tuyệt vời trước mưa bão và ô nhiễm.",
     descEn: "Protects concrete walls from heavy rain and pollution.",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#F5F0E8", "#C0C0C0"]
   },
   {
@@ -152,7 +152,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Sơn ngoại thất siêu cấp, kháng tia cực tím tối ưu.",
     descEn: "Premium exterior paint, preventing UV damage.",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#F5F0E8", "#D4C4A8"]
   },
   {
@@ -165,7 +165,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Công nghệ Active Guard chống phai màu, làm mát nhà.",
     descEn: "Active Guard fade resistance, cooling house technology.",
-    image: "https://images.unsplash.com/photo-1542013936693-8848e574047a?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#FFF8F0", "#AEC6CF"]
   },
   {
@@ -178,7 +178,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Không mùi, hàm lượng VOC rất thấp, thân thiện môi trường.",
     descEn: "Odorless, low VOC, eco-friendly and safe for health.",
-    image: "https://images.unsplash.com/photo-1542013936693-8848e574047a?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#F5F0E8", "#AEC6CF"]
   },
   {
@@ -191,7 +191,7 @@ export const FEATURED_PRODUCTS = [
     vol: "5L",
     desc: "Chống thấm nước vượt trội và chống bám bẩn tự động.",
     descEn: "Extreme water resistance and self-cleaning.",
-    image: "https://images.unsplash.com/photo-1542013936693-8848e574047a?q=80&w=400",
+    image: "/product_interior.webp",
     colors: ["#FFFFFF", "#F5F0E8", "#D4C4A8"]
   }
 ];

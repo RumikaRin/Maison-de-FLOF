@@ -1,11 +1,12 @@
+/* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
 import { useLanguageStore } from "@/store/language-store";
 import { CheckoutSuccess } from "@/components/features/checkout/CheckoutSuccess";
 import { useEffect } from "react";
-import { toast } from "sonner";
-import { XCircle } from "lucide-react";
+import { toast } from "@/components/ui/csp-toast";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export function CheckoutSuccessWrapper({
   orderNumber, fullName, phone, paymentMethod, confirmedTotal, vnpayStatus
@@ -21,32 +22,30 @@ export function CheckoutSuccessWrapper({
 
   if (vnpayStatus === "failed" || vnpayStatus === "error") {
     return (
-      <div className="container mx-auto px-6 py-16 max-w-2xl text-center flex flex-col items-center gap-8 animate-fade-in">
-        <div className="h-20 w-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center border border-red-500/20 shadow-lg">
-          <XCircle className="h-12 w-12" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold font-serif mb-2">
-            {language === "vi" ? "Thanh toán thất bại!" : "Payment Failed!"}
-          </h1>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            {language === "vi"
-              ? "Giao dịch thanh toán VNPay của bạn đã bị hủy hoặc xảy ra lỗi. Đơn hàng của bạn chưa được thanh toán."
-              : "Your VNPay transaction was cancelled or failed. Your order has not been paid."}
-          </p>
-        </div>
-        <button
+      <div className="mx-auto w-full max-w-2xl px-[clamp(1rem,4vw,1.5rem)] py-fl-2xl text-left text-atelier-ink">
+        <p className="fl-label text-atelier-danger">
+          ✕ {language === "vi" ? "Giao dịch chưa hoàn tất" : "Transaction incomplete"}
+        </p>
+        <h1 className="fl-display mt-fl-2xs text-fl-2xl">
+          {language === "vi" ? "Thanh toán thất bại." : "Payment failed."}
+        </h1>
+        <p className="fl-measure-tight mt-fl-2xs text-fl-sm text-atelier-ink-2">
+          {language === "vi"
+            ? "Giao dịch thanh toán VNPay của bạn đã bị hủy hoặc xảy ra lỗi. Đơn hàng của bạn chưa được thanh toán."
+            : "Your VNPay transaction was cancelled or failed. Your order has not been paid."}
+        </p>
+        <Button
           onClick={() => router.push("/profile?tab=orders")}
-          className="bg-warm-900 text-white font-bold px-8 py-3.5 rounded-md hover:bg-warm-800 transition-colors shadow-md"
+          className="mt-fl-md"
         >
           {language === "vi" ? "Xem đơn hàng & Thanh toán lại" : "View Orders & Pay again"}
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <CheckoutSuccess 
+    <CheckoutSuccess
       language={language}
       orderNumber={orderNumber}
       fullName={fullName}

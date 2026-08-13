@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { ExternalLink, Mail, MessageCircle, Phone, Send, UserRound } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useLanguageStore } from "@/store/language-store";
 
@@ -205,7 +206,13 @@ export default function AdminChatPage() {
                     >
                       <div className="h-10 w-10 rounded-full bg-warm-200 shrink-0 flex items-center justify-center text-warm-600 overflow-hidden">
                         {conv.user.image ? (
-                          <img src={conv.user.image} alt={conv.user.name || ""} className="w-full h-full object-cover" />
+                          <Image
+                            src={conv.user.image}
+                            alt={conv.user.name || ""}
+                            width={40}
+                            height={40}
+                            className="h-full w-full object-cover"
+                          />
                         ) : (
                           <UserRound className="h-5 w-5" />
                         )}
@@ -234,7 +241,13 @@ export default function AdminChatPage() {
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-warm-200 shrink-0 flex items-center justify-center text-warm-600 overflow-hidden">
                     {activeConvDetail.user.image ? (
-                      <img src={activeConvDetail.user.image} alt={activeConvDetail.user.name || ""} className="w-full h-full object-cover" />
+                      <Image
+                        src={activeConvDetail.user.image}
+                        alt={activeConvDetail.user.name || ""}
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <UserRound className="h-5 w-5" />
                     )}
@@ -342,3 +355,4 @@ export default function AdminChatPage() {
     </div>
   );
 }
+

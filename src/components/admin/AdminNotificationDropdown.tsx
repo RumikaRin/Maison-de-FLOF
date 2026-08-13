@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
+import type { ComponentType } from "react";
 import { Bell, Check, Package, FileText, MessageCircle, Star, AlertTriangle } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { safeMotion, AnimatePresence } from "@/components/ui/motion-safe";
 import { useLanguageStore } from "@/store/language-store";
 import { cn } from "@/lib/utils";
+import {
+  createNotificationPoller,
+  notificationPollHeaders,
+} from "@/lib/notifications/polling";
+import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
 
 type NotificationType = "ORDER" | "STOCK" | "QUOTE" | "SYSTEM" | "REVIEW";
 
@@ -18,7 +24,12 @@ interface Notification {
   createdAt: string;
 }
 
-const TABS: { id: "ALL" | NotificationType; labelVi: string; labelEn: string; icon: any }[] = [
+const TABS: {
+  id: "ALL" | NotificationType;
+  labelVi: string;
+  labelEn: string;
+  icon: ComponentType<{ className?: string }>;
+}[] = [
   { id: "ALL", labelVi: "Tất cả", labelEn: "All", icon: Bell },
   { id: "ORDER", labelVi: "Đơn hàng", labelEn: "Orders", icon: Package },
   { id: "SYSTEM", labelVi: "Trò chuyện", labelEn: "Chats", icon: MessageCircle },
@@ -30,12 +41,13 @@ const TABS: { id: "ALL" | NotificationType; labelVi: string; labelEn: string; ic
 export function AdminNotificationDropdown() {
   const { language } = useLanguageStore();
   const router = useRouter();
-  const pathname = usePathname();
+  const { localize } = useLocaleNavigation();
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"ALL" | NotificationType>("ALL");
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const etagRef = useRef<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,29 +59,49 @@ export function AdminNotificationDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch(`/api/admin/notifications?type=${activeTab}&limit=20`);
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
-      }
-    } catch (err) {
-      console.error(err);
+  const fetchNotifications = useCallback(async () => {
+    const res = await fetch(
+      `/api/admin/notifications?type=${activeTab}&limit=20`,
+      { headers: notificationPollHeaders(etagRef.current) },
+    );
+    if (res.status === 304) return;
+    if (!res.ok) {
+      throw new Error(`Notification polling failed with status ${res.status}`);
     }
-  };
+    etagRef.current = res.headers.get("etag");
+    const data = (await res.json()) as {
+      notifications: Notification[];
+      unreadCount: number;
+    };
+    setNotifications(data.notifications);
+    setUnreadCount(data.unreadCount);
+  }, [activeTab]);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000); // Poll every 10s
-    return () => clearInterval(interval);
-  }, [activeTab]); // Refetch when tab changes
+    etagRef.current = null;
+    const poller = createNotificationPoller({ poll: fetchNotifications });
+    const syncActivity = () => {
+      poller.setActive(
+        document.visibilityState === "visible" && navigator.onLine,
+      );
+    };
+    document.addEventListener("visibilitychange", syncActivity);
+    window.addEventListener("online", syncActivity);
+    window.addEventListener("offline", syncActivity);
+    syncActivity();
+    poller.start();
+    return () => {
+      document.removeEventListener("visibilitychange", syncActivity);
+      window.removeEventListener("online", syncActivity);
+      window.removeEventListener("offline", syncActivity);
+      poller.stop();
+    };
+  }, [fetchNotifications]);
 
   const handleMarkAllRead = async () => {
     try {
       await fetch("/api/admin/notifications/mark-all-read", { method: "POST" });
-      fetchNotifications();
+      await fetchNotifications();
     } catch (err) {
       console.error(err);
     }
@@ -91,19 +123,19 @@ export function AdminNotificationDropdown() {
     // Redirect based on type
     switch (notification.type) {
       case "ORDER":
-        router.push("/admin/orders");
+        router.push(localize("/admin/orders"));
         break;
       case "QUOTE":
-        router.push("/admin/quote-requests");
+        router.push(localize("/admin/quotes"));
         break;
       case "SYSTEM":
-        router.push("/admin/chat");
+        router.push(localize("/admin/chat"));
         break;
       case "REVIEW":
-        router.push("/admin/reviews");
+        router.push(localize("/admin/reviews"));
         break;
       case "STOCK":
-        router.push("/admin/products");
+        router.push(localize("/admin/paints"));
         break;
       default:
         break;
@@ -125,6 +157,8 @@ export function AdminNotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
+        aria-label={language === "vi" ? "Mở thông báo" : "Open notifications"}
+        aria-expanded={open}
         className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-warm-250 bg-white/80 text-warm-700 hover:bg-white transition-colors"
       >
         <Bell className="h-4 w-4" />
@@ -137,7 +171,7 @@ export function AdminNotificationDropdown() {
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <safeMotion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -222,12 +256,15 @@ export function AdminNotificationDropdown() {
             
             <div className="p-2 border-t border-warm-100 bg-warm-50 text-center shrink-0">
               <span className="text-[9px] text-warm-400">
-                {language === "vi" ? "Tự động cập nhật mỗi 10 giây" : "Auto updating every 10s"}
+                {language === "vi"
+                  ? "Tự dừng khi ẩn hoặc mất mạng"
+                  : "Pauses while hidden or offline"}
               </span>
             </div>
-          </motion.div>
+          </safeMotion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
+

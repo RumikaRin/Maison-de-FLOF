@@ -17,7 +17,7 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
     }
 
     return (
-      <label className="relative inline-flex items-center cursor-pointer select-none">
+      <label className="relative inline-flex min-h-11 cursor-pointer select-none items-center md:min-h-10">
         <input
           type="checkbox"
           checked={checked}
@@ -26,12 +26,18 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
           ref={ref}
           {...props}
         />
+        {/* Square-edged track: the atelier control radius, not a pill. */}
         <div className={cn(
-          "w-11 h-6 bg-warm-200 rounded-full transition-colors peer-checked:bg-jotun-teal border-2 border-transparent relative",
+          "relative h-6 w-11 rounded-control border-2 border-transparent bg-atelier-paper-3",
+          "transition-colors duration-fl-fast ease-fl-out",
+          "peer-checked:bg-atelier-accent",
+          "peer-hover:bg-atelier-rule-strong peer-[:checked:hover]:bg-atelier-accent-hover",
+          "peer-disabled:cursor-not-allowed peer-disabled:opacity-45",
           className
         )}>
           <div className={cn(
-            "w-5 h-5 bg-white rounded-full shadow-md transition-transform absolute top-0.5 left-0.5",
+            "absolute left-0.5 top-0.5 h-5 w-5 rounded-control border border-atelier-rule-strong bg-atelier-paper",
+            "transition-transform duration-fl-fast ease-fl-out",
             checked ? "transform translate-x-5" : "transform translate-x-0"
           )} />
         </div>

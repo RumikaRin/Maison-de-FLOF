@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requireStaff } from "@/lib/api-auth";
+import { updateQuoteRequest } from "@/lib/customer-workflow-service";
 
 const updateQuoteSchema = z.object({
   id: z.string().min(1),
@@ -46,17 +47,11 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    await requireStaff();
+    const actor = await requireStaff();
     const parsed = updateQuoteSchema.safeParse(await request.json());
     if (!parsed.success) throw new ApiError(400, "Dữ liệu báo giá không hợp lệ");
 
-    const quote = await db.quoteRequest.update({
-      where: { id: parsed.data.id },
-      data: {
-        status: parsed.data.status,
-        adminNote: parsed.data.adminNote || null,
-      },
-    });
+    const quote = await updateQuoteRequest(db, actor, parsed.data);
     return NextResponse.json(serializeQuote(quote));
   } catch (error) {
     return apiErrorResponse(error);
