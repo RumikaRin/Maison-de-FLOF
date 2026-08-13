@@ -165,32 +165,41 @@ export default async function middleware(request: NextRequest, event: any) {
     const redirectUrl = request.nextUrl.clone();
     const suffix = originalPathname.slice(unsupportedPrefix.length + 1) || "/";
     redirectUrl.pathname = localizedPath(suffix, DEFAULT_LOCALE);
-    return persistLocaleCookieWhenNeeded(
-      withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
-      {
-        requestHadLocalePrefix: false,
-        currentCookie: currentLocaleCookie,
-        resolvedLocale: DEFAULT_LOCALE,
-      },
+    return withCdnCache(
+      persistLocaleCookieWhenNeeded(
+        withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
+        {
+          requestHadLocalePrefix: false,
+          currentCookie: currentLocaleCookie,
+          resolvedLocale: DEFAULT_LOCALE,
+        },
+      ),
+      redirectUrl.pathname,
     );
   }
 
   if (prefixed.hadPrefix && isLocaleExcludedPath(prefixed.pathname)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = prefixed.pathname;
-    return withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce);
+    return withCdnCache(
+      withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
+      redirectUrl.pathname,
+    );
   }
 
   if (!prefixed.hadPrefix && !isLocaleExcludedPath(originalPathname)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = localizedPath(originalPathname, locale);
-    return persistLocaleCookieWhenNeeded(
-      withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
-      {
-        requestHadLocalePrefix: false,
-        currentCookie: currentLocaleCookie,
-        resolvedLocale: locale,
-      },
+    return withCdnCache(
+      persistLocaleCookieWhenNeeded(
+        withSecurityHeaders(NextResponse.redirect(redirectUrl), nonce),
+        {
+          requestHadLocalePrefix: false,
+          currentCookie: currentLocaleCookie,
+          resolvedLocale: locale,
+        },
+      ),
+      redirectUrl.pathname,
     );
   }
 

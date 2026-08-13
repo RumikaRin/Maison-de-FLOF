@@ -20,6 +20,16 @@ export function initFlReveal(): () => void {
   const targets = Array.from(
     document.querySelectorAll<HTMLElement>("[data-fl-io]"),
   );
+
+  // Immediately settle elements that are already within the viewport on mount
+  const vh = window.innerHeight || document.documentElement.clientHeight;
+  targets.forEach((t) => {
+    const rect = t.getBoundingClientRect();
+    if (rect.top < vh && rect.bottom > 0) {
+      t.classList.add("is-in");
+    }
+  });
+
   const settleAll = () => targets.forEach((t) => t.classList.add("is-in"));
 
   if (

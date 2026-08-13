@@ -29,6 +29,7 @@ const noto = Noto_Sans({
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-noto",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const playfair = Playfair_Display({
@@ -36,6 +37,7 @@ const playfair = Playfair_Display({
   weight: ["400", "500", "600", "700"],
   variable: "--font-playfair",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const bromise = localFont({

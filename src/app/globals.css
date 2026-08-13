@@ -1031,7 +1031,7 @@ next-route-announcer > div {
 
 @media screen and (prefers-reduced-motion: no-preference) {
   .fl-js [data-fl-io] .fl-mask-line > * {
-    transition: transform var(--fl-dur-reveal) var(--fl-ease-out);
+    transition: opacity var(--fl-dur-reveal) var(--fl-ease-out), transform var(--fl-dur-reveal) var(--fl-ease-out);
   }
   /* Entrances are one-shot keyframes on .is-in — never transitions — so they
      cannot occupy the `transition` property or leave stagger delays on a
@@ -1082,7 +1082,8 @@ next-route-announcer > div {
   }
 
   /* from-states */
-  .fl-js [data-fl-io]:not(.is-in) .fl-mask-line > * { transform: translateY(130%); }
+  .fl-js [data-fl-io]:not(.is-in) .fl-mask-line > * { opacity: 0; transform: translateY(8px); }
+  .fl-js [data-fl-io].is-in .fl-mask-line > * { opacity: 1; transform: translateY(0); }
   .fl-js [data-fl-io]:not(.is-in) .fl-curtain-l { clip-path: inset(0 100% 0 0); }
   .fl-js [data-fl-io]:not(.is-in) .fl-curtain-u { clip-path: inset(100% 0 0 0); }
   .fl-js [data-fl-io]:not(.is-in) .fl-curtain-x { clip-path: inset(0 50% 0 50%); }
