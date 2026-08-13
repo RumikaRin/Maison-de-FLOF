@@ -46,7 +46,7 @@ export function SwatchChip({
       aria-label={description}
       aria-pressed={selected}
       className={cn(
-        "group flex min-h-11 flex-col text-left",
+        "group flex min-h-11 flex-col text-left transition-transform duration-fl-fast active:scale-[0.98] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-atelier-accent",
         layout === "chip" && "h-11 w-11 md:h-10 md:w-10",
         className,
       )}

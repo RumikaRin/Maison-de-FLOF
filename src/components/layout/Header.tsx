@@ -1,7 +1,7 @@
 /* Hallmark · genre: editorial · macrostructure: n/a (shared chrome)
  * nav: N11 Mega-menu (columns=3, feature cell=promo card, scrim=dim only)
  * pre-emit critique: P5 H5 E5 S5 R5 V5
- * design-system: design.md · designed-as-app
+ * design-system: design.md · designed-as-app · architectural-rectilinear
  */
 "use client";
 
@@ -201,10 +201,10 @@ export default function Header() {
             </span>
           </div>
 
-          {/* Desktop nav — Pill-styled navigation links */}
+          {/* Desktop nav — Architectural Rectilinear Navigation */}
           <div ref={navRef} className="hidden xl:block">
             <nav aria-label={t.headerMenu}>
-              <ul className="flex items-center gap-1.5">
+              <ul className="flex items-center gap-1">
                 {NAV_LINKS.map((link) => {
                   const isActive =
                     routePath === link.href || routePath.startsWith(`${link.href}/`);
@@ -221,11 +221,11 @@ export default function Header() {
                     >
                       <div
                         className={cn(
-                          "flex items-center rounded-fl-pill px-1 transition-all duration-fl-fast",
+                          "flex items-center rounded-surface px-0.5 transition-all duration-fl-fast",
                           isActive
-                            ? "bg-atelier-ink text-atelier-paper shadow-sm"
+                            ? "bg-atelier-ink text-atelier-paper shadow-xs"
                             : isOpen
-                            ? "bg-atelier-paper-2 text-atelier-ink"
+                            ? "bg-atelier-paper-2 text-atelier-ink font-semibold"
                             : "hover:bg-atelier-paper-2 text-atelier-ink-2 hover:text-atelier-ink",
                         )}
                       >
@@ -254,7 +254,7 @@ export default function Header() {
                             aria-controls={`panel-${panelId.slice(1)}`}
                             aria-label={isOpen ? t.headerClosePanel : t.headerOpenPanel}
                             className={cn(
-                              "mr-1 flex h-6 w-6 items-center justify-center rounded-fl-pill transition-colors duration-fl-fast ease-fl-out",
+                              "mr-0.5 flex h-6 w-6 items-center justify-center rounded-[2px] transition-colors duration-fl-fast ease-fl-out",
                               isActive
                                 ? "text-atelier-paper/80 hover:text-atelier-paper hover:bg-white/20"
                                 : isOpen
@@ -302,14 +302,14 @@ export default function Header() {
             ))}
           </div>
 
-          {/* Right Actions — Control Capsule (Inspired by codex branch) */}
+          {/* Right Actions — Architectural Control Box (No rounded pills) */}
           <div className="flex shrink-0 items-center gap-fl-xs">
-            <div className="flex items-center gap-1.5 p-1 bg-atelier-paper-2/80 hover:bg-atelier-paper-2 border border-atelier-rule rounded-fl-pill transition-all duration-fl-fast shadow-xs hover:border-atelier-rule-strong">
+            <div className="flex items-center gap-1 p-0.5 bg-atelier-paper-2/90 hover:bg-atelier-paper-2 border border-atelier-rule rounded-control transition-all duration-fl-fast shadow-xs hover:border-atelier-rule-strong">
               {/* Language Toggle */}
               <button
                 type="button"
                 onClick={switchLanguage}
-                className="hidden sm:inline-block px-3 py-1 text-fl-2xs font-semibold uppercase tracking-[0.14em] rounded-fl-pill hover:bg-atelier-paper text-atelier-ink-2 hover:text-atelier-ink transition-all duration-fl-fast"
+                className="hidden sm:inline-block px-2.5 py-1 text-fl-2xs font-semibold uppercase tracking-[0.14em] rounded-surface hover:bg-atelier-paper text-atelier-ink-2 hover:text-atelier-ink transition-all duration-fl-fast"
                 aria-label={
                   language === "vi"
                     ? "Switch language to English"
@@ -328,15 +328,16 @@ export default function Header() {
                 href={localize("/cart")}
                 onClick={() => setMobileOpen(false)}
                 aria-label={t.headerCart}
-                className="flex min-h-11 items-center gap-1.5 px-3 py-1 rounded-fl-pill hover:bg-atelier-paper text-atelier-ink transition-all duration-fl-fast text-fl-sm font-medium md:min-h-10"
+                className="flex min-h-10 items-center gap-1.5 px-2.5 py-1 rounded-surface hover:bg-atelier-paper text-atelier-ink transition-all duration-fl-fast text-fl-sm font-medium"
               >
                 <ShoppingCart className="h-4 w-4 text-atelier-ink" aria-hidden="true" />
                 <span className="hidden sm:inline text-fl-sm font-medium">{t.headerCart}</span>
                 <span
                   className={cn(
-                    "flex items-center justify-center text-[0.6875rem] font-semibold",
-                    "bg-atelier-ink text-atelier-paper rounded-fl-pill min-w-4 h-4 px-1.5 shrink-0",
-                    cartCount > 0 && "bg-atelier-accent text-atelier-accent-ink",
+                    "flex items-center justify-center text-[0.6875rem] font-bold rounded-[2px] min-w-4 h-4 px-1 shrink-0",
+                    cartCount > 0
+                      ? "bg-atelier-accent text-atelier-accent-ink"
+                      : "bg-atelier-ink text-atelier-paper",
                   )}
                   aria-hidden="true"
                 >
@@ -356,7 +357,7 @@ export default function Header() {
                       onClick={() => setIsAvatarOpen(!isAvatarOpen)}
                       aria-expanded={isAvatarOpen}
                       aria-haspopup="menu"
-                      className="flex h-7 w-7 items-center justify-center rounded-fl-pill bg-atelier-accent text-fl-2xs font-semibold text-atelier-accent-ink transition-transform hover:scale-105 shadow-xs"
+                      className="flex h-7 w-7 items-center justify-center rounded-control bg-atelier-accent text-fl-2xs font-bold text-atelier-accent-ink transition-transform hover:scale-105 shadow-xs"
                     >
                       {initials}
                     </button>
@@ -415,7 +416,7 @@ export default function Header() {
                   <Link
                     href={localize("/login")}
                     onClick={() => setMobileOpen(false)}
-                    className="hidden md:inline-flex items-center whitespace-nowrap rounded-fl-pill bg-atelier-accent px-3.5 py-1 text-fl-xs font-semibold text-atelier-accent-ink transition-colors duration-fl-fast hover:bg-atelier-accent-hover shadow-xs"
+                    className="hidden md:inline-flex items-center whitespace-nowrap rounded-control bg-atelier-accent px-3.5 py-1.5 text-fl-xs font-semibold text-atelier-accent-ink transition-colors duration-fl-fast hover:bg-atelier-accent-hover shadow-xs active:scale-[0.98]"
                   >
                     {t.headerLogin}
                   </Link>
@@ -423,14 +424,29 @@ export default function Header() {
               )}
             </div>
 
-            {/* Mobile Menu Trigger Button */}
+            {/* Mobile Menu Trigger Button with Animated Hamburger Morph */}
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-expanded={mobileOpen}
-              className="flex min-h-11 items-center whitespace-nowrap rounded-control border border-atelier-rule bg-atelier-paper-2 px-3.5 py-1 text-fl-2xs font-semibold uppercase tracking-[0.14em] text-atelier-ink transition-colors hover:bg-atelier-paper xl:hidden md:min-h-10"
+              aria-label={mobileOpen ? t.headerCloseMenu : t.headerMenu}
+              className="flex min-h-10 items-center gap-2 rounded-control border border-atelier-rule bg-atelier-paper-2 px-3 py-1.5 text-fl-2xs font-semibold uppercase tracking-[0.14em] text-atelier-ink transition-colors hover:bg-atelier-paper xl:hidden active:scale-[0.98]"
             >
-              {mobileOpen ? t.headerCloseMenu : t.headerMenu}
+              <span className="relative flex h-3.5 w-4 flex-col justify-between" aria-hidden="true">
+                <span
+                  className={cn(
+                    "h-0.5 w-full bg-current transition-all duration-fl-fast origin-center",
+                    mobileOpen && "translate-y-[5px] rotate-45",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "h-0.5 w-full bg-current transition-all duration-fl-fast origin-center",
+                    mobileOpen && "-translate-y-[5px] -rotate-45",
+                  )}
+                />
+              </span>
+              <span>{mobileOpen ? t.headerCloseMenu : t.headerMenu}</span>
             </button>
           </div>
         </div>
