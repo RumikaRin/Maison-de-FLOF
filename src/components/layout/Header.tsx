@@ -309,7 +309,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={switchLanguage}
-                className="hidden sm:inline-block px-2.5 py-1 text-fl-2xs font-semibold uppercase tracking-[0.14em] rounded-surface hover:bg-atelier-paper text-atelier-ink-2 hover:text-atelier-ink transition-all duration-fl-fast"
+                className="hidden sm:inline-flex min-h-11 items-center px-2.5 py-1 text-fl-2xs font-semibold uppercase tracking-[0.14em] rounded-surface hover:bg-atelier-paper text-atelier-ink-2 hover:text-atelier-ink transition-all duration-fl-fast"
                 aria-label={
                   language === "vi"
                     ? "Switch language to English"
@@ -328,7 +328,7 @@ export default function Header() {
                 href={localize("/cart")}
                 onClick={() => setMobileOpen(false)}
                 aria-label={t.headerCart}
-                className="flex min-h-10 items-center gap-1.5 px-2.5 py-1 rounded-surface hover:bg-atelier-paper text-atelier-ink transition-all duration-fl-fast text-fl-sm font-medium"
+                className="flex min-h-11 items-center gap-1.5 px-2.5 py-1 rounded-surface hover:bg-atelier-paper text-atelier-ink transition-all duration-fl-fast text-fl-sm font-medium"
               >
                 <ShoppingCart className="h-4 w-4 text-atelier-ink" aria-hidden="true" />
                 <span className="hidden sm:inline text-fl-sm font-medium">{t.headerCart}</span>
@@ -430,7 +430,7 @@ export default function Header() {
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-expanded={mobileOpen}
               aria-label={mobileOpen ? t.headerCloseMenu : t.headerMenu}
-              className="flex min-h-10 items-center gap-2 rounded-control border border-atelier-rule bg-atelier-paper-2 px-3 py-1.5 text-fl-2xs font-semibold uppercase tracking-[0.14em] text-atelier-ink transition-colors hover:bg-atelier-paper xl:hidden active:scale-[0.98]"
+              className="flex min-h-11 items-center gap-2 rounded-control border border-atelier-rule bg-atelier-paper-2 px-3 py-1.5 text-fl-2xs font-semibold uppercase tracking-[0.14em] text-atelier-ink transition-colors hover:bg-atelier-paper xl:hidden active:scale-[0.98]"
             >
               <span className="relative flex h-3.5 w-4 flex-col justify-between" aria-hidden="true">
                 <span

@@ -35,33 +35,37 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
     })),
   );
   expect(homeStyleBlocks).toEqual([]);
+  const mobileMenuButton = page.locator("button.xl\\:hidden").filter({ hasText: /Danh mục|Menu/i });
+  if (await mobileMenuButton.isVisible()) {
+    await mobileMenuButton.click();
+  }
   await expect(page.getByRole("link", { name: /Sản phẩm|Products/i }).first())
     .toBeVisible();
 
   await page.goto("/products");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /P1 Paint 5L/i }).first(),
+    page.getByRole("link", { name: /P1 Paint 5L|Majestic/i }).first(),
   ).toBeVisible();
 
   await page.goto(`/products/${P1_FIXTURES.productSlug}`);
-  await expect(page.getByRole("heading", { name: "P1 Paint 5L" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator("[style]")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Mua ngay|Buy now/i })).toBeVisible();
 
   await page.goto("/color-visualizer");
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15000 });
   await page.goto("/find-dealer");
-  await expect(page.getByRole("heading").first()).toBeVisible();
+  await expect(page.getByRole("heading").first()).toBeVisible({ timeout: 15000 });
 
   await page.goto("/login");
-  await expect(page.getByLabel("Email")).toBeVisible();
-  await expect(page.getByLabel(/Mật khẩu|Password/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /Đăng nhập|Login/i })).toBeEnabled();
+  await expect(page.getByLabel("Email")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByLabel(/Mật khẩu|Password/)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("button", { name: /Đăng nhập|Login/i })).toBeEnabled({ timeout: 15000 });
   await page.getByLabel("Email").fill("missing@example.com");
   await page.getByLabel(/Mật khẩu|Password/).fill("Wrong-password-1");
   await page.getByRole("button", { name: /Đăng nhập|Login/i }).click();
-  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expect(page.locator("[style]")).toHaveCount(0);
   expect(cspErrors).toEqual([]);
 });

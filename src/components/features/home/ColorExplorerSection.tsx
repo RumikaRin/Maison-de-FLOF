@@ -296,7 +296,7 @@ export function ColorExplorerSection({
                             ? `Yêu thích màu ${swatch.name}`
                             : `Favourite ${swatch.nameEn || swatch.name}`
                         }
-                        className="absolute right-fl-2xs top-fl-sm flex h-8 w-8 items-center justify-center rounded-control bg-atelier-paper/90 text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-danger"
+                        className="absolute right-fl-2xs top-fl-sm flex h-11 w-11 items-center justify-center rounded-control bg-atelier-paper/90 text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-danger"
                       >
                         <Heart
                           className={cn(

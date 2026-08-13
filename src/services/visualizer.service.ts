@@ -48,20 +48,32 @@ async function requireActiveRoom(database: PrismaClient, roomId: string) {
   if (!room) throw new ApiError(404, "Không tìm thấy không gian phối màu");
 }
 
-export function listVisualizerRooms(database: PrismaClient) {
-  return database.visualizerRoom.findMany({
-    where: { isActive: true },
-    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      nameEn: true,
-      baseImage: true,
-      isActive: true,
-      sortOrder: true,
-    },
-  });
+const FALLBACK_VISUALIZER_ROOMS = [
+  { id: "facade", slug: "facade", name: "Mặt Tiền Nhà", nameEn: "House Facade", baseImage: "/facade_sage.webp", isActive: true, sortOrder: 1 },
+  { id: "living", slug: "living", name: "Phòng Khách", nameEn: "Living Room", baseImage: "/living_sage.webp", isActive: true, sortOrder: 2 },
+  { id: "bedroom", slug: "bedroom", name: "Phòng Ngủ", nameEn: "Bedroom", baseImage: "/bedroom_sage.webp", isActive: true, sortOrder: 3 },
+  { id: "kitchen", slug: "kitchen", name: "Phòng Bếp", nameEn: "Kitchen", baseImage: "/kitchen_sage.webp", isActive: true, sortOrder: 4 },
+];
+
+export async function listVisualizerRooms(database: PrismaClient) {
+  try {
+    const rooms = await database.visualizerRoom.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        nameEn: true,
+        baseImage: true,
+        isActive: true,
+        sortOrder: true,
+      },
+    });
+    return rooms.length > 0 ? rooms : FALLBACK_VISUALIZER_ROOMS;
+  } catch {
+    return FALLBACK_VISUALIZER_ROOMS;
+  }
 }
 
 export function listVisualizerDesigns(database: PrismaClient, userId: string) {

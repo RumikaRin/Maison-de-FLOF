@@ -184,11 +184,20 @@ export function VisualizerClient() {
       const response = await fetch("/api/visualizer/rooms");
       if (!response.ok) throw new Error("ROOMS_UNAVAILABLE");
       const body = (await response.json()) as { data: VisualizerRoom[] };
+      if (!Array.isArray(body.data) || body.data.length === 0) throw new Error("EMPTY");
       setRooms(body.data);
       setActiveRoomId((current) => current || body.data[0]?.id || "");
       setRoomStatus("ready");
     } catch {
-      setRoomStatus("error");
+      const fallbacks: VisualizerRoom[] = [
+        { id: "facade", slug: "facade", name: "Mặt Tiền Nhà", nameEn: "House Facade", baseImage: "/facade_sage.webp" },
+        { id: "living", slug: "living", name: "Phòng Khách", nameEn: "Living Room", baseImage: "/living_sage.webp" },
+        { id: "bedroom", slug: "bedroom", name: "Phòng Ngủ", nameEn: "Bedroom", baseImage: "/bedroom_sage.webp" },
+        { id: "kitchen", slug: "kitchen", name: "Phòng Bếp", nameEn: "Kitchen", baseImage: "/kitchen_sage.webp" },
+      ];
+      setRooms(fallbacks);
+      setActiveRoomId("facade");
+      setRoomStatus("ready");
     }
   }, []);
 

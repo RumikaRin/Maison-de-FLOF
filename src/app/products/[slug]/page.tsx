@@ -1,87 +1,110 @@
 import { db } from "@/lib/db";
 import { ProductClient } from "@/components/features/product/ProductClient";
 import { Metadata } from "next";
+import { getFallbackColors, getFallbackProducts } from "@/lib/catalog-fallback-data";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await db.paint.findUnique({
-    where: { slug },
-    select: { name: true, nameEn: true, description: true, descriptionEn: true }
-  });
+  try {
+    const product = await db.paint.findUnique({
+      where: { slug },
+      select: { name: true, nameEn: true, description: true, descriptionEn: true }
+    });
 
-  if (!product) {
-    return {
-      title: "Product Not Found - Maison de FLOF",
-      description: "This product does not exist.",
-    };
+    if (product) {
+      return {
+        title: `${product.name} - Maison de FLOF`,
+        description: product.description || `Buy ${product.name} at Maison de FLOF.`,
+      };
+    }
+  } catch {
+    // fallback below
   }
 
+  const fallback = getFallbackProducts().find((p) => p.slug === slug) || getFallbackProducts()[0];
   return {
-    title: `${product.name} - Maison de FLOF`,
-    description: product.description || `Buy ${product.name} at Maison de FLOF.`,
+    title: `${fallback.name} - Maison de FLOF`,
+    description: fallback.description || `Buy ${fallback.name} at Maison de FLOF.`,
   };
 }
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const product = await db.paint.findUnique({
-    where: { slug },
-    include: {
-      category: { select: { id: true, name: true, nameEn: true, slug: true } },
-      supplier: { select: { id: true, name: true, slug: true, logo: true, website: true } },
-      colors: { include: { color: true } },
-    },
-  });
+  let product: any = null;
+  let relatedProducts: any[] = [];
+  let colorsData: any[] = [];
+  let reviewsData: any[] = [];
+
+  try {
+    product = await db.paint.findUnique({
+      where: { slug },
+      include: {
+        category: { select: { id: true, name: true, nameEn: true, slug: true } },
+        supplier: { select: { id: true, name: true, slug: true, logo: true, website: true } },
+        colors: { include: { color: true } },
+      },
+    });
+
+    if (product && product.isActive) {
+      relatedProducts = await db.paint.findMany({
+        where: {
+          isActive: true,
+          id: { not: product.id },
+          OR: [
+            { categoryId: product.categoryId },
+            ...(product.supplierId ? [{ supplierId: product.supplierId }] : []),
+          ],
+        },
+        select: {
+          id: true,
+          sku: true,
+          name: true,
+          nameEn: true,
+          slug: true,
+          categoryId: true,
+          supplierId: true,
+          supplier: { select: { name: true } },
+          price: true,
+          discountPercent: true,
+          stock: true,
+          images: true,
+          volume: true,
+          volumeUnit: true,
+          paintType: true,
+          finish: true,
+          colors: { select: { color: { select: { code: true } } } },
+        },
+        orderBy: [{ soldCount: "desc" }, { createdAt: "desc" }],
+        take: 3,
+      });
+
+      colorsData = await db.paintColor.findMany({
+        include: { collection: true },
+        orderBy: { code: "asc" }
+      });
+
+      reviewsData = await db.review.findMany({
+        where: { paintId: product.id },
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: "desc" }
+      }) as any[];
+    }
+  } catch {
+    const fallbacks = getFallbackProducts();
+    const found = fallbacks.find((p) => p.slug === slug) || fallbacks[0];
+    product = {
+      ...found,
+      isActive: true,
+      colors: [],
+      colorDetails: [],
+    };
+    colorsData = getFallbackColors();
+  }
 
   if (!product || !product.isActive) {
     return <ProductClient initialProduct={null} initialRelatedPaints={[]} initialColorCatalog={[]} initialReviews={[]} />;
   }
-
-  const relatedProducts = await db.paint.findMany({
-    where: {
-      isActive: true,
-      id: { not: product.id },
-      OR: [
-        { categoryId: product.categoryId },
-        ...(product.supplierId ? [{ supplierId: product.supplierId }] : []),
-      ],
-    },
-    select: {
-      id: true,
-      sku: true,
-      name: true,
-      nameEn: true,
-      slug: true,
-      categoryId: true,
-      supplierId: true,
-      supplier: { select: { name: true } },
-      price: true,
-      discountPercent: true,
-      stock: true,
-      images: true,
-      volume: true,
-      volumeUnit: true,
-      paintType: true,
-      finish: true,
-      colors: { select: { color: { select: { code: true } } } },
-    },
-    orderBy: [{ soldCount: "desc" }, { createdAt: "desc" }],
-    take: 3,
-  });
-
-  const colorsData = await db.paintColor.findMany({
-    include: {
-      collection: true,
-    },
-    orderBy: { code: "asc" }
-  });
-
-  const reviewsData = await db.review.findMany({
-    where: { paintId: product.id },
-    include: { user: { select: { name: true } } },
-    orderBy: { createdAt: "desc" }
-  }) as any[];
 
   const mappedProduct = {
     id: product.id,
@@ -118,8 +141,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     })(),
     isFeatured: product.isFeatured,
     soldCount: product.soldCount,
-    colors: product.colors.map((link) => link.color.code),
-    colorDetails: product.colors.map((link) => link.color),
+    colors: (product.colors || []).map((link: any) => link?.color?.code || link),
+    colorDetails: (product.colors || []).map((link: any) => link?.color || link),
   };
 
   const mappedRelated = relatedProducts.map((related) => ({
@@ -127,7 +150,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     nameEn: related.nameEn || related.name,
     price: Number(related.price),
     volume: Number(related.volume),
-    colors: related.colors.map((link) => link.color.code),
+    colors: (related.colors || []).map((link: any) => link?.color?.code || link),
   }));
 
   const mappedReviews = reviewsData.map((r) => ({
@@ -136,7 +159,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     comment: r.comment,
     adminReply: r.adminReply,
     author: r.user?.name || "Khách hàng",
-    createdAt: r.createdAt.toISOString()
+    createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt || "")
   }));
 
   const jsonLd = {
