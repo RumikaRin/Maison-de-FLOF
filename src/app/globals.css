@@ -982,43 +982,43 @@ next-route-announcer > div {
    before hydration). CascadeText renders one span per letter. */
 @media screen and (prefers-reduced-motion: no-preference) {
   @keyframes fl-letter-in {
-    from { opacity: 0; transform: translateY(0.5em); }
+    from { opacity: 0.85; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
   }
   .fl-letters > span {
     display: inline-block;
     white-space: pre;
-    animation: fl-letter-in var(--fl-dur-slow) var(--fl-ease-out) both;
+    animation: fl-letter-in var(--fl-dur-base) var(--fl-ease-out) both;
   }
-  .fl-letters > span:nth-child(1) { animation-delay: 55ms; }
-  .fl-letters > span:nth-child(2) { animation-delay: 110ms; }
-  .fl-letters > span:nth-child(3) { animation-delay: 165ms; }
-  .fl-letters > span:nth-child(4) { animation-delay: 220ms; }
-  .fl-letters > span:nth-child(5) { animation-delay: 275ms; }
-  .fl-letters > span:nth-child(6) { animation-delay: 330ms; }
-  .fl-letters > span:nth-child(7) { animation-delay: 385ms; }
-  .fl-letters > span:nth-child(8) { animation-delay: 440ms; }
-  .fl-letters > span:nth-child(9) { animation-delay: 495ms; }
-  .fl-letters > span:nth-child(10) { animation-delay: 550ms; }
-  .fl-letters > span:nth-child(11) { animation-delay: 605ms; }
-  .fl-letters > span:nth-child(12) { animation-delay: 660ms; }
-  .fl-letters > span:nth-child(13) { animation-delay: 715ms; }
-  .fl-letters > span:nth-child(14) { animation-delay: 770ms; }
-  .fl-letters > span:nth-child(15) { animation-delay: 825ms; }
-  .fl-letters > span:nth-child(16) { animation-delay: 880ms; }
-  .fl-letters > span:nth-child(17) { animation-delay: 935ms; }
-  .fl-letters > span:nth-child(18) { animation-delay: 990ms; }
-  .fl-letters > span:nth-child(19) { animation-delay: 1045ms; }
-  .fl-letters > span:nth-child(20) { animation-delay: 1100ms; }
-  .fl-letters > span:nth-child(21) { animation-delay: 1155ms; }
-  .fl-letters > span:nth-child(22) { animation-delay: 1210ms; }
-  .fl-letters > span:nth-child(23) { animation-delay: 1265ms; }
-  .fl-letters > span:nth-child(24) { animation-delay: 1320ms; }
-  .fl-letters > span:nth-child(25) { animation-delay: 1375ms; }
-  .fl-letters > span:nth-child(26) { animation-delay: 1430ms; }
-  .fl-letters > span:nth-child(27) { animation-delay: 1485ms; }
-  .fl-letters > span:nth-child(28) { animation-delay: 1540ms; }
-  .fl-letters > span:nth-child(n + 29) { animation-delay: 1595ms; }
+  .fl-letters > span:nth-child(1) { animation-delay: 15ms; }
+  .fl-letters > span:nth-child(2) { animation-delay: 30ms; }
+  .fl-letters > span:nth-child(3) { animation-delay: 45ms; }
+  .fl-letters > span:nth-child(4) { animation-delay: 60ms; }
+  .fl-letters > span:nth-child(5) { animation-delay: 75ms; }
+  .fl-letters > span:nth-child(6) { animation-delay: 90ms; }
+  .fl-letters > span:nth-child(7) { animation-delay: 105ms; }
+  .fl-letters > span:nth-child(8) { animation-delay: 120ms; }
+  .fl-letters > span:nth-child(9) { animation-delay: 135ms; }
+  .fl-letters > span:nth-child(10) { animation-delay: 150ms; }
+  .fl-letters > span:nth-child(11) { animation-delay: 165ms; }
+  .fl-letters > span:nth-child(12) { animation-delay: 180ms; }
+  .fl-letters > span:nth-child(13) { animation-delay: 195ms; }
+  .fl-letters > span:nth-child(14) { animation-delay: 210ms; }
+  .fl-letters > span:nth-child(15) { animation-delay: 225ms; }
+  .fl-letters > span:nth-child(16) { animation-delay: 240ms; }
+  .fl-letters > span:nth-child(17) { animation-delay: 255ms; }
+  .fl-letters > span:nth-child(18) { animation-delay: 270ms; }
+  .fl-letters > span:nth-child(19) { animation-delay: 285ms; }
+  .fl-letters > span:nth-child(20) { animation-delay: 300ms; }
+  .fl-letters > span:nth-child(21) { animation-delay: 315ms; }
+  .fl-letters > span:nth-child(22) { animation-delay: 330ms; }
+  .fl-letters > span:nth-child(23) { animation-delay: 345ms; }
+  .fl-letters > span:nth-child(24) { animation-delay: 360ms; }
+  .fl-letters > span:nth-child(25) { animation-delay: 375ms; }
+  .fl-letters > span:nth-child(26) { animation-delay: 390ms; }
+  .fl-letters > span:nth-child(27) { animation-delay: 405ms; }
+  .fl-letters > span:nth-child(28) { animation-delay: 420ms; }
+  .fl-letters > span:nth-child(n + 29) { animation-delay: 435ms; }
   /* Opts an element out of the .fl-hero-cascade line animation so the letter
      cascade is the only motion it carries. */
   .fl-hero-cascade > .fl-cascade-skip { animation: none; }

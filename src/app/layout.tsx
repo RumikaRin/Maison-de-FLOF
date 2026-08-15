@@ -75,6 +75,14 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <link
+          rel="preload"
+          as="image"
+          href="/generated/hero-cinematic.jpg"
+          fetchPriority="high"
+        />
+      </head>
       <body
         suppressHydrationWarning
         className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-atelier-paper text-atelier-ink`}

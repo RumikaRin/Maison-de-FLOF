@@ -55,6 +55,42 @@ export function HomePageSkeleton() {
           </div>
         </div>
       </section>
+
+      {/* Expert Journal / Blogs Section Skeleton */}
+      <section className="fl-drench-mineral py-fl-3xl md:py-fl-4xl">
+        <div className="mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)]">
+          <div className="flex flex-col gap-fl-sm sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="h-4 w-28 rounded bg-atelier-paper-2" />
+              <div className="mt-fl-xs h-8 w-60 rounded bg-atelier-paper-2" />
+            </div>
+            <div className="h-4 w-24 rounded bg-atelier-paper-2" />
+          </div>
+
+          <div className="mt-fl-lg grid grid-cols-1 gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
+            <div className="lg:col-span-7">
+              <div className="aspect-[16/10] w-full rounded-surface bg-atelier-paper-2" />
+              <div className="mt-fl-sm h-4 w-32 rounded bg-atelier-paper-2" />
+              <div className="mt-fl-xs h-6 w-3/4 rounded bg-atelier-paper-2" />
+              <div className="mt-fl-xs h-10 w-full rounded bg-atelier-paper-2" />
+            </div>
+            <div className="lg:col-span-5 lg:border-l lg:border-atelier-rule lg:pl-fl-lg">
+              <div className="flex flex-col gap-fl-md">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-5 gap-fl-sm py-fl-md border-b border-atelier-rule">
+                    <div className="col-span-2 aspect-[4/3] rounded-surface bg-atelier-paper-2" />
+                    <div className="col-span-3 flex flex-col justify-center gap-2">
+                      <div className="h-3 w-16 rounded bg-atelier-paper-2" />
+                      <div className="h-4 w-full rounded bg-atelier-paper-2" />
+                      <div className="h-3 w-4/5 rounded bg-atelier-paper-2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
