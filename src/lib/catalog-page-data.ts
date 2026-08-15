@@ -165,7 +165,13 @@ export async function getCachedProductsPageData() {
   try {
     const { unstable_cache } = await import("next/cache");
     const cachedFn = unstable_cache(
-      () => getProductsPageData(db),
+      async () => {
+        const data = await getProductsPageData(db);
+        if (data.source === "fallback") {
+          throw new Error("Temporary database fallback, bypass cache");
+        }
+        return data;
+      },
       ["flof-products-page-data"],
       { revalidate: 300, tags: ["products-page", "catalog"] },
     );
@@ -174,6 +180,7 @@ export async function getCachedProductsPageData() {
     return getProductsPageData(db);
   }
 }
+
 
 export async function getCachedColorsPageData() {
   const { db } = await import("./db.ts");

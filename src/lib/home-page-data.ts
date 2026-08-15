@@ -130,7 +130,13 @@ export async function getCachedHomePageData(): Promise<HomePageData> {
   try {
     const { unstable_cache } = await import("next/cache");
     const cachedFn = unstable_cache(
-      () => getHomePageData(db),
+      async () => {
+        const data = await getHomePageData(db);
+        if (data.source === "fallback") {
+          throw new Error("Temporary database fallback, bypass cache");
+        }
+        return data;
+      },
       ["flof-home-page-data"],
       { revalidate: 300, tags: ["home-page", "catalog"] },
     );
@@ -139,4 +145,5 @@ export async function getCachedHomePageData(): Promise<HomePageData> {
     return getHomePageData(db);
   }
 }
+
 
