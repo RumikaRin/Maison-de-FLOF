@@ -1,9 +1,10 @@
 import { HomeClient } from "@/components/features/home/HomeClient";
 import { HeroSection } from "@/components/features/home/HeroSection";
 import { Metadata } from "next";
-import { db } from "@/lib/db";
-import { getHomePageData } from "@/lib/home-page-data";
+import { getCachedHomePageData } from "@/lib/home-page-data";
 import { Suspense } from "react";
+
+import { HomePageSkeleton } from "@/components/features/home/HomePageSkeleton";
 
 export const revalidate = 300;
 
@@ -16,7 +17,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <Suspense fallback={<div className="min-h-[24rem] bg-atelier-paper" />}>
+      <Suspense fallback={<HomePageSkeleton />}>
         <HomePageSections />
       </Suspense>
     </>
@@ -30,7 +31,7 @@ async function HomePageSections() {
     mappedBlogs,
     source,
     commerceAvailable,
-  } = await getHomePageData(db);
+  } = await getCachedHomePageData();
 
   return (
     <HomeClient

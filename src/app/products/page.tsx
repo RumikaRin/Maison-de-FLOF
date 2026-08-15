@@ -1,7 +1,8 @@
 import { Metadata } from "next";
-import { db } from "@/lib/db";
 import { ProductsClient } from "@/components/features/product/ProductsClient";
-import { getProductsPageData } from "@/lib/catalog-page-data";
+import { getCachedProductsPageData } from "@/lib/catalog-page-data";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Sản phẩm sơn nước - Maison de FLOF",
@@ -14,7 +15,7 @@ export default async function ProductsPage() {
     categories,
     suppliers,
     commerceAvailable,
-  } = await getProductsPageData(db);
+  } = await getCachedProductsPageData();
 
   return (
     <ProductsClient

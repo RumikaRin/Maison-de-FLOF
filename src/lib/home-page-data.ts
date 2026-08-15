@@ -124,3 +124,19 @@ export async function getHomePageData(database: HomePageDatabase): Promise<HomeP
     return getFallbackHomePageData();
   }
 }
+
+export async function getCachedHomePageData(): Promise<HomePageData> {
+  const { db } = await import("./db.ts");
+  try {
+    const { unstable_cache } = await import("next/cache");
+    const cachedFn = unstable_cache(
+      () => getHomePageData(db),
+      ["flof-home-page-data"],
+      { revalidate: 300, tags: ["home-page", "catalog"] },
+    );
+    return await cachedFn();
+  } catch {
+    return getHomePageData(db);
+  }
+}
+

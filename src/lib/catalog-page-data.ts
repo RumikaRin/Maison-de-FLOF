@@ -159,3 +159,34 @@ export async function getColorsPageData(database: ColorsPageDatabase) {
     return getFallbackColors();
   }
 }
+
+export async function getCachedProductsPageData() {
+  const { db } = await import("./db.ts");
+  try {
+    const { unstable_cache } = await import("next/cache");
+    const cachedFn = unstable_cache(
+      () => getProductsPageData(db),
+      ["flof-products-page-data"],
+      { revalidate: 300, tags: ["products-page", "catalog"] },
+    );
+    return await cachedFn();
+  } catch {
+    return getProductsPageData(db);
+  }
+}
+
+export async function getCachedColorsPageData() {
+  const { db } = await import("./db.ts");
+  try {
+    const { unstable_cache } = await import("next/cache");
+    const cachedFn = unstable_cache(
+      () => getColorsPageData(db),
+      ["flof-colors-page-data"],
+      { revalidate: 300, tags: ["colors-page", "catalog"] },
+    );
+    return await cachedFn();
+  } catch {
+    return getColorsPageData(db);
+  }
+}
+

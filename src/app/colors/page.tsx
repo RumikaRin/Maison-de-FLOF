@@ -1,7 +1,8 @@
 import { Metadata } from "next";
-import { db } from "@/lib/db";
 import { ColorsClient } from "@/components/features/colors/ColorsClient";
-import { getColorsPageData } from "@/lib/catalog-page-data";
+import { getCachedColorsPageData } from "@/lib/catalog-page-data";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Bảng màu sơn nước - Maison de FLOF",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ColorsPage() {
-  const mappedColors = await getColorsPageData(db);
+  const mappedColors = await getCachedColorsPageData();
 
   return <ColorsClient initialColors={mappedColors} />;
 }
