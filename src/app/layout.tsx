@@ -14,6 +14,7 @@ import { CspToaster } from "@/components/ui/csp-toast";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { GlobalNavigationLoader } from "@/components/layout/GlobalNavigationLoader";
 import { LazyChatBubble } from "@/components/layout/LazyChatBubble";
+import { AppRouterAnnouncer } from "@/components/csp-app-router-announcer";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -140,6 +141,7 @@ export default async function RootLayout({
             </ThemeProvider>
           </QueryProvider>
         </SessionProvider>
+        <AppRouterAnnouncer />
       </body>
     </html>
   );
