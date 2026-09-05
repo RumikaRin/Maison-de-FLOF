@@ -985,40 +985,41 @@ next-route-announcer > div {
     from { opacity: 0.85; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .fl-letters > span {
+  .fl-letters > span,
+  .fl-letter {
     display: inline-block;
     white-space: pre;
     animation: fl-letter-in var(--fl-dur-base) var(--fl-ease-out) both;
   }
-  .fl-letters > span:nth-child(1) { animation-delay: 15ms; }
-  .fl-letters > span:nth-child(2) { animation-delay: 30ms; }
-  .fl-letters > span:nth-child(3) { animation-delay: 45ms; }
-  .fl-letters > span:nth-child(4) { animation-delay: 60ms; }
-  .fl-letters > span:nth-child(5) { animation-delay: 75ms; }
-  .fl-letters > span:nth-child(6) { animation-delay: 90ms; }
-  .fl-letters > span:nth-child(7) { animation-delay: 105ms; }
-  .fl-letters > span:nth-child(8) { animation-delay: 120ms; }
-  .fl-letters > span:nth-child(9) { animation-delay: 135ms; }
-  .fl-letters > span:nth-child(10) { animation-delay: 150ms; }
-  .fl-letters > span:nth-child(11) { animation-delay: 165ms; }
-  .fl-letters > span:nth-child(12) { animation-delay: 180ms; }
-  .fl-letters > span:nth-child(13) { animation-delay: 195ms; }
-  .fl-letters > span:nth-child(14) { animation-delay: 210ms; }
-  .fl-letters > span:nth-child(15) { animation-delay: 225ms; }
-  .fl-letters > span:nth-child(16) { animation-delay: 240ms; }
-  .fl-letters > span:nth-child(17) { animation-delay: 255ms; }
-  .fl-letters > span:nth-child(18) { animation-delay: 270ms; }
-  .fl-letters > span:nth-child(19) { animation-delay: 285ms; }
-  .fl-letters > span:nth-child(20) { animation-delay: 300ms; }
-  .fl-letters > span:nth-child(21) { animation-delay: 315ms; }
-  .fl-letters > span:nth-child(22) { animation-delay: 330ms; }
-  .fl-letters > span:nth-child(23) { animation-delay: 345ms; }
-  .fl-letters > span:nth-child(24) { animation-delay: 360ms; }
-  .fl-letters > span:nth-child(25) { animation-delay: 375ms; }
-  .fl-letters > span:nth-child(26) { animation-delay: 390ms; }
-  .fl-letters > span:nth-child(27) { animation-delay: 405ms; }
-  .fl-letters > span:nth-child(28) { animation-delay: 420ms; }
-  .fl-letters > span:nth-child(n + 29) { animation-delay: 435ms; }
+  .fl-letters > span:nth-child(1), .fl-delay-1 { animation-delay: 15ms; }
+  .fl-letters > span:nth-child(2), .fl-delay-2 { animation-delay: 30ms; }
+  .fl-letters > span:nth-child(3), .fl-delay-3 { animation-delay: 45ms; }
+  .fl-letters > span:nth-child(4), .fl-delay-4 { animation-delay: 60ms; }
+  .fl-letters > span:nth-child(5), .fl-delay-5 { animation-delay: 75ms; }
+  .fl-letters > span:nth-child(6), .fl-delay-6 { animation-delay: 90ms; }
+  .fl-letters > span:nth-child(7), .fl-delay-7 { animation-delay: 105ms; }
+  .fl-letters > span:nth-child(8), .fl-delay-8 { animation-delay: 120ms; }
+  .fl-letters > span:nth-child(9), .fl-delay-9 { animation-delay: 135ms; }
+  .fl-letters > span:nth-child(10), .fl-delay-10 { animation-delay: 150ms; }
+  .fl-letters > span:nth-child(11), .fl-delay-11 { animation-delay: 165ms; }
+  .fl-letters > span:nth-child(12), .fl-delay-12 { animation-delay: 180ms; }
+  .fl-letters > span:nth-child(13), .fl-delay-13 { animation-delay: 195ms; }
+  .fl-letters > span:nth-child(14), .fl-delay-14 { animation-delay: 210ms; }
+  .fl-letters > span:nth-child(15), .fl-delay-15 { animation-delay: 225ms; }
+  .fl-letters > span:nth-child(16), .fl-delay-16 { animation-delay: 240ms; }
+  .fl-letters > span:nth-child(17), .fl-delay-17 { animation-delay: 255ms; }
+  .fl-letters > span:nth-child(18), .fl-delay-18 { animation-delay: 270ms; }
+  .fl-letters > span:nth-child(19), .fl-delay-19 { animation-delay: 285ms; }
+  .fl-letters > span:nth-child(20), .fl-delay-20 { animation-delay: 300ms; }
+  .fl-letters > span:nth-child(21), .fl-delay-21 { animation-delay: 315ms; }
+  .fl-letters > span:nth-child(22), .fl-delay-22 { animation-delay: 330ms; }
+  .fl-letters > span:nth-child(23), .fl-delay-23 { animation-delay: 345ms; }
+  .fl-letters > span:nth-child(24), .fl-delay-24 { animation-delay: 360ms; }
+  .fl-letters > span:nth-child(25), .fl-delay-25 { animation-delay: 375ms; }
+  .fl-letters > span:nth-child(26), .fl-delay-26 { animation-delay: 390ms; }
+  .fl-letters > span:nth-child(27), .fl-delay-27 { animation-delay: 405ms; }
+  .fl-letters > span:nth-child(28), .fl-delay-28 { animation-delay: 420ms; }
+  .fl-letters > span:nth-child(n + 29), .fl-delay-29 { animation-delay: 435ms; }
   /* Opts an element out of the .fl-hero-cascade line animation so the letter
      cascade is the only motion it carries. */
   .fl-hero-cascade > .fl-cascade-skip { animation: none; }
@@ -1417,3 +1418,58 @@ next-route-announcer > div {
   background-color: rgba(26, 24, 20, 0.5);
   backdrop-filter: blur(4px);
 }
+
+/* ============================================================
+   GPU-COMPOSITED CSS KEYFRAMES & UTILITIES (Zero-runtime motion)
+   ============================================================ */
+@keyframes flFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes flSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flSpring {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.fl-animate-fade-in {
+  animation: flFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fl-animate-slide-up {
+  animation: flSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fl-animate-spring {
+  animation: flSpring 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-animate-fade-in,
+  .fl-animate-slide-up,
+  .fl-animate-spring {
+    animation: none !important;
+  }
+}
+

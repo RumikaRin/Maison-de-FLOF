@@ -485,7 +485,7 @@ export function ProductsClient({
             transition={{ duration: 0.24 }}
             data-mobile-grid={mobileGridCols}
             className={cn(
-              "mt-fl-sm grid gap-x-fl-md gap-y-fl-lg md:grid-cols-4",
+              "mt-fl-sm grid gap-x-fl-md gap-y-fl-lg md:grid-cols-4 fl-animate-fade-in",
               mobileGridCols === 1 ? "grid-cols-1" : "grid-cols-2",
             )}
           >

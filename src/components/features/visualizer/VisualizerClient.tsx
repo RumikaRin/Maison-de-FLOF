@@ -388,7 +388,7 @@ export function VisualizerClient() {
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0"
+          className="absolute inset-0 fl-animate-fade-in"
         >
           <Image
             src="/facade_sage.webp"
@@ -500,7 +500,7 @@ export function VisualizerClient() {
                   animate={{ opacity: 1 }}
                   exit={reduceMotion ? undefined : { opacity: 0 }}
                   transition={{ duration: 0.24 }}
-                  className="absolute inset-0"
+                  className="absolute inset-0 fl-animate-fade-in"
                 >
                   <Image
                     src={imageSrc}

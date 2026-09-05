@@ -109,32 +109,8 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Variants for staggered entrance animation
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 12 },
-    show: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
-        type: "spring", 
-        stiffness: 260, 
-        damping: 25 
-      } 
-    }
-  };
-
   return (
-    <div className="flex flex-col gap-6 text-left">
+    <div className="flex flex-col gap-6 text-left fl-animate-slide-up">
       {/* Title with subtle spring reveal */}
       <safeMotion.div
         initial={{ opacity: 0, x: -10 }}
@@ -177,7 +153,6 @@ export default function AdminDashboardPage() {
 
       {/* Grid of stats with staggered spring-up and interactive scale on hover */}
       <safeMotion.div 
-        variants={containerVariants}
         initial="hidden"
         animate="show"
         className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
@@ -185,7 +160,6 @@ export default function AdminDashboardPage() {
         {stats.map((stat, index) => {
           return (
             <safeMotion.div
-              variants={itemVariants}
               key={index}
               className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
             >

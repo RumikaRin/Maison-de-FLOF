@@ -152,7 +152,7 @@ export function ChatBubble() {
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
-            className="w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-3xl border border-warm-200 bg-white shadow-2xl flex flex-col h-[480px] max-h-[80vh]"
+            className="w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-3xl border border-warm-200 bg-white shadow-2xl flex flex-col h-[480px] max-h-[80vh] fl-animate-spring"
           >
             <div className="flex items-center justify-between bg-warm-950 px-5 py-4 text-white shrink-0">
               <div>
