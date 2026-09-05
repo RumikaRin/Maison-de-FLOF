@@ -6,6 +6,10 @@ import {
   appendCustomerMessage,
   getConversationForUser,
 } from "@/lib/customer-workflow-service";
+import {
+  getConversationLastModified,
+  isNotModified,
+} from "@/lib/chat/polling";
 
 export async function GET(request: Request) {
   try {
@@ -15,7 +19,24 @@ export async function GET(request: Request) {
     }
 
     const conversation = await getConversationForUser(db, session.user.id);
-    return Response.json(conversation || { messages: [] });
+    const lastModifiedDate = getConversationLastModified(conversation);
+    const lastModifiedHeader = lastModifiedDate.toUTCString();
+
+    const ifModifiedSince = request.headers.get("if-modified-since");
+    if (isNotModified(lastModifiedDate.getTime(), ifModifiedSince)) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          "Last-Modified": lastModifiedHeader,
+        },
+      });
+    }
+
+    return Response.json(conversation || { messages: [] }, {
+      headers: {
+        "Last-Modified": lastModifiedHeader,
+      },
+    });
   } catch (error) {
     return apiErrorResponse(error);
   }

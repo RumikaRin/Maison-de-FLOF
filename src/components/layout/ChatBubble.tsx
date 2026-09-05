@@ -10,6 +10,10 @@ import { Facebook, MessageCircle, Send, X, User as UserIcon } from "lucide-react
 import { toast } from "@/components/ui/csp-toast";
 import { useLanguageStore } from "@/store/language-store";
 import { useSession } from "next-auth/react";
+import {
+  calculateNextChatDelay,
+  CHAT_POLL_INITIAL_DELAY,
+} from "@/lib/chat/polling";
 
 const messengerUrl = process.env.NEXT_PUBLIC_MESSENGER_URL || "https://m.me/maisondeflof";
 
@@ -38,27 +42,108 @@ export function ChatBubble() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastModifiedRef = useRef<string | null>(null);
+  const currentDelayRef = useRef<number>(CHAT_POLL_INITIAL_DELAY);
+  const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const triggerImmediatePollRef = useRef<(() => void) | null>(null);
 
   // Polling for live chat messages
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (open && view === "live-chat" && session?.user) {
-      const fetchMessages = async () => {
-        try {
-          const res = await fetch("/api/chat/conversation");
-          if (res.ok) {
-            const data = await res.json();
-            setMessages(data.messages || []);
-          }
-        } catch (error) {
-          console.error("Failed to fetch messages", error);
-        }
-      };
-      
-      fetchMessages();
-      interval = setInterval(fetchMessages, 3000); // Poll every 3 seconds
+    if (!open || view !== "live-chat" || !session?.user) {
+      return;
     }
-    return () => clearInterval(interval);
+
+    let isCancelled = false;
+    currentDelayRef.current = CHAT_POLL_INITIAL_DELAY;
+    lastModifiedRef.current = null;
+
+    const clearScheduledTimer = () => {
+      if (pollTimerRef.current) {
+        clearTimeout(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+
+    const scheduleNext = () => {
+      clearScheduledTimer();
+      if (isCancelled || (typeof document !== "undefined" && document.hidden)) {
+        return;
+      }
+      pollTimerRef.current = setTimeout(() => {
+        void executePoll();
+      }, currentDelayRef.current);
+    };
+
+    const executePoll = async () => {
+      clearScheduledTimer();
+      if (isCancelled || (typeof document !== "undefined" && document.hidden)) {
+        return;
+      }
+
+      try {
+        const headers: Record<string, string> = {};
+        if (lastModifiedRef.current) {
+          headers["If-Modified-Since"] = lastModifiedRef.current;
+        }
+
+        const res = await fetch("/api/chat/conversation", { headers });
+        if (isCancelled) return;
+
+        if (res.status === 304) {
+          currentDelayRef.current = calculateNextChatDelay(
+            currentDelayRef.current,
+            "not_modified",
+          );
+        } else if (res.ok) {
+          const mod = res.headers.get("Last-Modified");
+          if (mod) {
+            lastModifiedRef.current = mod;
+          }
+          const data = await res.json();
+          if (isCancelled) return;
+          setMessages(data.messages || []);
+          currentDelayRef.current = CHAT_POLL_INITIAL_DELAY;
+        }
+      } catch (error) {
+        console.error("Failed to fetch messages", error);
+        currentDelayRef.current = calculateNextChatDelay(
+          currentDelayRef.current,
+          "error",
+        );
+      } finally {
+        if (!isCancelled) {
+          scheduleNext();
+        }
+      }
+    };
+
+    const triggerImmediatePoll = () => {
+      clearScheduledTimer();
+      currentDelayRef.current = CHAT_POLL_INITIAL_DELAY;
+      void executePoll();
+    };
+
+    triggerImmediatePollRef.current = triggerImmediatePoll;
+
+    const handleVisibility = () => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        triggerImmediatePoll();
+      } else {
+        clearScheduledTimer();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    // Trigger initial poll
+    triggerImmediatePoll();
+
+    return () => {
+      isCancelled = true;
+      triggerImmediatePollRef.current = null;
+      clearScheduledTimer();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [open, view, session?.user]);
 
   // Auto scroll to bottom in live chat
@@ -120,6 +205,8 @@ export function ChatBubble() {
       if (!response.ok) {
         throw new Error("Failed to send");
       }
+      lastModifiedRef.current = null;
+      triggerImmediatePollRef.current?.();
     } catch (error) {
       toast.error(language === "vi" ? "Lỗi gửi tin nhắn" : "Failed to send message");
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
