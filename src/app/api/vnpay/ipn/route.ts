@@ -1,6 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import { paymentService } from "@/services/vnpay.service";
 import { markPaymentPaidAndConfirmOrder } from "@/services/order-lifecycle.service";
+import { processEmailOutboxRecord } from "@/lib/process-email-outbox";
+import { sendOrderConfirmationEmail } from "@/lib/email";
+import { writeOperationalLog } from "@/lib/operations/log";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -12,6 +16,9 @@ export async function GET(request: NextRequest) {
     // Signature first: a callback whose HMAC does not verify is rejected before
     // anything is read from it, regardless of its claimed response code.
     if (!result.isVerified) {
+      writeOperationalLog("warn", "vnpay.ipn.invalid_signature", {
+        orderId: query.vnp_TxnRef,
+      });
       return NextResponse.json({ RspCode: "97", Message: "Invalid signature" }, { status: 200 });
     }
 
@@ -51,9 +58,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ RspCode: "02", Message: "Order already confirmed" }, { status: 200 });
     }
 
+    after(async () => {
+      try {
+        const order = await db.order.findUnique({
+          where: { id: result.orderId },
+          select: { orderNumber: true },
+        });
+        if (!order) return;
+        const pending = await db.emailOutbox.findFirst({
+          where: {
+            type: "ORDER_CONFIRMATION",
+            status: "PENDING",
+            payload: {
+              path: ["orderNumber"],
+              equals: order.orderNumber,
+            },
+          },
+        });
+        if (pending) {
+          await processEmailOutboxRecord(db, pending, sendOrderConfirmationEmail);
+        }
+      } catch (error) {
+        console.error("Failed to process background email outbox for order:", result.orderId, error);
+      }
+    });
+
     return NextResponse.json({ RspCode: "00", Message: "Confirm Success" }, { status: 200 });
   } catch (error) {
-    console.error("VNPay IPN error:", error);
+    writeOperationalLog("error", "vnpay.ipn.unexpected_error", {
+      name: error instanceof Error ? error.name : typeof error,
+    });
     return NextResponse.json({ RspCode: "99", Message: "Unknown error" }, { status: 200 });
   }
 }
