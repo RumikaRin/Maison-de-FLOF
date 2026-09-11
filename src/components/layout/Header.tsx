@@ -443,15 +443,15 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Mobile Menu Trigger Button with Animated Hamburger Morph */}
+            {/* Mobile Menu Trigger Button with Animated Hamburger Morph and Equal Synchronized Width */}
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-expanded={mobileOpen}
               aria-label={mobileOpen ? t.headerCloseMenu : t.headerMenu}
-              className="flex min-h-11 items-center gap-2 rounded-control border border-atelier-rule bg-atelier-paper-2 px-3 py-1.5 text-fl-2xs font-semibold uppercase tracking-[0.14em] text-atelier-ink transition-colors hover:bg-atelier-paper xl:hidden active:scale-[0.98]"
+              className="flex min-h-11 w-[7.75rem] items-center justify-start gap-2 rounded-control border border-atelier-rule bg-atelier-paper-2 px-3 py-1.5 text-fl-2xs font-semibold uppercase tracking-[0.14em] text-atelier-ink transition-colors hover:bg-atelier-paper xl:hidden active:scale-[0.98]"
             >
-              <span className="relative flex h-3.5 w-4 flex-col justify-between" aria-hidden="true">
+              <span className="relative flex h-3.5 w-4 shrink-0 flex-col justify-between" aria-hidden="true">
                 <span
                   className={cn(
                     "h-0.5 w-full bg-current transition-all duration-fl-fast origin-center",
@@ -465,7 +465,9 @@ export default function Header() {
                   )}
                 />
               </span>
-              <span>{mobileOpen ? t.headerCloseMenu : t.headerMenu}</span>
+              <span className="flex-1 text-left whitespace-nowrap">
+                {mobileOpen ? t.headerCloseMenu : t.headerMenu}
+              </span>
             </button>
           </div>
         </div>
