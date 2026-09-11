@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Noto_Sans, Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { SmoothScrollProvider } from "@/providers/smooth-scroll-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { SessionProvider } from "@/providers/session-provider";
 import Header from "@/components/layout/Header";
@@ -119,25 +120,27 @@ export default async function RootLayout({
               enableColorScheme={false}
               nonce={nonce}
             >
-              <Header />
-              <CartSync />
-              <MainLayoutWrapper>
-                {children}
-              </MainLayoutWrapper>
-              <Footer />
-              <MobileBottomBar />
-              <CspToaster />
-              <ScrollToTop />
-              <LazyChatBubble />
-              <Suspense fallback={null}>
-                <GlobalNavigationLoader />
-              </Suspense>
-              {enableVercelTelemetry ? (
-                <>
-                  <Analytics />
-                  <SpeedInsights />
-                </>
-              ) : null}
+              <SmoothScrollProvider>
+                <Header />
+                <CartSync />
+                <MainLayoutWrapper>
+                  {children}
+                </MainLayoutWrapper>
+                <Footer />
+                <MobileBottomBar />
+                <CspToaster />
+                <ScrollToTop />
+                <LazyChatBubble />
+                <Suspense fallback={null}>
+                  <GlobalNavigationLoader />
+                </Suspense>
+                {enableVercelTelemetry ? (
+                  <>
+                    <Analytics />
+                    <SpeedInsights />
+                  </>
+                ) : null}
+              </SmoothScrollProvider>
             </ThemeProvider>
           </QueryProvider>
         </SessionProvider>
