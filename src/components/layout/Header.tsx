@@ -11,7 +11,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useTrans } from "@/lib/dictionary";
 import { useCartStore } from "@/store/cart-store";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ShoppingCart } from "lucide-react";
+import { ChevronDown, ShoppingCart, User } from "lucide-react";
 import { MobileSheet } from "@/components/ui/mobile-sheet";
 import { useLocaleNavigation } from "@/hooks/use-locale-navigation";
 import { ColorSwatch } from "@/components/ui/color-swatch";
@@ -157,7 +157,7 @@ export default function Header() {
       <header
         className={cn(
           "fixed inset-x-0 top-0 z-50 border-b bg-atelier-paper",
-          "motion-safe:transition-colors motion-safe:duration-fl-base motion-safe:ease-fl-out",
+          "motion-safe:transition-all motion-safe:duration-fl-base motion-safe:ease-fl-out",
           condensed ? "border-atelier-rule-strong shadow-xs" : "border-atelier-rule",
         )}
       >
@@ -424,6 +424,25 @@ export default function Header() {
               )}
             </div>
 
+            {/* Mobile User / Profile Quick Action */}
+            {isAuthenticated ? (
+              <Link
+                href={localize("/profile")}
+                aria-label={t.headerAccount}
+                className="flex h-9 w-9 items-center justify-center rounded-control bg-atelier-accent text-[11px] font-bold text-atelier-accent-ink shadow-xs xl:hidden active:scale-95"
+              >
+                {initials}
+              </Link>
+            ) : (
+              <Link
+                href={localize("/login")}
+                aria-label={t.headerLogin}
+                className="flex h-9 w-9 items-center justify-center rounded-control border border-atelier-rule bg-atelier-paper-2 text-atelier-ink hover:bg-atelier-paper xl:hidden active:scale-95"
+              >
+                <User className="h-4 w-4" />
+              </Link>
+            )}
+
             {/* Mobile Menu Trigger Button with Animated Hamburger Morph */}
             <button
               type="button"
@@ -451,16 +470,16 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Scrim — dim only */}
-        {openPanel ? (
-          <div
-            aria-hidden="true"
-            className={cn(
-              "fixed inset-x-0 -z-10 h-screen bg-atelier-espresso/25",
-              condensed ? "top-14 md:top-16" : "top-16 md:top-[4.5rem]",
-            )}
-          />
-        ) : null}
+        {/* Scrim — smooth opacity transition without flicker */}
+        <div
+          aria-hidden="true"
+          onClick={() => closePanel()}
+          className={cn(
+            "fixed inset-x-0 -z-10 h-screen bg-atelier-espresso/25 transition-opacity duration-300 ease-fl-out cursor-pointer",
+            condensed ? "top-14 md:top-16" : "top-16 md:top-[4.5rem]",
+            openPanel ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+          )}
+        />
       </header>
 
       <MobileSheet
@@ -601,8 +620,9 @@ function MegaPanel({
   return (
     <div
       id={id}
-      hidden={!open}
-      className="fl-panel-in absolute inset-x-0 top-full border-t border-atelier-rule bg-atelier-paper shadow-[0_16px_40px_rgb(0_0_0/0.10)]"
+      role="region"
+      aria-hidden={!open}
+      className={cn("fl-mega-panel", open && "is-open")}
     >
       <div className="mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] py-fl-lg">
         {children}
@@ -655,7 +675,7 @@ function ColourPanel({
 }) {
   return (
     <div className="grid grid-cols-12 gap-fl-lg">
-      <div className="col-span-8 flex flex-col justify-between">
+      <div className="fl-panel-col-1 col-span-8 flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-fl-xs">
             <span className="fl-label">{t.headerColourPanelTitle}</span>
@@ -691,7 +711,7 @@ function ColourPanel({
         </TypographicLink>
       </div>
 
-      <div className="col-span-4">
+      <div className="fl-panel-promo col-span-4">
         <PanelPromo
           title={t.headerPromoVisualizerTitle}
           body={t.headerPromoVisualizerBody}
@@ -715,7 +735,7 @@ function ProductPanel({
 }) {
   return (
     <div className="grid grid-cols-12 gap-fl-lg">
-      <div className="col-span-8 flex flex-col justify-between">
+      <div className="fl-panel-col-1 col-span-8 flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-fl-xs">
             <span className="fl-label">{t.headerProductPanelTitle}</span>
@@ -748,7 +768,7 @@ function ProductPanel({
         </TypographicLink>
       </div>
 
-      <div className="col-span-4">
+      <div className="fl-panel-promo col-span-4">
         <PanelPromo
           title={t.headerPromoQuoteTitle}
           body={t.headerPromoQuoteBody}
