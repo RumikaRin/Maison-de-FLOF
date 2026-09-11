@@ -5,7 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(price: number | string | any): string {
+export function formatPrice(price: number | string | null | undefined): string {
+  if (price === null || price === undefined) return "0 ₫";
   const num = typeof price === "number" ? price : parseFloat(price) || 0;
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",

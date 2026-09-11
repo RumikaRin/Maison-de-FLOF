@@ -682,18 +682,42 @@ export function ProductClient({
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
-            className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper/95 px-fl-sm pb-[max(var(--fl-space-xs),env(safe-area-inset-bottom))] pt-fl-xs shadow-lg backdrop-blur-md md:hidden"
+            className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-2 border-t border-atelier-rule-strong bg-atelier-paper/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-4px_20px_rgb(0_0_0/0.08)] backdrop-blur-md md:hidden"
           >
-            <span className="min-w-0 truncate text-fl-sm font-medium text-atelier-ink">
-              {language === "vi" ? paint.name : paint.nameEn || paint.name}
-            </span>
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="min-h-11 shrink-0 whitespace-nowrap rounded-control bg-atelier-accent px-fl-md text-fl-sm font-medium text-atelier-accent-ink"
-            >
-              {t.addToCart}
-            </button>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 truncate">
+                {selectedColor && (
+                  <ColorSwatch
+                    color={selectedColor.hex}
+                    className="h-3 w-3 shrink-0 rounded-full border border-atelier-rule"
+                  />
+                )}
+                <span className="truncate text-fl-xs text-atelier-ink-2">
+                  {selectedColor
+                    ? (language === "vi" ? selectedColor.name : selectedColor.nameEn || selectedColor.name)
+                    : `${paint.volume} ${paint.volumeUnit}`}
+                </span>
+              </div>
+              <p className="text-fl-sm font-bold tabular-nums leading-none text-atelier-ink mt-0.5">
+                {formatPrice(finalPrice)}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="min-h-11 rounded-control border border-atelier-rule-strong bg-atelier-paper-2 px-3 py-1.5 text-fl-xs font-semibold text-atelier-ink transition-colors hover:bg-atelier-paper active:scale-95 shadow-xs"
+              >
+                {t.addToCart}
+              </button>
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                className="min-h-11 rounded-control bg-atelier-accent px-4 py-1.5 text-fl-xs font-semibold text-atelier-accent-ink transition-colors hover:bg-atelier-accent-hover active:scale-95 shadow-xs"
+              >
+                {t.buyNow}
+              </button>
+            </div>
           </safeMotion.div>
         )}
       </AnimatePresence>

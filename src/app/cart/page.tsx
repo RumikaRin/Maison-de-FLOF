@@ -91,7 +91,7 @@ export default function CartPage() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-atelier-paper pb-32 pt-24 text-left text-atelier-ink md:pb-24">
+    <div className="w-full min-h-screen bg-atelier-paper pb-6 pt-24 text-left text-atelier-ink md:pb-24">
       <div className="mx-auto w-full max-w-5xl px-[clamp(1rem,4vw,1.5rem)]">
 
         {/* Header line */}
@@ -375,15 +375,15 @@ export default function CartPage() {
       {policy.contextualAction === "cart-checkout" && items.length > 0 && (
         <div
           data-mobile-action="cart-checkout"
-          className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper px-[clamp(1rem,4vw,1.5rem)] pb-[max(var(--fl-space-xs),env(safe-area-inset-bottom))] pt-fl-xs md:hidden"
+          className="fixed inset-x-0 bottom-mobile-navigation z-30 flex items-center justify-between gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper/95 px-[clamp(1rem,4vw,1.5rem)] py-2.5 shadow-[0_-4px_16px_rgb(0_0_0/0.06)] backdrop-blur-md md:hidden"
         >
           <div className="min-w-0 flex-1">
-            <p className="fl-label">{language === "vi" ? "Tổng cộng" : "Total"}</p>
-            <p className="text-fl-lg font-medium leading-none tabular-nums">{formatPrice(total)}</p>
+            <p className="fl-label text-[10px] text-atelier-ink-2">{language === "vi" ? "Tổng cộng" : "Total"}</p>
+            <p className="text-fl-md font-bold leading-none tabular-nums text-atelier-ink">{formatPrice(total)}</p>
           </div>
           <Button
             onClick={() => router.push(`/checkout?discount=${appliedDiscount}&coupon=${couponCode}`)}
-            className="shrink-0"
+            className="shrink-0 min-h-11 rounded-control px-5 text-fl-sm font-semibold shadow-xs"
           >
             {language === "vi" ? "Thanh toán" : "Checkout"}
           </Button>

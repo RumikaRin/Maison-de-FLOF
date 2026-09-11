@@ -268,40 +268,43 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
                             ? `Xem chi tiết màu ${colorName}`
                             : `View details for ${colorName}`
                         }
-                        className="group flex min-w-0 flex-col gap-fl-2xs pt-fl-xs text-left"
+                        className="group flex min-w-0 flex-col gap-fl-2xs pt-fl-xs text-left outline-none transition-transform duration-fl-fast ease-fl-out active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-atelier-accent rounded-swatch"
                       >
                         <ColorSwatch
                           color={color.hex}
-                          className="fl-swatch aspect-[4/3] w-full rounded-swatch transition-shadow duration-fl-fast ease-fl-out"
+                          className="fl-swatch aspect-[4/3] w-full rounded-swatch transition-all duration-fl-fast ease-fl-out group-hover:shadow-xs group-focus-visible:ring-2 group-focus-visible:ring-atelier-accent"
                         />
-                        <span className="truncate text-fl-sm text-atelier-ink">{colorName}</span>
+                        <span className="truncate text-fl-sm font-medium text-atelier-ink">{colorName}</span>
+                      </button>
+
+                      <div className="flex items-center justify-between pt-1">
                         <span className="fl-label">#{color.code}</span>
-                      </button>
-                      <button
-                        type="button"
-                        aria-pressed={isFav}
-                        aria-label={
-                          isFav
-                            ? language === "vi"
-                              ? `Bỏ màu ${colorName} khỏi yêu thích`
-                              : `Remove ${colorName} from favorites`
-                            : language === "vi"
-                              ? `Lưu màu ${colorName} vào yêu thích`
-                              : `Save ${colorName} to favorites`
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleFavorite(color.code);
-                        }}
-                        className="absolute right-0 top-fl-xs flex h-11 w-11 items-center justify-center rounded-control bg-atelier-paper/90 text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-danger touch-target"
-                      >
-                        <Heart
-                          className={cn(
-                            "h-3.5 w-3.5",
-                            isFav && "fill-[var(--fl-danger)] text-atelier-danger",
-                          )}
-                        />
-                      </button>
+                        <button
+                          type="button"
+                          aria-pressed={isFav}
+                          aria-label={
+                            isFav
+                              ? language === "vi"
+                                ? `Bỏ màu ${colorName} khỏi yêu thích`
+                                : `Remove ${colorName} from favorites`
+                              : language === "vi"
+                                ? `Lưu màu ${colorName} vào yêu thích`
+                                : `Save ${colorName} to favorites`
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(color.code);
+                          }}
+                          className="flex h-8 w-8 items-center justify-center rounded-control text-atelier-ink-2 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-danger active:scale-90"
+                        >
+                          <Heart
+                            className={cn(
+                              "h-3.5 w-3.5",
+                              isFav && "fill-[var(--fl-danger)] text-atelier-danger",
+                            )}
+                          />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}

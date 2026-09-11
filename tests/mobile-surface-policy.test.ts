@@ -5,7 +5,7 @@ import { getMobileSurfacePolicy } from "../src/lib/mobile-surface-policy.ts";
 test("mobile surface policy strips locales and excludes conflicting fixed UI", () => {
   assert.deepEqual(getMobileSurfacePolicy("/vi/products"), {
     mode: "browse",
-    bottomNavigation: true,
+    bottomNavigation: false,
     contextualAction: "none",
     chat: true,
   });
@@ -91,7 +91,7 @@ test("mobile surface policy strips locales and excludes conflicting fixed UI", (
   ]) {
     assert.deepEqual(getMobileSurfacePolicy(path), {
       mode: "browse",
-      bottomNavigation: true,
+      bottomNavigation: false,
       contextualAction: "none",
       chat: true,
     });

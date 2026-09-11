@@ -328,7 +328,7 @@ export function ColorExplorerSection({
         </div>
         <Rule className="mt-fl-xs" weight="strong" />
 
-        <div className="no-scrollbar -mx-1 flex snap-x gap-fl-md overflow-x-auto px-1 md:mx-0 md:grid md:grid-cols-4 md:gap-fl-lg md:overflow-visible md:px-0">
+        <div className="grid grid-cols-2 gap-3 sm:gap-fl-md md:grid-cols-4 md:gap-fl-lg">
           {suggestedPaints.map((paint) => {
             const matchingColorCode = paint.colors.find((colorCode) => {
               const colorObj = COLOR_SWATCHES.find((c) => c.code === colorCode);
@@ -341,7 +341,7 @@ export function ColorExplorerSection({
             return (
               <div
                 key={paint.id}
-                className="flex w-[70vw] max-w-[260px] shrink-0 snap-start flex-col pt-fl-sm md:w-auto md:max-w-none"
+                className="flex flex-col pt-fl-sm"
               >
                 <Link
                   href={`/products/${paint.slug}`}
@@ -351,29 +351,29 @@ export function ColorExplorerSection({
                     src={getProductImage(paint.images)}
                     alt={paint.name}
                     fill
-                    sizes="(min-width: 768px) 22vw, 70vw"
+                    sizes="(min-width: 768px) 22vw, 48vw"
                     className="object-contain p-fl-xs"
                   />
                 </Link>
                 <Link href={`/products/${paint.slug}`} className="mt-fl-xs block">
-                  <p className="fl-label">{paint.supplier?.name || "Maison de FLOF"}</p>
-                  <h4 className="mt-0.5 truncate font-serif text-fl-md text-atelier-ink">
+                  <p className="fl-label text-[11px] sm:text-fl-2xs">{paint.supplier?.name || "Maison de FLOF"}</p>
+                  <h4 className="mt-0.5 truncate font-serif text-fl-sm sm:text-fl-md text-atelier-ink">
                     {language === "vi" ? paint.name : paint.nameEn}
                   </h4>
                 </Link>
-                <div className="mt-auto flex items-baseline justify-between gap-fl-2xs border-t border-atelier-rule pt-fl-xs">
+                <div className="mt-auto flex flex-col items-start gap-1 border-t border-atelier-rule pt-fl-xs sm:flex-row sm:items-baseline sm:justify-between sm:gap-fl-2xs">
                   {paint.discountPercent && paint.discountPercent > 0 ? (
                     <span className="flex flex-col">
-                      <span className="text-fl-sm tabular-nums text-atelier-danger">
+                      <span className="text-fl-xs sm:text-fl-sm tabular-nums text-atelier-danger">
                         {formatPrice(paint.price * (1 - paint.discountPercent / 100))}
                         <span className="ml-1 text-fl-2xs">−{paint.discountPercent}%</span>
                       </span>
-                      <span className="text-fl-xs tabular-nums text-atelier-ink-3 line-through">
+                      <span className="text-[11px] tabular-nums text-atelier-ink-3 line-through">
                         {formatPrice(paint.price)}
                       </span>
                     </span>
                   ) : (
-                    <span className="text-fl-sm tabular-nums text-atelier-ink">
+                    <span className="text-fl-xs sm:text-fl-sm tabular-nums text-atelier-ink">
                       {formatPrice(paint.price)}
                     </span>
                   )}
@@ -390,7 +390,7 @@ export function ColorExplorerSection({
                     }}
                     disabled={!commerceAvailable}
                     aria-disabled={!commerceAvailable}
-                    className="min-h-11 whitespace-nowrap text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-45 md:min-h-6"
+                    className="min-h-8 whitespace-nowrap text-fl-xs sm:text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-45 md:min-h-6"
                   >
                     {language === "vi" ? "Thêm vào giỏ" : "Add to cart"}
                   </button>

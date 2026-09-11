@@ -111,7 +111,7 @@ export function getMobileSurfacePolicy(pathname: string): MobileSurfacePolicy {
 
   return {
     mode: "browse",
-    bottomNavigation: browsePaths.has(path),
+    bottomNavigation: false,
     ...noAction,
     chat: true,
   };

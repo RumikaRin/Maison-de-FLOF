@@ -239,7 +239,7 @@ export function ChatBubble() {
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
-            className="w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-3xl border border-warm-200 bg-white shadow-2xl flex flex-col h-[480px] max-h-[80vh] fl-animate-spring"
+            className="w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-3xl border border-warm-200 bg-white shadow-2xl flex flex-col h-[480px] max-h-[72dvh] fl-animate-spring"
           >
             <div className="flex items-center justify-between bg-warm-950 px-5 py-4 text-white shrink-0">
               <div>
@@ -366,7 +366,7 @@ export function ChatBubble() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => { setOpen((value) => !value); if (!open) setView("options"); }}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-jotun-teal text-white shadow-[0_12px_35px_rgba(0,123,138,0.35)] ring-4 ring-white/80"
+        className="relative flex h-12 w-12 items-center justify-center rounded-full bg-jotun-teal text-white shadow-[0_8px_25px_rgba(0,123,138,0.35)] ring-2 ring-white/90 md:h-14 md:w-14"
         aria-label={language === "vi" ? "Mở hỗ trợ trực tuyến" : "Open online support"}
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6" />}

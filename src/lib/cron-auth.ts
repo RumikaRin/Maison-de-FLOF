@@ -1,4 +1,5 @@
 import { writeOperationalLog } from "./operations/log.ts";
+import { jsonApiError } from "./api-error-contract.ts";
 
 /**
  * Validates Bearer cron secret. Fails closed when CRON_SECRET is missing/empty
@@ -28,4 +29,4 @@ export function assertCronAuthorized(request: Request): Response | null {
 
   return null;
 }
-import { jsonApiError } from "./api-error-contract.ts";
+

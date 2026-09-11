@@ -2,19 +2,17 @@ import { expect, test } from "@playwright/test";
 
 import { TEST_FIXTURES } from "../scripts/test-db-fixtures.ts";
 
-test("bottom navigation follows the mobile route policy", async ({ page }) => {
+test("bottom navigation is disabled in favor of full header navigation", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
 
-  for (const [path, bottomNav] of [
-    ["/vi/products", true],
-    ["/vi/cart", false],
-    [`/vi/products/${TEST_FIXTURES.productSlug}`, false],
+  for (const path of [
+    "/vi/products",
+    "/vi/cart",
+    `/vi/products/${TEST_FIXTURES.productSlug}`,
   ] as const) {
     await page.goto(path);
 
-    await expect(page.getByLabel("Mobile navigation")).toHaveCount(
-      bottomNav ? 1 : 0,
-    );
+    await expect(page.getByLabel("Mobile navigation")).toHaveCount(0);
   }
 });
 

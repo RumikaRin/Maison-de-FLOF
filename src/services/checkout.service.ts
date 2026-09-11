@@ -119,12 +119,12 @@ export async function processCheckout(
   try {
     txResult = await database.$transaction(async (tx) => {
       await tx.checkoutIdempotency.create({
-      data: {
-        key: idempotencyKey!,
-        userId: sessionUser.id,
-        requestHash,
-      },
-    });
+        data: {
+          key: idempotencyKey!,
+          userId: sessionUser.id,
+          requestHash,
+        },
+      });
 
     const user = await tx.user.findUnique({
       where: { email: sessionUser.email },

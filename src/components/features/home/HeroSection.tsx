@@ -14,7 +14,7 @@ import { HeroContent, HeroMetadataBar } from "./HeroContent";
 export function HeroSection() {
   return (
     <>
-      <section className="fl-photo-fold fl-photo-plate flex min-h-[620px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[80vh] md:max-h-[860px]">
+      <section className="fl-photo-fold fl-photo-plate flex min-h-[480px] sm:min-h-[560px] md:min-h-[620px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[80vh] md:max-h-[860px]">
         {/* Full-bleed media — the one hero load transition the system allows */}
         <div className="absolute inset-0">
           <Image
@@ -31,7 +31,7 @@ export function HeroSection() {
           <div aria-hidden="true" className="fl-photo-scrim" />
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-2xl pt-fl-4xl md:pb-[4rem] md:pt-[12rem]">
+        <div className="relative z-10 mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-lg pt-fl-xl sm:pb-fl-2xl sm:pt-fl-4xl md:pb-[4rem] md:pt-[12rem]">
           <HeroContent />
         </div>
       </section>
