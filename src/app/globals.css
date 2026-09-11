@@ -1098,10 +1098,19 @@ next-route-announcer > div {
       from { transform: scale(1.22); }
       to { transform: scale(1); }
     }
-    .fl-photo-zoomout {
-      animation: fl-photo-zoomout linear both;
-      animation-timeline: --fl-photo-plate;
-      animation-range: cover 0% cover 85%;
+    @media (min-width: 1024px) {
+      .fl-photo-zoomout {
+        animation: fl-photo-zoomout linear both;
+        animation-timeline: --fl-photo-plate;
+        animation-range: cover 0% cover 85%;
+      }
+    }
+    @media (max-width: 1023px) {
+      .fl-photo-zoomout,
+      .fl-photo-zoomout-soft {
+        animation: none !important;
+        transform: none !important;
+      }
     }
     @keyframes fl-photo-zoomout-soft {
       from { transform: scale(1.12); }
@@ -1472,4 +1481,29 @@ next-route-announcer > div {
     animation: none !important;
   }
 }
+
+/* ============================================================
+   Lenis Smooth Momentum Scroll Engine
+   ============================================================ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
 
