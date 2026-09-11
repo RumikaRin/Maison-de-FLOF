@@ -1148,6 +1148,23 @@ next-route-announcer > div {
 .fl-slice-strip:nth-child(3) { --fl-strip-amp: -14px; }
 .fl-slice-strip:nth-child(4) { --fl-strip-amp: 22px; }
 
+/* On mobile viewports (< 768px): disable multi-strip slicing to eliminate sub-pixel seam lines and image fracturing */
+@media (max-width: 767px) {
+  .fl-slice-strip:not(:first-child) {
+    display: none !important;
+  }
+  .fl-slice-strip:first-child {
+    flex: 1 1 100% !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .fl-slice-strip:first-child .fl-slice-img {
+    width: 100% !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+}
+
 @media screen and (prefers-reduced-motion: no-preference) {
   .fl-js .fl-slice-strip {
     transform: translateY(calc(var(--fl-slice-v, 0) * var(--fl-strip-amp)));

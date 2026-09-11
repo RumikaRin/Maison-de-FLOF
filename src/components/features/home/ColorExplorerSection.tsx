@@ -149,20 +149,20 @@ export function ColorExplorerSection({
                 const first = COLOR_SWATCHES.find((c) => c.family === family.id);
                 if (first) setVisWallMainColor(first.hex);
               }}
-              className="group flex min-w-[96px] flex-1 flex-col text-left"
+              className="group flex min-w-[96px] flex-1 flex-col text-left transition-transform duration-fl-fast active:scale-[0.98]"
             >
               <ColorSwatch
                 color={family.hex}
                 className={cn(
                   "fl-swatch w-full rounded-swatch transition-[height] duration-fl-base ease-fl-out",
-                  isSelected ? "h-20" : "h-12 group-hover:h-16",
+                  isSelected ? "h-16 sm:h-20" : "h-12 group-hover:h-16",
                 )}
               />
               <span
                 className={cn(
-                  "mt-fl-2xs block border-t pr-fl-2xs pt-fl-2xs text-fl-xs",
+                  "mt-fl-2xs block h-10 w-full border-t pr-fl-2xs pt-fl-2xs text-fl-xs leading-snug",
                   isSelected
-                    ? "border-atelier-ink font-medium text-atelier-ink"
+                    ? "border-atelier-ink font-semibold text-atelier-ink"
                     : "border-transparent text-atelier-ink-2",
                 )}
               >
