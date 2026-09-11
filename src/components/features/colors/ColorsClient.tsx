@@ -1,7 +1,7 @@
 /* Hallmark · genre: editorial · macrostructure: 08 Photographic · design-system: design.md · designed-as-app */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
@@ -110,19 +110,81 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
     { value: "earth", label: t.toneEarth },
   ];
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasMovedRef = useRef(false);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        const canScrollLeft = el.scrollLeft > 0;
+        const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+        if ((e.deltaY > 0 && canScrollRight) || (e.deltaY < 0 && canScrollLeft)) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    hasMovedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.25;
+    if (Math.abs(walk) > 4) {
+      hasMovedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      hasMovedRef.current = false;
+    }, 60);
+  };
+
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-atelier-paper text-atelier-ink">
-      <div className="lg:border-x lg:border-atelier-rule mx-auto w-full max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] pb-fl-2xl pt-fl-xl md:pt-fl-2xl">
-        {/* Page head — label stacked above the heading, left-biased.
-            The one load fade this page is allowed. */}
+      {/* Visual Anchor Bar */}
+      <div className="h-1 w-full flex">
+        <span className="flex-1 bg-atelier-accent" />
+        <span className="flex-1 bg-atelier-ochre" />
+        <span className="flex-1 bg-atelier-espresso" />
+      </div>
+
+      <div className="mx-auto max-w-[100rem] px-[clamp(1rem,4vw,1.5rem)] py-fl-lg md:py-fl-xl">
+        {/* Page head — label stacked above the heading, left-biased. */}
         <safeMotion.div
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.24 }}
         >
-          <div className="max-w-2xl">
+          {/* Header Block — strict editorial typography stack */}
+          <div className="border-b border-atelier-rule pb-fl-lg">
+            <div className="max-w-2xl">
             <EditorialHeading as="h1" scale="display-s" label={t.colorsCatalogLabel}>
               {t.colorCatalogTitle}
             </EditorialHeading>
@@ -132,29 +194,42 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
           </div>
 
           {/* Family selector — one continuous colour field, not a dropdown in a card.
-              Each cell IS its colour; the selected cell grows and carries an ink rule. */}
+              Each cell IS its colour; consistent level baseline with active indicator. */}
           <div
+            ref={scrollContainerRef}
+            data-lenis-prevent
             role="group"
             aria-label={t.filterColorFamily}
-            className="no-scrollbar mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            className="no-scrollbar mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto cursor-grab active:cursor-grabbing select-none touch-pan-x"
           >
             <button
               type="button"
               aria-pressed={selectedFamily === "all"}
-              onClick={() => setSelectedFamily("all")}
-              className="group flex min-w-[88px] flex-1 flex-col text-left"
+              onClick={() => {
+                if (hasMovedRef.current) return;
+                setSelectedFamily("all");
+              }}
+              className="group flex min-w-[88px] flex-1 flex-col text-left transition-transform duration-fl-fast active:scale-[0.98]"
             >
-              <span
+              <div
                 className={cn(
-                  "block w-full rounded-swatch border border-atelier-rule bg-atelier-paper-2 transition-[height] duration-fl-base ease-fl-out",
-                  selectedFamily === "all" ? "h-20" : "h-12 group-hover:h-16",
-                )}
-              />
-              <span
-                className={cn(
-                  "mt-fl-2xs block border-t pr-fl-2xs pt-fl-2xs text-fl-xs",
+                  "relative w-full rounded-swatch transition-all duration-fl-fast p-0.5",
                   selectedFamily === "all"
-                    ? "border-atelier-ink font-medium text-atelier-ink"
+                    ? "ring-2 ring-atelier-ink ring-offset-2 ring-offset-atelier-paper scale-[1.02]"
+                    : "hover:scale-[1.01] opacity-90 hover:opacity-100",
+                )}
+              >
+                <span className="block h-14 sm:h-16 w-full rounded-[calc(var(--fl-radius-swatch)-2px)] border border-atelier-rule bg-atelier-paper-2" />
+              </div>
+              <span
+                className={cn(
+                  "mt-fl-2xs block h-10 w-full border-t pr-fl-2xs pt-fl-2xs text-fl-xs leading-snug",
+                  selectedFamily === "all"
+                    ? "border-atelier-ink font-semibold text-atelier-ink"
                     : "border-transparent text-atelier-ink-2",
                 )}
               >
@@ -168,21 +243,30 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
                   key={family.value}
                   type="button"
                   aria-pressed={isSelected}
-                  onClick={() => setSelectedFamily(family.value)}
-                  className="group flex min-w-[88px] flex-1 flex-col text-left"
+                  onClick={() => {
+                    if (hasMovedRef.current) return;
+                    setSelectedFamily(family.value);
+                  }}
+                  className="group flex min-w-[88px] flex-1 flex-col text-left transition-transform duration-fl-fast active:scale-[0.98]"
                 >
-                  <ColorSwatch
-                    color={family.swatch}
+                  <div
                     className={cn(
-                      "fl-swatch w-full rounded-swatch transition-[height] duration-fl-base ease-fl-out",
-                      isSelected ? "h-20" : "h-12 group-hover:h-16",
+                      "relative w-full rounded-swatch transition-all duration-fl-fast p-0.5",
+                      isSelected
+                        ? "ring-2 ring-atelier-ink ring-offset-2 ring-offset-atelier-paper scale-[1.02]"
+                        : "hover:scale-[1.01] opacity-90 hover:opacity-100",
                     )}
-                  />
+                  >
+                    <ColorSwatch
+                      color={family.swatch}
+                      className="fl-swatch h-14 sm:h-16 w-full rounded-[calc(var(--fl-radius-swatch)-2px)]"
+                    />
+                  </div>
                   <span
                     className={cn(
-                      "mt-fl-2xs block border-t pr-fl-2xs pt-fl-2xs text-fl-xs",
+                      "mt-fl-2xs block h-10 w-full border-t pr-fl-2xs pt-fl-2xs text-fl-xs leading-snug",
                       isSelected
-                        ? "border-atelier-ink font-medium text-atelier-ink"
+                        ? "border-atelier-ink font-semibold text-atelier-ink"
                         : "border-transparent text-atelier-ink-2",
                     )}
                   >
@@ -192,6 +276,7 @@ export function ColorsClient({ initialColors }: ColorsClientProps) {
               );
             })}
           </div>
+        </div>
 
           {/* Tone filter — C1 outlined rectangular chips — plus search on one hairline row */}
           <div className="mt-fl-md flex flex-col gap-fl-sm lg:flex-row lg:items-center lg:justify-between">

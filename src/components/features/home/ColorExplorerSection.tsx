@@ -213,13 +213,19 @@ export function ColorExplorerSection({
               }}
               className="group flex min-w-[96px] flex-1 flex-col text-left transition-transform duration-fl-fast active:scale-[0.98]"
             >
-              <ColorSwatch
-                color={family.hex}
+              <div
                 className={cn(
-                  "fl-swatch w-full rounded-swatch transition-[height] duration-fl-base ease-fl-out",
-                  isSelected ? "h-16 sm:h-20" : "h-12 group-hover:h-16",
+                  "relative w-full rounded-swatch transition-all duration-fl-fast p-0.5",
+                  isSelected
+                    ? "ring-2 ring-atelier-ink ring-offset-2 ring-offset-atelier-paper scale-[1.02]"
+                    : "hover:scale-[1.01] opacity-90 hover:opacity-100",
                 )}
-              />
+              >
+                <ColorSwatch
+                  color={family.hex}
+                  className="fl-swatch h-14 sm:h-16 w-full rounded-[calc(var(--fl-radius-swatch)-2px)]"
+                />
+              </div>
               <span
                 className={cn(
                   "mt-fl-2xs block h-10 w-full border-t pr-fl-2xs pt-fl-2xs text-fl-xs leading-snug",
