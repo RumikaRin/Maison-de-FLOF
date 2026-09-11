@@ -56,7 +56,7 @@ function ColorDetailContent({
       <div>
         <ColorSwatch
           color={selectedColor.hex}
-          className="fl-swatch block h-52 w-full rounded-swatch"
+          className="fl-swatch block h-28 md:h-52 w-full rounded-swatch"
         />
         <div className="mt-fl-sm flex items-end justify-between gap-fl-sm">
           <div>
@@ -184,6 +184,7 @@ export function ColorDetailDrawer({
         className="fixed inset-0 z-50 hidden items-center justify-end bg-black/45 md:flex"
       >
         <div
+          data-lenis-prevent
           onClick={(event) => event.stopPropagation()}
           className="relative flex h-screen w-full max-w-lg flex-col gap-fl-md overflow-y-auto border-l border-atelier-rule bg-atelier-paper px-fl-lg pb-fl-lg pt-20 text-left shadow-2xl"
         >

@@ -139,6 +139,7 @@ export function MobileSheet({
             type="button"
           />
           <safeMotion.div
+            data-lenis-prevent
             aria-describedby={description ? descriptionId : undefined}
             aria-labelledby={titleId}
             aria-modal="true"

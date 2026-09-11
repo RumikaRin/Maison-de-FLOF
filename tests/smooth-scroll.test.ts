@@ -32,3 +32,15 @@ test("SmoothScrollProvider supports dynamic import and reduced motion", async ()
   assert.ok(code.includes("prefers-reduced-motion"), "must check reduced motion");
   assert.ok(code.includes('import("lenis")'), "must dynamically import lenis");
 });
+
+test("ScrollToTop uses scrollToTopLenis", async () => {
+  const code = await readFile("src/components/ui/scroll-to-top.tsx", "utf8");
+  assert.ok(code.includes("scrollToTopLenis"), "ScrollToTop must use scrollToTopLenis");
+});
+
+test("drawers and modal containers isolate scrolling with data-lenis-prevent", async () => {
+  const colorDrawer = await readFile("src/components/ui/color-detail-drawer.tsx", "utf8");
+  const mobileSheet = await readFile("src/components/ui/mobile-sheet.tsx", "utf8");
+  assert.ok(colorDrawer.includes("data-lenis-prevent"), "color-detail-drawer must have data-lenis-prevent");
+  assert.ok(mobileSheet.includes("data-lenis-prevent"), "mobile-sheet must have data-lenis-prevent");
+});
