@@ -10,10 +10,9 @@ test("colour explorer wires reveal motion without replacing its state crossfade"
 
   assert.match(source, /<EditorialSection[^>]*data-fl-io/);
   assert.ok(source.includes('className="fl-mask-line mt-fl-xs"'));
-  assert.ok(
-    source.includes(
-      'className="fl-stagger mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto no-scrollbar"',
-    ),
+  assert.match(
+    source,
+    /className="fl-stagger mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto no-scrollbar/,
   );
   assert.ok(
     source.includes(

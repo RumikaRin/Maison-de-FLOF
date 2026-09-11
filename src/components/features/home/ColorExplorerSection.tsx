@@ -1,6 +1,7 @@
 /* Hallmark · genre: editorial · section: colour explorer workspace · knobs: family selector=continuous colour field, stage=7/5, specs=F3 ledger · design-system: design.md · designed-as-app */
 "use client";
 
+import { useRef, useEffect } from "react";
 import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
 import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
@@ -100,6 +101,60 @@ export function ColorExplorerSection({
   const meta = FAMILY_METADATA[currentSwatch.family];
   const rooms = (language === "vi" ? meta?.roomsVi : meta?.roomsEn) ?? [];
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasMovedRef = useRef(false);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        const canScrollLeft = el.scrollLeft > 0;
+        const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+        if ((e.deltaY > 0 && canScrollRight) || (e.deltaY < 0 && canScrollLeft)) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    hasMovedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.25;
+    if (Math.abs(walk) > 4) {
+      hasMovedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      hasMovedRef.current = false;
+    }, 60);
+  };
+
   return (
     <EditorialSection
       rhythm="base"
@@ -133,9 +188,15 @@ export function ColorExplorerSection({
       {/* Family selector — one continuous colour field, not tabs in a card.
           Each cell IS its colour; the selected cell grows and carries a rule. */}
       <div
+        ref={scrollContainerRef}
+        data-lenis-prevent
         role="group"
         aria-label={language === "vi" ? "Chọn nhóm màu" : "Colour families"}
-        className="fl-stagger mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto no-scrollbar"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+        className="fl-stagger mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto no-scrollbar cursor-grab active:cursor-grabbing select-none touch-pan-x"
       >
         {COLOR_FAMILIES.map((family) => {
           const isSelected = selectedFamily === family.id;
@@ -145,6 +206,7 @@ export function ColorExplorerSection({
               type="button"
               aria-pressed={isSelected}
               onClick={() => {
+                if (hasMovedRef.current) return;
                 setSelectedFamily(family.id);
                 const first = COLOR_SWATCHES.find((c) => c.family === family.id);
                 if (first) setVisWallMainColor(first.hex);
