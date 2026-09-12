@@ -156,8 +156,7 @@ export default function Header() {
     <>
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 border-b bg-atelier-paper",
-          "motion-safe:transition-all motion-safe:duration-fl-base motion-safe:ease-fl-out",
+          "fixed inset-x-0 top-0 z-50 border-b bg-atelier-paper transition-colors duration-fl-fast",
           condensed ? "border-atelier-rule-strong shadow-xs" : "border-atelier-rule",
         )}
       >
@@ -172,20 +171,13 @@ export default function Header() {
         </div>
 
         <div
-          className={cn(
-            "mx-auto flex w-full max-w-[100rem] items-center justify-between gap-fl-md px-[clamp(1rem,4vw,1.5rem)]",
-            "motion-safe:transition-[height] motion-safe:duration-fl-base motion-safe:ease-fl-out",
-            condensed ? "h-14 md:h-16" : "h-16 md:h-[4.5rem]",
-          )}
+          className="mx-auto flex h-16 w-full max-w-[100rem] items-center justify-between gap-fl-md px-[clamp(1rem,4vw,1.5rem)]"
         >
           {/* Wordmark & Subtitle Stack */}
           <div className="fl-masthead-cell flex min-h-11 shrink-0 items-center gap-fl-xs border-r border-atelier-rule pr-fl-lg">
             <Link
               href={localize("/")}
-              className={cn(
-                "flex min-h-11 origin-left items-center whitespace-nowrap font-serif text-fl-2xl font-bold leading-none tracking-[0.22em] text-atelier-ink transition-colors duration-fl-fast hover:text-atelier-accent",
-                condensed ? "scale-90" : "scale-100",
-              )}
+              className="flex min-h-11 origin-left items-center whitespace-nowrap font-serif text-fl-2xl font-bold leading-none tracking-[0.22em] text-atelier-ink transition-colors duration-fl-fast hover:text-atelier-accent"
               onClick={() => setMobileOpen(false)}
             >
               FLOF
@@ -477,8 +469,7 @@ export default function Header() {
           aria-hidden="true"
           onClick={() => closePanel()}
           className={cn(
-            "fixed inset-x-0 -z-10 h-screen bg-atelier-espresso/25 transition-opacity duration-300 ease-fl-out cursor-pointer",
-            condensed ? "top-14 md:top-16" : "top-16 md:top-[4.5rem]",
+            "fixed inset-x-0 top-16 -z-10 h-screen bg-atelier-espresso/25 transition-opacity duration-300 ease-fl-out cursor-pointer",
             openPanel ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
           )}
         />
