@@ -221,11 +221,11 @@ export default function Header() {
                     >
                       <div
                         className={cn(
-                          "flex items-center rounded-surface px-0.5 transition-all duration-fl-fast",
+                          "flex items-center rounded-surface px-0.5 transition-colors duration-fl-fast",
                           isActive
                             ? "bg-atelier-ink text-atelier-paper shadow-xs"
                             : isOpen
-                            ? "bg-atelier-paper-2 text-atelier-ink font-semibold"
+                            ? "bg-atelier-paper-2 text-atelier-ink"
                             : "hover:bg-atelier-paper-2 text-atelier-ink-2 hover:text-atelier-ink",
                         )}
                       >
@@ -235,9 +235,9 @@ export default function Header() {
                           className={cn(
                             "fl-nav-link relative flex min-h-10 items-center whitespace-nowrap px-fl-xs text-fl-sm font-medium leading-none transition-colors duration-fl-fast ease-fl-out",
                             isActive
-                              ? "text-atelier-paper font-semibold"
+                              ? "text-atelier-paper"
                               : isOpen
-                              ? "text-atelier-ink font-semibold"
+                              ? "text-atelier-ink"
                               : "",
                           )}
                         >
@@ -265,7 +265,7 @@ export default function Header() {
                             <ChevronDown
                               className={cn(
                                 "h-3.5 w-3.5 transition-transform duration-fl-fast ease-fl-out",
-                                isOpen && "rotate-180 text-atelier-accent",
+                                isOpen && "rotate-180 text-atelier-ink",
                               )}
                             />
                           </button>
@@ -509,7 +509,7 @@ export default function Header() {
                     className={cn(
                       "flex min-h-11 items-center justify-between whitespace-nowrap rounded-control px-4 py-2 text-fl-md font-medium transition-all duration-fl-fast",
                       isActive
-                        ? "bg-atelier-ink font-semibold text-atelier-paper"
+                        ? "bg-atelier-ink font-medium text-atelier-paper"
                         : "text-atelier-ink-2 hover:bg-atelier-paper-2 hover:text-atelier-ink",
                     )}
                   >

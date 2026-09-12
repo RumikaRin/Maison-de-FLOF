@@ -1237,15 +1237,20 @@ next-route-announcer > div {
   position: relative;
   display: block;
   width: 2rem;
-  height: 5px;
-  color: var(--fl-accent);
+  height: 2px;
+  color: var(--fl-ink, #2B231E);
 }
 .fl-nav-item > .fl-nav-signature {
   position: absolute;
-  right: var(--fl-space-2xs);
-  bottom: 5px;
-  left: var(--fl-space-2xs);
+  right: var(--fl-space-xs);
+  bottom: 0px;
+  left: var(--fl-space-xs);
   width: auto;
+  height: 2px;
+  pointer-events: none;
+}
+.fl-nav-item > .fl-nav-signature[data-active="true"] {
+  opacity: 0;
 }
 .fl-nav-mark {
   position: absolute;
@@ -1254,141 +1259,90 @@ next-route-announcer > div {
   transform-origin: left center;
 }
 
-/* Products: a catalogue rule draws across, with two specification ticks. */
+/* Products: clean horizontal indicator rule */
 [data-motion="products"] .fl-nav-mark-a {
-  inset: 2px 0 auto;
-  height: 1px;
-  transform: scaleX(0.18);
-}
-[data-motion="products"] .fl-nav-mark-b,
-[data-motion="products"] .fl-nav-mark-c {
-  top: 0;
-  width: 1px;
-  height: 5px;
+  inset: 0 0 auto;
+  height: 2px;
+  border-radius: 1px;
   opacity: 0;
-  transform: translateY(2px);
+  transform: scaleX(0);
 }
-[data-motion="products"] .fl-nav-mark-b { left: 32%; }
-[data-motion="products"] .fl-nav-mark-c { left: 68%; }
+[data-motion="products"] :is(.fl-nav-mark-b, .fl-nav-mark-c) {
+  display: none;
+}
 [data-motion="products"]:hover .fl-nav-mark-a,
-[data-motion="products"]:focus-within .fl-nav-mark-a,
-[data-motion="products"] .fl-nav-signature[data-active="true"] .fl-nav-mark-a {
+[data-motion="products"]:focus-within .fl-nav-mark-a {
+  opacity: 1;
   transform: scaleX(1);
 }
-[data-motion="products"]:hover .fl-nav-mark-b,
-[data-motion="products"]:hover .fl-nav-mark-c,
-[data-motion="products"]:focus-within .fl-nav-mark-b,
-[data-motion="products"]:focus-within .fl-nav-mark-c,
-[data-motion="products"] .fl-nav-signature[data-active="true"] .fl-nav-mark-b,
-[data-motion="products"] .fl-nav-signature[data-active="true"] .fl-nav-mark-c {
-  opacity: 1;
-  transform: translateY(0);
-}
 
-/* Colours: three pigment samples rise in a short stagger. */
-:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark {
-  bottom: 0;
-  width: 8px;
-  height: 3px;
-  opacity: 0;
-  transform: translateY(3px);
-}
+/* Colours: matching horizontal indicator rule */
 :is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark-a {
-  left: 0;
-  background: var(--fl-sage);
+  inset: 0 0 auto;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0;
+  background: currentColor;
+  transform: scaleX(0);
 }
-:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark-b {
-  left: calc(50% - 4px);
-  background: var(--fl-clay);
+:is([data-motion="colours"], [data-motion="colors"]) :is(.fl-nav-mark-b, .fl-nav-mark-c) {
+  display: none;
 }
-:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-mark-c {
-  right: 0;
-  background: var(--fl-ochre);
-}
-:is([data-motion="colours"], [data-motion="colors"]):hover .fl-nav-mark,
-:is([data-motion="colours"], [data-motion="colors"]):focus-within .fl-nav-mark,
-:is([data-motion="colours"], [data-motion="colors"]) .fl-nav-signature[data-active="true"] .fl-nav-mark {
+:is([data-motion="colours"], [data-motion="colors"]):hover .fl-nav-mark-a,
+:is([data-motion="colours"], [data-motion="colors"]):focus-within .fl-nav-mark-a {
   opacity: 1;
-  transform: translateY(-1px);
+  transform: scaleX(1);
 }
 
-/* Visualizer: two wall planes split open around a fixed centre datum. */
-[data-motion="visualizer"] .fl-nav-mark-a,
-[data-motion="visualizer"] .fl-nav-mark-b {
-  top: 0;
-  width: calc(50% - 2px);
-  height: 4px;
-  opacity: 0.45;
-  transform: scaleX(0.55);
-}
+/* Visualizer: matching horizontal indicator rule */
 [data-motion="visualizer"] .fl-nav-mark-a {
-  left: 0;
-  transform-origin: right center;
+  inset: 0 0 auto;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleX(0);
 }
-[data-motion="visualizer"] .fl-nav-mark-b {
-  right: 0;
-}
-[data-motion="visualizer"] .fl-nav-mark-c {
-  left: calc(50% - 0.5px);
-  top: -1px;
-  width: 1px;
-  height: 6px;
+[data-motion="visualizer"] :is(.fl-nav-mark-b, .fl-nav-mark-c) {
+  display: none;
 }
 [data-motion="visualizer"]:hover .fl-nav-mark-a,
-[data-motion="visualizer"]:hover .fl-nav-mark-b,
-[data-motion="visualizer"]:focus-within .fl-nav-mark-a,
-[data-motion="visualizer"]:focus-within .fl-nav-mark-b,
-[data-motion="visualizer"] .fl-nav-signature[data-active="true"] :is(.fl-nav-mark-a, .fl-nav-mark-b) {
+[data-motion="visualizer"]:focus-within .fl-nav-mark-a {
   opacity: 1;
   transform: scaleX(1);
 }
 
-/* Dealers: a route grows from coordinate to coordinate. */
+/* Dealers: matching horizontal indicator rule */
 [data-motion="dealers"] .fl-nav-mark-a {
-  left: 2px;
-  right: 2px;
-  top: 2px;
-  height: 1px;
-  transform: scaleX(0.08);
+  inset: 0 0 auto;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleX(0);
 }
-[data-motion="dealers"] .fl-nav-mark-b,
-[data-motion="dealers"] .fl-nav-mark-c {
-  top: 0;
-  width: 5px;
-  height: 5px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  background: var(--fl-paper);
-  opacity: 0.5;
+[data-motion="dealers"] :is(.fl-nav-mark-b, .fl-nav-mark-c) {
+  display: none;
 }
-[data-motion="dealers"] .fl-nav-mark-b { left: 0; }
-[data-motion="dealers"] .fl-nav-mark-c { right: 0; }
 [data-motion="dealers"]:hover .fl-nav-mark-a,
-[data-motion="dealers"]:focus-within .fl-nav-mark-a,
-[data-motion="dealers"] .fl-nav-signature[data-active="true"] .fl-nav-mark-a {
-  transform: scaleX(1);
-}
-[data-motion="dealers"]:hover :is(.fl-nav-mark-b, .fl-nav-mark-c),
-[data-motion="dealers"]:focus-within :is(.fl-nav-mark-b, .fl-nav-mark-c),
-[data-motion="dealers"] .fl-nav-signature[data-active="true"] :is(.fl-nav-mark-b, .fl-nav-mark-c) {
+[data-motion="dealers"]:focus-within .fl-nav-mark-a {
   opacity: 1;
+  transform: scaleX(1);
 }
 
-/* Trends: editorial lines enter from opposing page edges. */
-[data-motion="trends"] .fl-nav-mark {
-  right: 0;
-  height: 1px;
-  transform: scaleX(0.2);
-  transform-origin: right center;
+/* Trends: matching horizontal indicator rule */
+[data-motion="trends"] .fl-nav-mark-a {
+  inset: 0 0 auto;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleX(0);
 }
-[data-motion="trends"] .fl-nav-mark-a { top: 0; width: 100%; }
-[data-motion="trends"] .fl-nav-mark-b { top: 2px; width: 72%; }
-[data-motion="trends"] .fl-nav-mark-c { top: 4px; width: 44%; }
-[data-motion="trends"]:hover .fl-nav-mark,
-[data-motion="trends"]:focus-within .fl-nav-mark,
-[data-motion="trends"] .fl-nav-signature[data-active="true"] .fl-nav-mark {
+[data-motion="trends"] :is(.fl-nav-mark-b, .fl-nav-mark-c) {
+  display: none;
+}
+[data-motion="trends"]:hover .fl-nav-mark-a,
+[data-motion="trends"]:focus-within .fl-nav-mark-a {
+  opacity: 1;
   transform: scaleX(1);
-  transform-origin: left center;
 }
 
 @media (prefers-reduced-motion: no-preference) {
