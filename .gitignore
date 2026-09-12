@@ -75,6 +75,14 @@ Thumbs.db
 # personal and academic documents
 *.docx
 /BAO_CAO_DO_AN.md
+docs/reports/BAO_CAO_DO_AN*
 /scripts/generate_doc.py
+
+# Temporary audits, reports, and packs
+output/
+json/
+codex_project_audit_pack/
+*.png.tmp
+
 
 
