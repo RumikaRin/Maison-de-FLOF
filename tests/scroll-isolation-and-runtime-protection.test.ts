@@ -19,7 +19,10 @@ test("Map component in mapcn-marker-tooltip isolates wheel scrolling from outer 
 });
 
 test("Find-dealer list container isolates scrolling with data-lenis-prevent and overscroll-contain", async () => {
-  const code = await readFile("src/app/find-dealer/page.tsx", "utf8");
+  let code = await readFile("src/app/find-dealer/page.tsx", "utf8");
+  if (code.includes("FindDealerClient")) {
+    code = await readFile("src/components/features/dealers/FindDealerClient.tsx", "utf8");
+  }
   assert.ok(
     code.includes("data-lenis-prevent"),
     "Dealer list container in find-dealer must have data-lenis-prevent",
