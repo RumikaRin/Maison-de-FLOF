@@ -84,14 +84,19 @@ export default async function RootLayout({
           href="/generated/hero-cinematic.jpg"
           fetchPriority="high"
         />
+        {/* Satisfy third-party extension (e.g. Urban VPN) config probes so they don't crash on M_ID */}
+        <script
+          data-config='{"config":{"properties":{"M_ID":"","M_TYPE":""}}}'
+          suppressHydrationWarning
+          nonce={nonce}
+        />
       </head>
       <body
         suppressHydrationWarning
         className={`${noto.variable} ${playfair.variable} ${bromise.variable} antialiased min-h-screen flex flex-col bg-atelier-paper text-atelier-ink`}
       >
-        {/* Pre-paint fl-js bootstrap (spec M2-M6): sets html.fl-js before the
-            first paint so SSR-visible [data-fl-io] clusters never flash in,
-            hide, then replay once fl-reveal.ts mounts. Nonced per the CSP's
+        {/* Sync JavaScript enhancement class on <html> synchronously, before
+            any rendering or hydration, matching the nonce generated for
             script-src 'self' 'nonce-...' 'strict-dynamic'. initFlReveal still
             sets the class too, as a no-JS-blocked fallback. */}
         <script
@@ -104,12 +109,55 @@ export default async function RootLayout({
         {/* Strip third-party injected attributes (bis_skin_checked from
             system-level antivirus/security software) BEFORE React hydration
             compares the DOM. The MutationObserver catches any added
-            mid-hydration. */}
+            mid-hydration.
+            Also intercept and suppress runtime errors from third-party browser
+            extensions (such as Urban VPN M_ID crash) so they cannot break the UI
+            or trigger Next.js development overlay alerts. */}
         <script
           suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: '(function(){var a="bis_skin_checked";document.querySelectorAll("["+a+"]").forEach(function(e){e.removeAttribute(a)});new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){ms[i].target.removeAttribute(a)}}).observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:[a]})})();',
+            __html: `(function(){
+  var a = "bis_skin_checked";
+  document.querySelectorAll("[" + a + "]").forEach(function(e) { e.removeAttribute(a); });
+  new MutationObserver(function(ms) {
+    for (var i = 0; i < ms.length; i++) {
+      ms[i].target.removeAttribute(a);
+    }
+  }).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: [a] });
+
+  function isExtensionError(eventOrReason) {
+    if (!eventOrReason) return false;
+    var stack = (eventOrReason.error && eventOrReason.error.stack) || eventOrReason.stack || "";
+    var filename = eventOrReason.filename || "";
+    var message = (eventOrReason.message || "") + " " + (eventOrReason.reason && eventOrReason.reason.message ? eventOrReason.reason.message : "");
+    return (
+      filename.indexOf("chrome-extension://") !== -1 ||
+      filename.indexOf("moz-extension://") !== -1 ||
+      filename.indexOf("safari-web-extension://") !== -1 ||
+      stack.indexOf("chrome-extension://") !== -1 ||
+      stack.indexOf("moz-extension://") !== -1 ||
+      stack.indexOf("safari-web-extension://") !== -1 ||
+      message.indexOf("M_ID") !== -1 ||
+      message.indexOf("eppiocemhmnlbhjplcgkofciiegomcon") !== -1
+    );
+  }
+
+  window.addEventListener("error", function(e) {
+    if (isExtensionError(e)) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      return true;
+    }
+  }, true);
+
+  window.addEventListener("unhandledrejection", function(e) {
+    if (isExtensionError(e.reason || e)) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }
+  }, true);
+})();`,
           }}
         />
         <SessionProvider>

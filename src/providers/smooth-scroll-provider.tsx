@@ -29,6 +29,17 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Do NOT run smooth scroll on admin dashboard routes
+    // Dashboards require instant native scrolling for sidebars, data tables, and modals
+    const isAdmin = pathname?.startsWith("/admin") || pathname?.includes("/admin");
+    if (isAdmin) {
+      if (globalLenisInstance) {
+        globalLenisInstance.destroy();
+        globalLenisInstance = null;
+      }
+      return;
+    }
+
     let isDestroyed = false;
     let rafId: number;
 
@@ -64,7 +75,7 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
         globalLenisInstance = null;
       }
     };
-  }, []);
+  }, [pathname]);
 
   // Recalculate dimensions on route change
   useEffect(() => {

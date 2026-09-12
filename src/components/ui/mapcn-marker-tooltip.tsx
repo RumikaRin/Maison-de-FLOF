@@ -205,7 +205,17 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     map.on("move", moveHandler);
     setMapInstance(map);
 
+    const container = containerRef.current;
+    const handleWheel = (e: WheelEvent) => {
+      // Isolate map zooming from page scrolling:
+      // MapLibre processes zoom on canvas. Stopping propagation here prevents
+      // the wheel event from bubbling to window / Lenis, which would scroll the webpage.
+      e.stopPropagation();
+    };
+    container.addEventListener("wheel", handleWheel, { passive: false });
+
     return () => {
+      container.removeEventListener("wheel", handleWheel);
       clearStyleTimeout();
       try {
         map.off("load", loadHandler);
@@ -283,7 +293,11 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
 
   return (
     <MapContext.Provider value={contextValue}>
-      <div ref={containerRef} className={cn("relative h-full w-full", className)}>
+      <div
+        ref={containerRef}
+        data-lenis-prevent
+        className={cn("relative h-full w-full overscroll-contain", className)}
+      >
         {(!isLoaded || loading) && <DefaultLoader />}
         {mapInstance && children}
       </div>

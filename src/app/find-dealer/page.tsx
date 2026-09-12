@@ -319,7 +319,9 @@ export default function FindDealerPage() {
 
             {/* Dealer index */}
             <div
-              className={cn( "flex-col lg:col-span-5 lg:flex lg:max-h-[600px] lg:overflow-y-auto lg:pr-fl-2xs",
+              data-lenis-prevent
+              className={cn(
+                "flex-col lg:col-span-5 lg:flex lg:max-h-[600px] lg:overflow-y-auto lg:pr-fl-2xs overscroll-contain",
                 mobileView === "map" ? "hidden lg:flex" : "flex",
               )}
             >

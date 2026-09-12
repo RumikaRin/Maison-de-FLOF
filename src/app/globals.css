@@ -307,6 +307,8 @@
 .admin-sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-sidebar-scroll::-webkit-scrollbar-thumb {

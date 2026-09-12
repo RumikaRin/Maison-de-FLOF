@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { apiErrorResponse, requireStaff } from "@/lib/api-auth";
+import type { OrderStatus } from "@prisma/client";
+import type { DashboardApiResponse, DashboardBestSeller } from "@/types/admin-dashboard";
+
+/** Statuses that represent confirmed revenue (paid or fulfilled orders) */
+const REVENUE_STATUSES: OrderStatus[] = ["CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED"];
+
+/** Convert a Date to YYYY-MM-DD string in Vietnam timezone (UTC+7) */
+function toVNDateKey(date: Date): string {
+  return date.toLocaleDateString("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" });
+}
 
 export async function GET() {
   try {
@@ -9,7 +19,15 @@ export async function GET() {
     since.setHours(0, 0, 0, 0);
     since.setDate(since.getDate() - 29);
 
-    const [recentOrders, chartOrders, revenueAggregate, completedOrdersCount, colorsCount, bestSellers, lowStockCount] = await Promise.all([
+    const [
+      recentOrders,
+      chartOrders,
+      revenueAggregate,
+      completedOrdersCount,
+      colorsCount,
+      bestSellerRevenue,
+      lowStockCount,
+    ] = await Promise.all([
       db.order.findMany({
         orderBy: { createdAt: "desc" },
         take: 4,
@@ -29,27 +47,42 @@ export async function GET() {
         },
       }),
       db.order.findMany({
-        where: { createdAt: { gte: since }, status: "COMPLETED" },
+        where: { createdAt: { gte: since }, status: { in: REVENUE_STATUSES } },
         select: { createdAt: true, total: true },
       }),
       db.order.aggregate({
-        where: { status: "COMPLETED" },
+        where: { status: { in: REVENUE_STATUSES } },
         _sum: { total: true },
       }),
-      db.order.count({ where: { status: "COMPLETED" } }),
+      db.order.count({ where: { status: { in: REVENUE_STATUSES } } }),
       db.paintColor.count(),
-      db.paint.findMany({
-        where: { isActive: true },
-        orderBy: { soldCount: "desc" },
-        take: 4,
-      }),
+      // Actual revenue per paint from OrderItem totals (not fake soldCount * currentPrice)
+      db.$queryRaw<{ paintId: string; actualRevenue: bigint }[]>`
+        SELECT oi."paintId", SUM(oi."total")::bigint AS "actualRevenue"
+        FROM "OrderItem" oi
+        JOIN "Order" o ON o.id = oi."orderId"
+        WHERE o.status IN ('CONFIRMED','PROCESSING','SHIPPING','COMPLETED')
+        GROUP BY oi."paintId"
+        ORDER BY "actualRevenue" DESC
+        LIMIT 4
+      `,
       db.paint.count({ where: { isActive: true, stock: { lte: 5 } } }),
     ]);
 
+    // Lookup paint details for best sellers
+    const topPaintIds = bestSellerRevenue.map((r) => r.paintId);
+    const topPaints =
+      topPaintIds.length > 0
+        ? await db.paint.findMany({ where: { id: { in: topPaintIds } } })
+        : [];
+    const paintMap = new Map(topPaints.map((p) => [p.id, p]));
+
     const totalRevenue = Number(revenueAggregate._sum.total || 0);
+
+    // Group chart revenue by VN timezone date
     const revenueByDate = new Map<string, number>();
     chartOrders.forEach((order) => {
-      const date = order.createdAt.toISOString().split("T")[0];
+      const date = toVNDateKey(order.createdAt);
       revenueByDate.set(date, (revenueByDate.get(date) || 0) + Number(order.total));
     });
 
@@ -58,14 +91,33 @@ export async function GET() {
     for (let index = 29; index >= 0; index -= 1) {
       const date = new Date();
       date.setDate(date.getDate() - index);
-      const key = date.toISOString().split("T")[0];
+      const key = toVNDateKey(date);
       dailyRevenue.push(revenueByDate.get(key) || 0);
       dailyLabels.push(
-        `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`,
+        date.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          timeZone: "Asia/Ho_Chi_Minh",
+        }),
       );
     }
 
-    return NextResponse.json({
+    // Build best sellers from actual revenue
+    const bestSellers: DashboardBestSeller[] = bestSellerRevenue.map((row) => {
+      const paint = paintMap.get(row.paintId);
+      return {
+        id: row.paintId,
+        name: paint?.name ?? "N/A",
+        nameEn: paint?.nameEn ?? paint?.name ?? "N/A",
+        sku: paint?.sku ?? "",
+        price: Number(paint?.price ?? 0),
+        sales: paint?.soldCount ?? 0,
+        revenue: Number(row.actualRevenue),
+        stock: paint?.stock ?? 0,
+      };
+    });
+
+    const body: DashboardApiResponse = {
       stats: {
         totalRevenue,
         completedOrders: completedOrdersCount,
@@ -74,26 +126,21 @@ export async function GET() {
       },
       recentOrders: recentOrders.map((order) => ({
         id: order.orderNumber,
-        date: order.createdAt.toISOString().split("T")[0],
+        date: toVNDateKey(order.createdAt),
         customer: order.customer.user.name || "Khách hàng",
         userEmail: order.customer.user.email,
-        items: order.items.map((item) => `${item.productName || item.paint.name} x ${item.quantity}`).join("; "),
+        items: order.items
+          .map((item) => `${item.productName || item.paint.name} x ${item.quantity}`)
+          .join("; "),
         total: Number(order.total),
         status: order.status,
       })),
       dailyRevenue,
       dailyLabels,
-      bestSellers: bestSellers.map((paint) => ({
-        id: paint.id,
-        name: paint.name,
-        nameEn: paint.nameEn || paint.name,
-        sku: paint.sku,
-        price: Number(paint.price),
-        sales: paint.soldCount,
-        revenue: paint.soldCount * Number(paint.price),
-        stock: paint.stock,
-      })),
-    });
+      bestSellers,
+    };
+
+    return NextResponse.json(body);
   } catch (error) {
     return apiErrorResponse(error);
   }
