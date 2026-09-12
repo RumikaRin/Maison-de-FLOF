@@ -39,7 +39,10 @@ test("ScrollToTop uses scrollToTopLenis", async () => {
 });
 
 test("drawers and modal containers isolate scrolling with data-lenis-prevent", async () => {
-  const colorDrawer = await readFile("src/components/ui/color-detail-drawer.tsx", "utf8");
+  let colorDrawer = await readFile("src/components/ui/color-detail-drawer.tsx", "utf8");
+  if (colorDrawer.includes("from")) {
+    colorDrawer = await readFile("src/components/features/colors/color-detail-drawer.tsx", "utf8");
+  }
   const mobileSheet = await readFile("src/components/ui/mobile-sheet.tsx", "utf8");
   assert.ok(colorDrawer.includes("data-lenis-prevent"), "color-detail-drawer must have data-lenis-prevent");
   assert.ok(mobileSheet.includes("data-lenis-prevent"), "mobile-sheet must have data-lenis-prevent");
