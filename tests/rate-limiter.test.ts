@@ -31,6 +31,14 @@ test("getClientIp returns fallback 127.0.0.1 when no headers match", () => {
   assert.equal(getClientIp(req), "127.0.0.1");
 });
 
+test("getClientIp ignores malformed/spoofed IP and skips to valid IP or fallback", () => {
+  const spoofReq = mockRequest({ "x-forwarded-for": "malicious-header, 10.0.0.2" });
+  assert.equal(getClientIp(spoofReq), "10.0.0.2");
+
+  const allGarbageReq = mockRequest({ "x-forwarded-for": "random-junk, evil-payload" });
+  assert.equal(getClientIp(allGarbageReq), "127.0.0.1");
+});
+
 test("UnifiedRateLimiter in-memory limits request frequency correctly", async () => {
   // Limit of 3 requests per 1000ms
   const limiter = new UnifiedRateLimiter(1000, 3);

@@ -118,10 +118,20 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionUser = await requireUser();
+    let sessionUser: { id: string; email: string } | null = null;
+    try {
+      sessionUser = await requireUser();
+    } catch {
+      sessionUser = null;
+    }
+
     const parsed = checkoutSchema.safeParse(await request.json());
     if (!parsed.success) {
       throw new ApiError(400, "Dữ liệu đặt hàng không hợp lệ");
+    }
+
+    if (!sessionUser && !parsed.data.shipping.email) {
+      throw new ApiError(400, "Vui lòng nhập địa chỉ email để nhận hóa đơn và thông tin đơn hàng");
     }
 
     const input = parsed.data;

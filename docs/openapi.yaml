@@ -2257,6 +2257,25 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: GET /api/health
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/GenericObject"
+                  - $ref: "#/components/schemas/GenericArray"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "503":
+          $ref: "#/components/responses/InternalError"
   /api/newsletter:
     post:
       operationId: postNewsletter
@@ -2400,6 +2419,39 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      operationId: postOrderAction
+      summary: Customer order actions (retry VNPay payment, switch to COD, cancel)
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - RETRY_VNPAY
+                    - SWITCH_TO_COD
+                    - CANCEL
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Order action executed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
   /api/products:

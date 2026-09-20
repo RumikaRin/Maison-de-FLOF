@@ -14,11 +14,21 @@ export const checkoutSchema = z.object({
   shipping: z.object({
     fullName: z.string().trim().min(2).max(120),
     phone: z.string().trim().min(8).max(20),
+    email: z.string().trim().email().optional(),
     addressLine1: z.string().trim().min(3).max(255),
     addressLine2: z.string().trim().max(255).optional(),
     district: z.string().trim().min(2).max(120),
     province: z.string().trim().min(2).max(120),
   }),
+  vatInvoice: z
+    .object({
+      requested: z.boolean().default(false),
+      companyName: z.string().trim().max(200).optional(),
+      taxCode: z.string().trim().max(30).optional(),
+      companyAddress: z.string().trim().max(255).optional(),
+      companyEmail: z.string().trim().email().optional(),
+    })
+    .optional(),
 });
 
 export const orderStatusSchema = z.object({

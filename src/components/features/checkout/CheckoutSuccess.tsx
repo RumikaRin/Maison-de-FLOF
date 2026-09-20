@@ -6,6 +6,7 @@ import { Copy } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "@/components/ui/csp-toast";
 import { Rule, SpecLedger, TypographicLink } from "@/components/ui/editorial";
+import { generateVietQrUrl } from "@/lib/vietqr";
 
 interface CheckoutSuccessProps {
   language: string;
@@ -106,14 +107,18 @@ export function CheckoutSuccess({
             {/* QR Code */}
             <figure className="shrink-0">
               <Image
-                src="/payment_qr.png"
+                src={generateVietQrUrl({
+                  amount: confirmedTotal ?? total ?? 0,
+                  orderNumber,
+                })}
                 alt="VietQR Payment Code"
                 width={192}
                 height={192}
+                unoptimized
                 className="h-48 w-48 rounded-surface border border-atelier-rule bg-atelier-paper object-contain"
               />
               <figcaption className="fl-label mt-fl-2xs">
-                {language === "vi" ? "Quét mã QR thanh toán" : "Scan QR code to pay"}
+                {language === "vi" ? "Quét mã QR thanh toán (Napas 247)" : "Scan QR code to pay (Napas 247)"}
               </figcaption>
             </figure>
 

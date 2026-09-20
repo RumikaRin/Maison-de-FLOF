@@ -34,6 +34,16 @@ interface CheckoutFormProps {
   setPaymentMethod: (val: "COD" | "TRANSFER" | "VNPAY") => void;
   handleSubmit: (e: React.FormEvent) => void;
   isSubmitting: boolean;
+  vatRequested?: boolean;
+  setVatRequested?: (val: boolean) => void;
+  vatCompanyName?: string;
+  setVatCompanyName?: (val: string) => void;
+  vatTaxCode?: string;
+  setVatTaxCode?: (val: string) => void;
+  vatCompanyAddress?: string;
+  setVatCompanyAddress?: (val: string) => void;
+  vatEmail?: string;
+  setVatEmail?: (val: string) => void;
 }
 
 export function CheckoutForm({
@@ -59,6 +69,16 @@ export function CheckoutForm({
   setPaymentMethod,
   handleSubmit,
   isSubmitting,
+  vatRequested = false,
+  setVatRequested,
+  vatCompanyName = "",
+  setVatCompanyName,
+  vatTaxCode = "",
+  setVatTaxCode,
+  vatCompanyAddress = "",
+  setVatCompanyAddress,
+  vatEmail = "",
+  setVatEmail,
 }: CheckoutFormProps) {
   // 34 provinces + wards (post-2025-merger official units). Loaded lazily from
   // a cached static JSON; until it arrives the selects show an empty list.
@@ -186,10 +206,15 @@ export function CheckoutForm({
         </div>
 
         <div className="flex flex-col gap-fl-2xs">
-          <Label htmlFor="checkout-email">Email</Label>
+          <Label htmlFor="checkout-email">
+            {language === "vi" ? "Email nhận thông tin đơn hàng & hóa đơn" : "Email (for invoice & order updates)"}{" "}
+            <span aria-hidden="true" className="text-atelier-danger">*</span>
+          </Label>
           <Input
             id="checkout-email"
             type="email"
+            required
+            aria-required="true"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@example.com"
@@ -269,6 +294,87 @@ export function CheckoutForm({
             onChange={(e) => setNotes(e.target.value)}
             placeholder={language === "vi" ? "Lời nhắn cho người giao hàng" : "Delivery notes"}
           />
+        </div>
+
+        {/* VAT Invoice Request */}
+        <div className="rounded-surface border border-atelier-rule p-fl-sm bg-atelier-paper-2/30">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={vatRequested}
+              onChange={(e) => setVatRequested?.(e.target.checked)}
+              className="h-4 w-4 rounded border-atelier-rule text-atelier-accent"
+            />
+            <span className="text-fl-sm font-medium text-atelier-ink">
+              {language === "vi"
+                ? "Yêu cầu xuất hóa đơn điện tử VAT (Doanh nghiệp / Thợ thầu)"
+                : "Request VAT e-Invoice (Company / Contractor)"}
+            </span>
+          </label>
+
+          {vatRequested && (
+            <div className="mt-fl-sm grid grid-cols-1 gap-fl-sm pt-fl-xs border-t border-atelier-rule">
+              <div className="flex flex-col gap-fl-2xs">
+                <Label htmlFor="vat-company-name">
+                  {language === "vi" ? "Tên công ty / Đơn vị" : "Company Name"}{" "}
+                  <span className="text-atelier-danger">*</span>
+                </Label>
+                <Input
+                  id="vat-company-name"
+                  type="text"
+                  required={vatRequested}
+                  value={vatCompanyName}
+                  onChange={(e) => setVatCompanyName?.(e.target.value)}
+                  placeholder={language === "vi" ? "Công ty TNHH Kiến Trúc & Xây Dựng ABC" : "ABC Construction Co."}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-fl-sm">
+                <div className="flex flex-col gap-fl-2xs">
+                  <Label htmlFor="vat-tax-code">
+                    {language === "vi" ? "Mã số thuế (MST)" : "Tax Code"}{" "}
+                    <span className="text-atelier-danger">*</span>
+                  </Label>
+                  <Input
+                    id="vat-tax-code"
+                    type="text"
+                    required={vatRequested}
+                    value={vatTaxCode}
+                    onChange={(e) => setVatTaxCode?.(e.target.value)}
+                    placeholder="0101234567"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-fl-2xs">
+                  <Label htmlFor="vat-email">
+                    {language === "vi" ? "Email nhận hóa đơn điện tử" : "e-Invoice Email"}
+                  </Label>
+                  <Input
+                    id="vat-email"
+                    type="email"
+                    value={vatEmail}
+                    onChange={(e) => setVatEmail?.(e.target.value)}
+                    placeholder={email || "ketoan@company.com"}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-fl-2xs">
+                <Label htmlFor="vat-company-address">
+                  {language === "vi" ? "Địa chỉ đăng ký kinh doanh" : "Registered Business Address"}{" "}
+                  <span className="text-atelier-danger">*</span>
+                </Label>
+                <Input
+                  id="vat-company-address"
+                  type="text"
+                  required={vatRequested}
+                  value={vatCompanyAddress}
+                  onChange={(e) => setVatCompanyAddress?.(e.target.value)}
+                  placeholder={language === "vi" ? "Số 123 Đường ABC, Quận XYZ, TP. Hà Nội" : "123 Street, City"}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Payment selection — flat radio rows on hairline rules */}

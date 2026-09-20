@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
     if (isPaginationRequested) {
       queryOptions.skip = (page - 1) * limit;
       queryOptions.take = limit;
+    } else {
+      queryOptions.take = 100;
     }
 
     const [dbDealers, total] = await Promise.all([

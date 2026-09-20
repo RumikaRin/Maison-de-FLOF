@@ -1,18 +1,22 @@
 /* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
+import { useState } from "react";
 import { formatPrice } from "@/lib/utils";
 import { useTrans } from "@/lib/dictionary";
 import { Rule } from "@/components/ui/editorial";
+import { toast } from "@/components/ui/csp-toast";
 import type { ProfileOrder, ProfileOrderItem } from "../types";
 
 interface OrderHistoryTabProps {
   orders: ProfileOrder[];
   language: string;
+  onOrderCancelled?: () => void;
 }
 
-export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
+export function OrderHistoryTab({ orders, language, onOrderCancelled }: OrderHistoryTabProps) {
   const t = useTrans(language === "vi" ? "vi" : "en");
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const statusText = (status: string) => {
     switch (status) {
@@ -20,6 +24,12 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
         return language === "vi" ? "Đã nhận hàng" : "Delivered";
       case "PROCESSING":
         return language === "vi" ? "Đang vận chuyển" : "Delivering";
+      case "CONFIRMED":
+        return language === "vi" ? "Đã xác nhận" : "Confirmed";
+      case "PENDING":
+        return language === "vi" ? "Chờ xử lý" : "Pending";
+      case "CANCELLED":
+        return language === "vi" ? "Đã hủy" : "Cancelled";
       default:
         return status;
     }
@@ -30,7 +40,10 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
       case "COMPLETED":
         return "text-atelier-success";
       case "PROCESSING":
+      case "CONFIRMED":
         return "text-atelier-accent";
+      case "CANCELLED":
+        return "text-atelier-danger";
       default:
         return "text-atelier-ink-2";
     }
@@ -43,6 +56,44 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
         ? ord.items.map((i: string | ProfileOrderItem) => typeof i === "string" ? i : `${i.paint?.name || i.name || (language === "vi" ? "Sản phẩm" : "Paint")} x ${i.quantity || 1}`).join(", ")
         : JSON.stringify(ord.items || "");
 
+  const handleCancelOrder = async (orderNumber: string) => {
+    const confirmMsg = language === "vi"
+      ? `Bạn có chắc chắn muốn hủy đơn hàng ${orderNumber}?`
+      : `Are you sure you want to cancel order ${orderNumber}?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setCancellingId(orderNumber);
+    try {
+      const response = await fetch(`/api/orders/${orderNumber}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "CANCEL",
+          reason: "Khách hàng tự hủy trên website",
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(
+          language === "vi"
+            ? `Đã hủy đơn hàng ${orderNumber} thành công.`
+            : `Order ${orderNumber} cancelled successfully.`,
+        );
+        onOrderCancelled?.();
+      } else {
+        toast.error(
+          data.error?.message ||
+            (language === "vi" ? "Không thể hủy đơn hàng" : "Could not cancel order"),
+        );
+      }
+    } catch {
+      toast.error(language === "vi" ? "Lỗi kết nối" : "Network error");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   return (
     <section>
       <h2 className="fl-display text-fl-xl">
@@ -52,7 +103,7 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
 
       {orders.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] border-collapse text-left">
+          <table className="w-full min-w-[40rem] border-collapse text-left">
             <thead>
               <tr className="border-b border-atelier-rule">
                 <th scope="col" className="fl-label py-fl-2xs pr-fl-sm font-medium">
@@ -69,6 +120,9 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
                 </th>
                 <th scope="col" className="fl-label py-fl-2xs text-right font-medium">
                   {t.appOrderColTotal}
+                </th>
+                <th scope="col" className="fl-label py-fl-2xs text-right font-medium">
+                  {language === "vi" ? "Thao tác" : "Action"}
                 </th>
               </tr>
             </thead>
@@ -89,6 +143,21 @@ export function OrderHistoryTab({ orders, language }: OrderHistoryTabProps) {
                   </td>
                   <td className="whitespace-nowrap py-fl-xs text-right text-fl-sm font-medium tabular-nums">
                     {formatPrice(ord.total)}
+                  </td>
+                  <td className="whitespace-nowrap py-fl-xs text-right text-fl-sm">
+                    {ord.status === "PENDING" ? (
+                      <button
+                        onClick={() => handleCancelOrder(ord.id)}
+                        disabled={cancellingId === ord.id}
+                        className="text-xs font-medium text-atelier-danger hover:underline disabled:opacity-50"
+                      >
+                        {cancellingId === ord.id
+                          ? (language === "vi" ? "Đang hủy..." : "Cancelling...")
+                          : (language === "vi" ? "Hủy đơn" : "Cancel")}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-atelier-ink-2">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

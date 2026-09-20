@@ -21,21 +21,15 @@ export function SliceImage({
     <span
       role="img"
       aria-label={alt}
-      data-fl-slice
-      data-fl-io
-      className={cn("fl-slice absolute inset-0", className)}
+      className={cn("fl-slice relative block h-full w-full overflow-hidden", className)}
     >
-      {STRIPS.map((k) => (
-        <span key={k} aria-hidden="true" className="fl-slice-strip">
-          <CspImage
-            src={src}
-            alt=""
-            fill
-            sizes={sizes}
-            className="fl-slice-img object-cover"
-          />
-        </span>
-      ))}
+      <CspImage
+        src={src}
+        alt=""
+        fill
+        sizes={sizes}
+        className="fl-slice-img object-cover"
+      />
     </span>
   );
 }

@@ -90,6 +90,59 @@ async function main() {
     },
   });
 
+  // FLOF Demo accounts (matching README.md)
+  const flofAdminPassword = await bcrypt.hash("Admin@123456", 12);
+  const flofStaffPassword = await bcrypt.hash("Staff@123456", 12);
+  const flofCustomerPassword = await bcrypt.hash("Customer@123456", 12);
+
+  await prisma.user.upsert({
+    where: { email: "admin@flof.vn" },
+    update: { emailVerified: seededEmailVerified },
+    create: {
+      email: "admin@flof.vn",
+      password: flofAdminPassword,
+      name: "FLOF Admin",
+      phone: "0900000010",
+      emailVerified: seededEmailVerified,
+      roleId: adminRole.id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "staff@flof.vn" },
+    update: { emailVerified: seededEmailVerified },
+    create: {
+      email: "staff@flof.vn",
+      password: flofStaffPassword,
+      name: "FLOF Staff",
+      phone: "0900000011",
+      emailVerified: seededEmailVerified,
+      roleId: staffRole.id,
+    },
+  });
+
+  const flofCustomerUser = await prisma.user.upsert({
+    where: { email: "customer@flof.vn" },
+    update: { emailVerified: seededEmailVerified },
+    create: {
+      email: "customer@flof.vn",
+      password: flofCustomerPassword,
+      name: "FLOF Customer",
+      phone: "0900000012",
+      emailVerified: seededEmailVerified,
+      roleId: customerRole.id,
+    },
+  });
+
+  await prisma.customer.upsert({
+    where: { userId: flofCustomerUser.id },
+    update: {},
+    create: {
+      userId: flofCustomerUser.id,
+      customerType: "RETAIL",
+    },
+  });
+
   console.log("Users and Profiles seeded successfully.");
 
   // 3. Suppliers

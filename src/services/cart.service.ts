@@ -64,21 +64,69 @@ async function writeSnapshot(
   const activeIds = new Set(activePaints.map((p) => p.id));
   const clean = normalized.filter((l) => activeIds.has(l.paintId));
 
-  await database.$transaction([
-    database.cartItem.deleteMany({ where: { userId } }),
-    ...(clean.length
-      ? [
-          database.cartItem.createMany({
-            data: clean.map((l) => ({
-              userId,
-              paintId: l.paintId,
-              colorCode: l.colorCode,
-              quantity: l.quantity,
-            })),
-          }),
-        ]
-      : []),
-  ]);
+  const existing = await database.cartItem.findMany({
+    where: { userId },
+  });
+
+  const existingMap = new Map(
+    existing.map((item) => [`${item.paintId}:${item.colorCode}`, item]),
+  );
+  const incomingMap = new Map(
+    clean.map((item) => [`${item.paintId}:${item.colorCode}`, item]),
+  );
+
+  const toDeleteIds = existing
+    .filter((item) => !incomingMap.has(`${item.paintId}:${item.colorCode}`))
+    .map((item) => item.id);
+
+  const toCreate = clean.filter(
+    (item) => !existingMap.has(`${item.paintId}:${item.colorCode}`),
+  );
+
+  const toUpdate = existing.filter((item) => {
+    const incoming = incomingMap.get(`${item.paintId}:${item.colorCode}`);
+    return incoming && incoming.quantity !== item.quantity;
+  });
+
+  if (toDeleteIds.length === 0 && toCreate.length === 0 && toUpdate.length === 0) {
+    return;
+  }
+
+  const operations: any[] = [];
+  if (toDeleteIds.length > 0) {
+    operations.push(
+      database.cartItem.deleteMany({
+        where: { id: { in: toDeleteIds } },
+      }),
+    );
+  }
+  if (toCreate.length > 0) {
+    operations.push(
+      database.cartItem.createMany({
+        data: toCreate.map((l) => ({
+          userId,
+          paintId: l.paintId,
+          colorCode: l.colorCode,
+          quantity: l.quantity,
+        })),
+      }),
+    );
+  }
+  for (const item of toUpdate) {
+    const updatedLine = incomingMap.get(`${item.paintId}:${item.colorCode}`);
+    if (updatedLine) {
+      operations.push(
+        database.cartItem.update({
+          where: { id: item.id },
+          data: { quantity: updatedLine.quantity },
+        }),
+      );
+    }
+  }
+
+  if (operations.length > 0) {
+    await database.$transaction(operations);
+  }
 }
 
 export async function getCart(database: PrismaClient, userId: string) {

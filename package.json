@@ -31,6 +31,7 @@
     "check:production-load": "node --experimental-strip-types scripts/run-production-load-profile.ts",
     "check:provider:upstash": "cross-env PROVIDER_CHECK=upstash tsx scripts/verify-provider-readiness.ts",
     "check:provider:resend": "cross-env PROVIDER_CHECK=resend tsx scripts/verify-provider-readiness.ts",
+    "test:email": "tsx scripts/test-send-email.ts",
     "check:provider:cloudinary": "cross-env PROVIDER_CHECK=cloudinary tsx scripts/verify-provider-readiness.ts",
     "check:account": "node --experimental-strip-types scripts/diagnose-login.ts",
     "check:contrast": "node --experimental-strip-types scripts/check-contrast-tokens.ts",

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requireAdmin } from "@/lib/api-auth";
 import { passwordSchema } from "@/lib/password-policy";
 import { createAuditLog } from "@/lib/audit";
+import { invalidateUserSessionCache } from "@/lib/auth/session-cache";
 
 const createUserSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -123,6 +124,11 @@ export async function PATCH(request: NextRequest) {
       });
       return updatedUser;
     });
+
+    if (target.roleId !== role.id) {
+      await invalidateUserSessionCache(target.id);
+    }
+
     return NextResponse.json(serializeUser(user));
   } catch (error) {
     return apiErrorResponse(error);
