@@ -16,11 +16,11 @@ test("Vercel config schedules governed maintenance and outbox crons", async () =
   assert.deepEqual(config.crons, [
     {
       path: "/api/cron/process-outbox",
-      schedule: "0 * * * *",
+      schedule: "5 0 * * *",
     },
     {
       path: "/api/cron/expire-unpaid-orders",
-      schedule: "*/15 * * * *",
+      schedule: "20 0 * * *",
     },
     {
       path: "/api/cron/apply-retention",

@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/process-outbox",
-      "schedule": "0 * * * *"
+      "schedule": "5 0 * * *"
     },
     {
       "path": "/api/cron/expire-unpaid-orders",
-      "schedule": "*/15 * * * *"
+      "schedule": "20 0 * * *"
     },
     {
       "path": "/api/cron/apply-retention",
