@@ -143,6 +143,17 @@ export default async function RootLayout({
     );
   }
 
+  var originalConsoleError = console.error;
+  console.error = function() {
+    for (var i = 0; i < arguments.length; i++) {
+      var arg = arguments[i];
+      if (arg && isExtensionError(arg)) {
+        return;
+      }
+    }
+    return originalConsoleError.apply(console, arguments);
+  };
+
   window.addEventListener("error", function(e) {
     if (isExtensionError(e)) {
       e.stopImmediatePropagation();

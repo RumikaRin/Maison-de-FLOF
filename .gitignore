@@ -84,5 +84,8 @@ json/
 codex_project_audit_pack/
 *.png.tmp
 
+# AI local config and knowledge data (contains API keys and internal docs)
+/data/
+
 
 

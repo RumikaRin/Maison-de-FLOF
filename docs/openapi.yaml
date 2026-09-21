@@ -327,6 +327,274 @@ paths:
             schema:
               type: object
               additionalProperties: true
+  /api/admin/chat/ai-knowledge:
+    get:
+      operationId: getAdminChatAiKnowledge
+      summary: GET /api/admin/chat/ai-knowledge
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminChatAiKnowledge
+      summary: POST /api/admin/chat/ai-knowledge
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a3
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a3
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/chat/ai-knowledge/{id}:
+    patch:
+      operationId: patchAdminChatAiKnowledgeById
+      summary: PATCH /api/admin/chat/ai-knowledge/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+    delete:
+      operationId: deleteAdminChatAiKnowledgeById
+      summary: DELETE /api/admin/chat/ai-knowledge/{id}
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - sessionCookie: []
+  /api/admin/chat/ai-settings:
+    get:
+      operationId: getAdminChatAiSettings
+      summary: GET /api/admin/chat/ai-settings
+      description: Source-inventoried API operation.
+      x-contract-tier: stable-minimal
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+    post:
+      operationId: postAdminChatAiSettings
+      summary: POST /api/admin/chat/ai-settings
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a4
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a4
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/chat/ai-settings/models:
+    post:
+      operationId: postAdminChatAiSettingsModels
+      summary: POST /api/admin/chat/ai-settings/models
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a5
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a5
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/admin/chat/ai-settings/test:
+    post:
+      operationId: postAdminChatAiSettingsTest
+      summary: POST /api/admin/chat/ai-settings/test
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a6
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a6
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
   /api/admin/chat/conversations:
     get:
       operationId: getAdminChatConversations
@@ -362,7 +630,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a3
+          content: &a7
             application/json:
               schema:
                 oneOf:
@@ -372,7 +640,7 @@ paths:
                       $ref: "#/components/schemas/Conversation"
         "201":
           description: Resource created
-          content: *a3
+          content: *a7
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -456,7 +724,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a4
+          content: &a8
             application/json:
               schema:
                 oneOf:
@@ -464,7 +732,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a4
+          content: *a8
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -568,7 +836,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a5
+          content: &a9
             application/json:
               schema:
                 oneOf:
@@ -576,7 +844,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a5
+          content: *a9
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -680,7 +948,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a6
+          content: &a10
             application/json:
               schema:
                 oneOf:
@@ -688,7 +956,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a6
+          content: *a10
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -817,7 +1085,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a7
+          content: &a11
             application/json:
               schema:
                 oneOf:
@@ -825,7 +1093,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a7
+          content: *a11
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -929,7 +1197,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a8
+          content: &a12
             application/json:
               schema:
                 oneOf:
@@ -937,7 +1205,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a8
+          content: *a12
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -988,7 +1256,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a9
+          content: &a13
             application/json:
               schema:
                 oneOf:
@@ -996,7 +1264,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a9
+          content: *a13
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1112,7 +1380,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a10
+          content: &a14
             application/json:
               schema:
                 oneOf:
@@ -1122,7 +1390,7 @@ paths:
                       $ref: "#/components/schemas/Notification"
         "201":
           description: Resource created
-          content: *a10
+          content: *a14
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1229,7 +1497,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a11
+          content: &a15
             application/json:
               schema:
                 oneOf:
@@ -1237,7 +1505,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a11
+          content: *a15
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1515,7 +1783,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a12
+          content: &a16
             application/json:
               schema:
                 oneOf:
@@ -1523,7 +1791,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a12
+          content: *a16
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1627,7 +1895,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a13
+          content: &a17
             application/json:
               schema:
                 oneOf:
@@ -1635,7 +1903,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a13
+          content: *a17
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1739,7 +2007,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a14
+          content: &a18
             application/json:
               schema:
                 oneOf:
@@ -1747,7 +2015,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a14
+          content: *a18
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -1868,7 +2136,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a15
+          content: &a19
             application/json:
               schema:
                 oneOf:
@@ -1876,7 +2144,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a15
+          content: *a19
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -1987,7 +2255,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a16
+          content: &a20
             application/json:
               schema:
                 oneOf:
@@ -1995,7 +2263,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a16
+          content: *a20
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -2037,7 +2305,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a17
+          content: &a21
             application/json:
               schema:
                 oneOf:
@@ -2047,7 +2315,38 @@ paths:
                       $ref: "#/components/schemas/Conversation"
         "201":
           description: Resource created
-          content: *a17
+          content: *a21
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+  /api/chat/ai:
+    post:
+      operationId: postChatAi
+      summary: POST /api/chat/ai
+      description: Source-inventoried API operation.
+      x-contract-tier: detailed
+      responses:
+        "200":
+          description: Successful response
+          content: &a22
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Conversation"
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Conversation"
+        "201":
+          description: Resource created
+          content: *a22
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -2094,7 +2393,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a18
+          content: &a23
             application/json:
               schema:
                 oneOf:
@@ -2104,7 +2403,7 @@ paths:
                       $ref: "#/components/schemas/Conversation"
         "201":
           description: Resource created
-          content: *a18
+          content: *a23
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2272,9 +2571,9 @@ paths:
                 oneOf:
                   - $ref: "#/components/schemas/GenericObject"
                   - $ref: "#/components/schemas/GenericArray"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "500":
-          $ref: "#/components/responses/InternalError"
-        "503":
           $ref: "#/components/responses/InternalError"
   /api/newsletter:
     post:
@@ -2285,7 +2584,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a19
+          content: &a24
             application/json:
               schema:
                 oneOf:
@@ -2293,7 +2592,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a19
+          content: *a24
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -2383,6 +2682,39 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+    post:
+      operationId: postOrderAction
+      summary: Customer order actions (retry VNPay payment, switch to COD, cancel)
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum:
+                    - RETRY_VNPAY
+                    - SWITCH_TO_COD
+                    - CANCEL
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Order action executed
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
     patch:
       operationId: updateOrderStatus
       summary: Update an order status with staff permission
@@ -2419,39 +2751,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-        "500":
-          $ref: "#/components/responses/InternalError"
-    post:
-      operationId: postOrderAction
-      summary: Customer order actions (retry VNPay payment, switch to COD, cancel)
-      security:
-        - sessionCookie: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - action
-              properties:
-                action:
-                  type: string
-                  enum:
-                    - RETRY_VNPAY
-                    - SWITCH_TO_COD
-                    - CANCEL
-                reason:
-                  type: string
-      responses:
-        "200":
-          description: Order action executed
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
   /api/products:
@@ -2590,7 +2889,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a20
+          content: &a25
             application/json:
               schema:
                 oneOf:
@@ -2598,7 +2897,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a20
+          content: *a25
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2750,7 +3049,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a21
+          content: &a26
             application/json:
               schema:
                 oneOf:
@@ -2758,7 +3057,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a21
+          content: *a26
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2809,7 +3108,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a22
+          content: &a27
             application/json:
               schema:
                 oneOf:
@@ -2817,7 +3116,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a22
+          content: *a27
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -2922,7 +3221,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a23
+          content: &a28
             application/json:
               schema:
                 oneOf:
@@ -2930,7 +3229,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a23
+          content: *a28
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3105,7 +3404,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a24
+          content: &a29
             application/json:
               schema:
                 oneOf:
@@ -3115,7 +3414,7 @@ paths:
                       $ref: "#/components/schemas/Review"
         "201":
           description: Resource created
-          content: *a24
+          content: *a29
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -3185,7 +3484,7 @@ paths:
       responses:
         "200":
           description: Successful response
-          content: &a25
+          content: &a30
             application/json:
               schema:
                 oneOf:
@@ -3193,7 +3492,7 @@ paths:
                   - $ref: "#/components/schemas/GenericArray"
         "201":
           description: Resource created
-          content: *a25
+          content: *a30
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

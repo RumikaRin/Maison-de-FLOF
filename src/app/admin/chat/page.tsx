@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { CspImage as Image } from "@/components/ui/csp-image";
-import { ExternalLink, Mail, MessageCircle, Phone, Send, UserRound } from "lucide-react";
+import { ExternalLink, Mail, MessageCircle, Phone, Send, UserRound, Sparkles, BookOpen } from "lucide-react";
 import { toast } from "@/components/ui/csp-toast";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useLanguageStore } from "@/store/language-store";
+import { AiProviderSettings } from "@/components/features/admin/chat/AiProviderSettings";
+import { AiKnowledgeBaseManager } from "@/components/features/admin/chat/AiKnowledgeBaseManager";
 
 // Old ChatMessage type
 type ChatMessage = {
@@ -40,7 +42,7 @@ type Message = {
 
 export default function AdminChatPage() {
   const { language } = useLanguageStore();
-  const [activeTab, setActiveTab] = useState<"LIVE" | "GUEST">("LIVE");
+  const [activeTab, setActiveTab] = useState<"LIVE" | "GUEST" | "AI_KNOWLEDGE" | "AI_SETTINGS">("LIVE");
 
   // Guest State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -168,7 +170,7 @@ export default function AdminChatPage() {
           <h1 className="text-3xl font-bold text-warm-900">{language === "vi" ? "Tin Nhắn & Hỗ Trợ" : "Messages & Support"}</h1>
           <p className="mt-1 text-xs text-warm-550">{language === "vi" ? "Tiếp nhận tin nhắn và chat trực tiếp với khách hàng." : "Receive messages and chat directly with customers."}</p>
         </div>
-        <div className="flex bg-warm-100 p-1 rounded-xl">
+        <div className="flex bg-warm-100 p-1 rounded-xl gap-1">
           <button
             onClick={() => setActiveTab("LIVE")}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${activeTab === "LIVE" ? "bg-white text-jotun-teal shadow-sm" : "text-warm-600 hover:text-warm-900"}`}
@@ -180,6 +182,20 @@ export default function AdminChatPage() {
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${activeTab === "GUEST" ? "bg-white text-warm-900 shadow-sm" : "text-warm-600 hover:text-warm-900"}`}
           >
             {language === "vi" ? "Tin nhắn Khách vãng lai" : "Guest Messages"}
+          </button>
+          <button
+            onClick={() => setActiveTab("AI_KNOWLEDGE")}
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === "AI_KNOWLEDGE" ? "bg-white text-jotun-teal shadow-sm" : "text-warm-600 hover:text-warm-900"}`}
+          >
+            <BookOpen className="h-3.5 w-3.5 text-jotun-teal" />
+            {language === "vi" ? "Cơ sở tri thức AI" : "AI Knowledge Base"}
+          </button>
+          <button
+            onClick={() => setActiveTab("AI_SETTINGS")}
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === "AI_SETTINGS" ? "bg-white text-jotun-teal shadow-sm" : "text-warm-600 hover:text-warm-900"}`}
+          >
+            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+            {language === "vi" ? "Cấu hình AI Provider" : "AI Provider"}
           </button>
         </div>
       </div>
@@ -304,7 +320,7 @@ export default function AdminChatPage() {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === "GUEST" ? (
         <div className="flex-1 overflow-y-auto">
           <div className="flex justify-end mb-4 w-full sm:w-52 ml-auto">
             <CustomSelect value={filter} onValueChange={setFilter} options={[
@@ -351,6 +367,10 @@ export default function AdminChatPage() {
             </div>
           )}
         </div>
+      ) : activeTab === "AI_KNOWLEDGE" ? (
+        <AiKnowledgeBaseManager />
+      ) : (
+        <AiProviderSettings />
       )}
     </div>
   );

@@ -9,6 +9,7 @@ export type RateLimitPolicy = {
     | "api"
     | "quote"
     | "guest-chat"
+    | "ai-chat"
     | "review"
     | "newsletter";
   limiter: "auth" | "api" | "publicWrite";
@@ -37,6 +38,9 @@ export function getRateLimitPolicy(
   }
   if (isWrite && pathname === "/api/chat") {
     return policy("guest-chat", "publicWrite", 5);
+  }
+  if (isWrite && pathname === "/api/chat/ai") {
+    return policy("ai-chat", "publicWrite", 20);
   }
   if (isWrite && pathname === "/api/reviews") {
     return policy("review", "publicWrite", 10);

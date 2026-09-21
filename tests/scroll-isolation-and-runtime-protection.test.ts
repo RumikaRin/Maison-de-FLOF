@@ -68,3 +68,67 @@ test("Root layout traps and suppresses browser extension errors (e.g. Urban VPN 
     "Extension error handler must stopImmediatePropagation in capture phase",
   );
 });
+
+test("ChatBubble modal and inner scroll containers isolate scrolling from Lenis smooth scroll", async () => {
+  const code = await readFile("src/components/layout/ChatBubble.tsx", "utf8");
+  assert.ok(
+    code.includes("data-lenis-prevent"),
+    "ChatBubble must have data-lenis-prevent attribute to prevent Lenis from hijacking wheel/touch events",
+  );
+  assert.ok(
+    code.includes("stopPropagation") && code.includes("onWheel"),
+    "ChatBubble must stop wheel event propagation to isolate scrolling from background page",
+  );
+  assert.ok(
+    code.includes("overscroll-contain"),
+    "ChatBubble scrollable containers must have overscroll-contain to avoid browser scroll chaining",
+  );
+});
+
+test("ScrollToTop component hides when ChatBubble is open and has lower z-index", async () => {
+  const code = await readFile("src/components/ui/scroll-to-top.tsx", "utf8");
+  assert.ok(
+    code.includes("flof-chat-toggle"),
+    "ScrollToTop must listen to flof-chat-toggle event",
+  );
+  assert.ok(
+    code.includes("!chatOpen"),
+    "ScrollToTop must not render when chatOpen is true",
+  );
+  assert.ok(
+    code.includes("z-20"),
+    "ScrollToTop must use lower z-index (z-20) below chat",
+  );
+
+  const css = await readFile("src/app/globals.css", "utf8");
+  assert.ok(
+    css.includes("body[data-chat-open=\"true\"] [data-scroll-to-top]"),
+    "globals.css must contain CSS rule to hide scroll-to-top when chat is open",
+  );
+});
+
+test("ChatBubble dispatches flof-chat-toggle, sets body attribute, and supports speech-to-text mic", async () => {
+  const code = await readFile("src/components/layout/ChatBubble.tsx", "utf8");
+  assert.ok(
+    code.includes("flof-chat-toggle"),
+    "ChatBubble must dispatch flof-chat-toggle event",
+  );
+  assert.ok(
+    code.includes("data-chat-open"),
+    "ChatBubble must set data-chat-open attribute on body",
+  );
+  assert.ok(
+    code.includes("z-50"),
+    "ChatBubble container must have z-50 to stay above other floating controls",
+  );
+  assert.ok(
+    code.includes("SpeechRecognition") && code.includes("webkitSpeechRecognition"),
+    "ChatBubble must support SpeechRecognition API for microphone voice input",
+  );
+  assert.ok(
+    code.includes("handleToggleVoiceInput"),
+    "ChatBubble must provide handleToggleVoiceInput handler",
+  );
+});
+
+

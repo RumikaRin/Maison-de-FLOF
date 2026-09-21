@@ -90,7 +90,9 @@ export function HomeClient({
         .then((data) => {
           if (Array.isArray(data)) setWishlist(data);
         })
-        .catch((error) => console.error("Không thể tải danh sách yêu thích:", error));
+        .catch((error) => {
+          console.warn("Không thể tải danh sách yêu thích:", error);
+        });
       return;
     }
 

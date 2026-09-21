@@ -1538,5 +1538,92 @@ html.lenis body {
   }
 }
 
+/* Hide scroll-to-top button when chat modal is open */
+body[data-chat-open="true"] [data-scroll-to-top] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Custom interactive range slider with thin sleek track matching reference design */
+.flof-range-slider {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 100% !important;
+  height: 20px !important;
+  background: transparent !important;
+  outline: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  display: block !important;
+}
+
+.flof-range-slider::-webkit-slider-runnable-track {
+  width: 100% !important;
+  height: 4px !important;
+  border-radius: 9999px !important;
+  background: linear-gradient(
+    to right,
+    #007B8A 0%,
+    #007B8A var(--slider-progress, 35%),
+    #CBD5E1 var(--slider-progress, 35%),
+    #CBD5E1 100%
+  ) !important;
+  border: none !important;
+}
+
+.flof-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  background: #007B8A !important;
+  border: 2px solid #FFFFFF !important;
+  box-shadow: 0 1px 4px rgba(0, 123, 138, 0.4), 0 0 0 1px rgba(0, 123, 138, 0.15) !important;
+  cursor: pointer !important;
+  margin-top: -6px !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.flof-range-slider:hover::-webkit-slider-thumb,
+.flof-range-slider:active::-webkit-slider-thumb {
+  transform: scale(1.2) !important;
+  box-shadow: 0 2px 8px rgba(0, 123, 138, 0.5), 0 0 0 3px rgba(0, 123, 138, 0.2) !important;
+}
+
+.flof-range-slider::-moz-range-track {
+  width: 100% !important;
+  height: 4px !important;
+  border-radius: 9999px !important;
+  background: #CBD5E1 !important;
+  border: none !important;
+}
+
+.flof-range-slider::-moz-range-progress {
+  height: 4px !important;
+  border-radius: 9999px !important;
+  background: #007B8A !important;
+}
+
+.flof-range-slider::-moz-range-thumb {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  background: #007B8A !important;
+  border: 2px solid #FFFFFF !important;
+  box-shadow: 0 1px 4px rgba(0, 123, 138, 0.4) !important;
+  cursor: pointer !important;
+}
+
+/* Mask API key without using type="password" to prevent browser password managers from popping up */
+.flof-secret-mask {
+  -webkit-text-security: disc !important;
+  letter-spacing: 0.12em !important;
+}
+
+
+
 
 
