@@ -18,9 +18,23 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
   await expect(page.locator("main")).toBeVisible();
   const homeAppInlineStyles = await page.locator("[style]").evaluateAll((nodes) =>
     nodes
-      // MapLibre sizes its rendering canvases at runtime. Those library-owned
+      // MapLibre sizes its rendering canvases at runtime. Next.js AppRouterAnnouncer
+      // injects an internal live-region. Those library- and framework-owned
       // attributes do not introduce inline styles in application markup.
-      .filter((node) => node.tagName !== "CANVAS")
+      .filter((node) => {
+        if (node.tagName === "CANVAS" || node.tagName === "NEXT-ROUTE-ANNOUNCER" || node.id === "__next-route-announcer__") return false;
+        if (node.closest?.("next-route-announcer")) return false;
+        const root = typeof node.getRootNode === "function" ? node.getRootNode() : null;
+        if (
+          root &&
+          root instanceof ShadowRoot &&
+          (root.host?.tagName === "NEXT-ROUTE-ANNOUNCER" ||
+            (root.host as HTMLElement)?.getAttribute?.("name") === "next-route-announcer")
+        ) {
+          return false;
+        }
+        return true;
+      })
       .map((node) => ({
         tag: node.tagName,
         className: node.getAttribute("class"),
@@ -50,7 +64,23 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
 
   await page.goto(`/products/${P1_FIXTURES.productSlug}`);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator("[style]")).toHaveCount(0);
+  const productInlineStyles = await page.locator("[style]").evaluateAll((nodes) =>
+    nodes.filter((node) => {
+      if (node.tagName === "CANVAS" || node.tagName === "NEXT-ROUTE-ANNOUNCER" || node.id === "__next-route-announcer__") return false;
+      if (node.closest?.("next-route-announcer")) return false;
+      const root = typeof node.getRootNode === "function" ? node.getRootNode() : null;
+      if (
+        root &&
+        root instanceof ShadowRoot &&
+        (root.host?.tagName === "NEXT-ROUTE-ANNOUNCER" ||
+          (root.host as HTMLElement)?.getAttribute?.("name") === "next-route-announcer")
+      ) {
+        return false;
+      }
+      return true;
+    }),
+  );
+  expect(productInlineStyles).toHaveLength(0);
   await expect(page.getByRole("button", { name: /Mua ngay|Buy now/i })).toBeVisible();
 
   await page.goto("/color-visualizer");
@@ -66,6 +96,22 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
   await page.getByLabel(/Mật khẩu|Password/).fill("Wrong-password-1");
   await page.getByRole("button", { name: /Đăng nhập|Login/i }).click();
   await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
-  await expect(page.locator("[style]")).toHaveCount(0);
+  const loginInlineStyles = await page.locator("[style]").evaluateAll((nodes) =>
+    nodes.filter((node) => {
+      if (node.tagName === "CANVAS" || node.tagName === "NEXT-ROUTE-ANNOUNCER" || node.id === "__next-route-announcer__") return false;
+      if (node.closest?.("next-route-announcer")) return false;
+      const root = typeof node.getRootNode === "function" ? node.getRootNode() : null;
+      if (
+        root &&
+        root instanceof ShadowRoot &&
+        (root.host?.tagName === "NEXT-ROUTE-ANNOUNCER" ||
+          (root.host as HTMLElement)?.getAttribute?.("name") === "next-route-announcer")
+      ) {
+        return false;
+      }
+      return true;
+    }),
+  );
+  expect(loginInlineStyles).toHaveLength(0);
   expect(cspErrors).toEqual([]);
 });

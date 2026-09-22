@@ -126,6 +126,21 @@ export default async function RootLayout({
     }
   }).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: [a] });
 
+  try {
+    var existingAnnouncer = document.getElementsByName("next-route-announcer")[0];
+    if (!existingAnnouncer && document.body) {
+      var c = document.createElement("next-route-announcer");
+      c.setAttribute("name", "next-route-announcer");
+      var s = c.attachShadow({ mode: "open" });
+      var aEl = document.createElement("div");
+      aEl.id = "__next-route-announcer__";
+      aEl.setAttribute("aria-live", "assertive");
+      aEl.setAttribute("role", "alert");
+      s.appendChild(aEl);
+      document.body.appendChild(c);
+    }
+  } catch(e) {}
+
   function isExtensionError(eventOrReason) {
     if (!eventOrReason) return false;
     var stack = (eventOrReason.error && eventOrReason.error.stack) || eventOrReason.stack || "";

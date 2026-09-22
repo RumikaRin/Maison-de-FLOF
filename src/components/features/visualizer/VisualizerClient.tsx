@@ -682,7 +682,10 @@ export function VisualizerClient() {
               </div>
 
               {loginPrompt && sessionStatus !== "authenticated" ? (
-                <div className="mt-fl-sm border-l-2 border-atelier-rule-strong pl-fl-sm text-fl-sm text-atelier-ink-2">
+                <div
+                  data-testid="visualizer-login-prompt"
+                  className="mt-fl-sm border-l-2 border-atelier-rule-strong pl-fl-sm text-fl-sm text-atelier-ink-2"
+                >
                   <p>
                     {language === "vi"
                       ? "Bạn có thể thử phối màu với tư cách khách. Hãy đăng nhập để lưu thiết kế."
@@ -690,6 +693,7 @@ export function VisualizerClient() {
                   </p>
                   <Link
                     href="/login?callbackUrl=/color-visualizer"
+                    data-testid="visualizer-login-link"
                     className="mt-fl-2xs inline-flex min-h-11 items-center whitespace-nowrap font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 md:min-h-6"
                   >
                     {language === "vi" ? "Đăng nhập" : "Sign in"}

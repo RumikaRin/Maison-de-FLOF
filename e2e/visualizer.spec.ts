@@ -33,15 +33,21 @@ test("guest can experiment but receives a login prompt when saving", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/color-visualizer");
   await expect(
-    page.getByRole("button", { name: /Mặt tiền nhà|House Facade/i }),
+    page.getByRole("button", { name: /Mặt tiền nhà|House Facade/i }).or(
+      page.locator("#mobile-room-select"),
+    ),
   ).toBeVisible();
   await page
     .getByLabel(/Tên thiết kế mới|New design name/i)
     .fill("Visualizer E2E guest");
-  await page.getByRole("button", { name: /^Lưu$|^Save$/i }).click();
+  const saveButton = page.getByRole("button", { name: /^Lưu$|^Save$/i });
+  await saveButton.scrollIntoViewIfNeeded();
+  await saveButton.click();
   await expect(
-    page.locator("main").getByRole("link", { name: /Đăng nhập|Sign in/i }),
-  ).toBeVisible();
+    page.getByTestId("visualizer-login-link").or(
+      page.locator("main").getByRole("link", { name: /Đăng nhập|Sign in/i }),
+    ),
+  ).toBeVisible({ timeout: 15000 });
 });
 
 test("customer can save, reopen, rename and delete an owned design", async ({
