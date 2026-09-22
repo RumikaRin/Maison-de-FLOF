@@ -154,6 +154,7 @@ export function SecurityTab({
         <div className="pt-fl-md">
           <Button
             type="button"
+            data-testid="mfa-setup-button"
             onClick={() => void beginSetup()}
             disabled={pendingAction !== null}
             data-state={pendingAction === "setup" ? "loading" : undefined}
@@ -166,7 +167,7 @@ export function SecurityTab({
       ) : null}
 
       {setup ? (
-        <form onSubmit={verifySetup} className="flex flex-col gap-fl-md pt-fl-md">
+        <form onSubmit={verifySetup} data-testid="mfa-verify-form" className="flex flex-col gap-fl-md pt-fl-md">
           <div className="border-b border-t border-atelier-rule py-fl-sm">
             <p className="fl-measure text-fl-sm text-atelier-ink">
               {vi
@@ -188,6 +189,7 @@ export function SecurityTab({
             </Label>
             <Input
               id="mfa-verification-code"
+              data-testid="mfa-verify-code"
               inputMode="numeric"
               autoComplete="one-time-code"
               pattern="[0-9]{6}"
@@ -199,6 +201,7 @@ export function SecurityTab({
           </div>
           <Button
             type="submit"
+            data-testid="mfa-verify-submit"
             disabled={pendingAction !== null}
             data-state={pendingAction === "verify" ? "loading" : undefined}
             className="self-start"
@@ -237,7 +240,7 @@ export function SecurityTab({
       ) : null}
 
       {mfaEnabled && recoveryCodes.length === 0 ? (
-        <form onSubmit={disableMfa} className="flex flex-col gap-fl-sm pt-fl-md">
+        <form onSubmit={disableMfa} data-testid="mfa-disable-form" className="flex flex-col gap-fl-sm pt-fl-md">
           <div className="border-b border-t border-atelier-rule py-fl-sm">
             <h2 className="text-fl-md font-medium text-atelier-danger">{vi ? "Tắt MFA" : "Disable MFA"}</h2>
             <p className="fl-measure mt-fl-3xs text-fl-sm text-atelier-ink-2">
@@ -252,6 +255,7 @@ export function SecurityTab({
             </Label>
             <Input
               id="mfa-disable-password"
+              data-testid="mfa-disable-password"
               type="password"
               autoComplete="current-password"
               required
@@ -265,6 +269,7 @@ export function SecurityTab({
             </Label>
             <Input
               id="mfa-disable-code"
+              data-testid="mfa-disable-code"
               autoComplete="one-time-code"
               required
               value={disableCode}
@@ -274,6 +279,7 @@ export function SecurityTab({
           </div>
           <Button
             type="submit"
+            data-testid="mfa-disable-submit"
             variant="destructive"
             disabled={pendingAction !== null}
             data-state={pendingAction === "disable" ? "loading" : undefined}

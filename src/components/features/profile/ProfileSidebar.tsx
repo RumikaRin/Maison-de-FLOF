@@ -85,6 +85,7 @@ export function ProfileSidebar({
             profile-security contract test pins this exact gating. */}
         {user.role === "ADMIN" && (
           <button
+            data-testid="profile-tab-security"
             onClick={() => setActiveTab("security")}
             aria-current={activeTab === "security" ? "true" : undefined}
             className={cn(

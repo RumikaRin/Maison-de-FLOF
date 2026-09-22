@@ -38,10 +38,19 @@ test("enabled administrator MFA rejects password-only login and accepts TOTP", a
   await expect(setupPage).toHaveURL(/\/admin$/);
 
   await setupPage.goto("/profile");
-  await setupPage.getByRole("button", { name: /Bảo mật|Security/i }).click();
-  await setupPage
-    .getByRole("button", { name: /Thiết lập MFA|Set up MFA/i })
-    .click();
+  await expect(setupPage).toHaveURL(/\/profile$/);
+  const setupSecurityTab = setupPage.getByTestId("profile-tab-security").or(
+    setupPage.getByRole("button", { name: /Bảo mật|Security/i }),
+  );
+  await expect(setupSecurityTab).toBeVisible({ timeout: 15000 });
+  await setupSecurityTab.click();
+  await expect(setupSecurityTab).toHaveAttribute("aria-current", "true");
+
+  const setupMfaButton = setupPage.getByTestId("mfa-setup-button").or(
+    setupPage.getByRole("button", { name: /Thiết lập MFA|Set up MFA/i }),
+  );
+  await expect(setupMfaButton).toBeVisible({ timeout: 15000 });
+  await setupMfaButton.click();
 
   const secret = (await setupPage.locator("output").first().textContent())?.trim();
   const otpauthUri = (await setupPage.locator("output").nth(1).textContent())?.trim();
@@ -49,12 +58,17 @@ test("enabled administrator MFA rejects password-only login and accepts TOTP", a
   expect(otpauthUri).toMatch(/^otpauth:\/\/totp\//);
 
   const code = generateTotpCode(decodeBase32(secret!));
-  await setupPage.getByLabel(/Mã 6 chữ số|6-digit code/i).fill(code);
-  await setupPage
-    .getByRole("button", { name: /Xác minh và bật MFA|Verify and enable MFA/i })
-    .click();
+  const verifyCodeInput = setupPage.getByTestId("mfa-verify-code").or(
+    setupPage.getByLabel(/Mã 6 chữ số|6-digit code/i),
+  );
+  await verifyCodeInput.fill(code);
+  const verifySubmitButton = setupPage.getByTestId("mfa-verify-submit").or(
+    setupPage.getByRole("button", { name: /Xác minh và bật MFA|Verify and enable MFA/i }),
+  );
+  await verifySubmitButton.click();
   await expect(setupPage.locator('span[role="status"]')).toContainText(
     /MFA đang bật|MFA enabled/i,
+    { timeout: 15000 },
   );
   const recoveryCodes = setupPage.getByRole("list", {
     name: /Mã khôi phục|Recovery codes/i,
@@ -97,17 +111,52 @@ test("enabled administrator MFA rejects password-only login and accepts TOTP", a
       await verificationDatabase.$disconnect();
     }
 
+    // 1. Navigation to /profile and URL verification
     await loginPage.goto("/profile");
-    await loginPage.getByRole("button", { name: /Bảo mật|Security/i }).click();
-    await loginPage
-      .getByLabel(/^Mật khẩu$|^Password$/i)
-      .fill(TEST_FIXTURES.password);
-    await loginPage
-      .getByLabel(/Mã xác thực hoặc khôi phục|Authentication or recovery code/i)
-      .fill(generateTotpCode(decodeBase32(secret!)));
-    await loginPage.getByRole("button", { name: /^Tắt MFA$|^Disable MFA$/i }).click();
+    await expect(loginPage).toHaveURL(/\/profile$/);
+
+    // 2. Security tab visibility and activation
+    const securityTab = loginPage.getByTestId("profile-tab-security").or(
+      loginPage.getByRole("button", { name: /Bảo mật|Security/i }),
+    );
+    await expect(securityTab).toBeVisible({ timeout: 15000 });
+    await securityTab.click();
+    await expect(securityTab).toHaveAttribute("aria-current", "true");
+
+    // 3. MFA enabled state assertion
+    await expect(loginPage.locator('span[role="status"]')).toContainText(
+      /MFA đang bật|MFA enabled/i,
+      { timeout: 15000 },
+    );
+
+    // 4. Disable MFA form visibility assertion
+    const disableForm = loginPage.getByTestId("mfa-disable-form");
+    await expect(disableForm).toBeVisible({ timeout: 15000 });
+
+    // 5. Fill disable inputs using stable data-testid selectors
+    const disablePasswordInput = loginPage.getByTestId("mfa-disable-password").or(
+      loginPage.getByLabel(/^Mật khẩu$|^Password$/i),
+    );
+    await expect(disablePasswordInput).toBeVisible();
+    await disablePasswordInput.fill(TEST_FIXTURES.password);
+
+    const disableCodeInput = loginPage.getByTestId("mfa-disable-code").or(
+      loginPage.getByLabel(/Mã xác thực hoặc khôi phục|Authentication or recovery code/i),
+    );
+    await expect(disableCodeInput).toBeVisible();
+    await disableCodeInput.fill(generateTotpCode(decodeBase32(secret!)));
+
+    // 6. Click disable MFA button
+    const disableSubmitButton = loginPage.getByTestId("mfa-disable-submit").or(
+      loginPage.getByRole("button", { name: /^Tắt MFA$|^Disable MFA$/i }),
+    );
+    await expect(disableSubmitButton).toBeEnabled();
+    await disableSubmitButton.click();
+
+    // 7. Verify status updated to disabled
     await expect(loginPage.locator('span[role="status"]')).toContainText(
       /MFA chưa bật|MFA disabled/i,
+      { timeout: 15000 },
     );
 
     const disabledDatabase = createTestDatabase();

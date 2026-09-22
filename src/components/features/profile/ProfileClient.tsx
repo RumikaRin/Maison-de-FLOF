@@ -76,7 +76,7 @@ export function ProfileClient() {
   const { data: authSession, status: authStatus } = useSession();
 
   const loadProfile = useCallback(async () => {
-    setProfileStatus("loading");
+    setProfileStatus((prev) => (prev === "ready" ? "ready" : "loading"));
     try {
       const response = await fetch("/api/profile");
       if (!response.ok) throw new Error("PROFILE_FETCH_FAILED");
@@ -89,7 +89,10 @@ export function ProfileClient() {
       setProfilePhone(profile.phone || "");
       setProfileStatus("ready");
     } catch {
-      setProfileStatus("error");
+      setUser((current) => {
+        if (!current) setProfileStatus("error");
+        return current;
+      });
     }
   }, []);
 
@@ -104,10 +107,12 @@ export function ProfileClient() {
     }
   }
 
+  const userEmail = authSession?.user?.email;
+
   useEffect(() => {
     setMounted(true);
     if (authStatus === "loading") return;
-    if (!authSession?.user?.email) {
+    if (!userEmail) {
       router.push("/login");
       return;
     }
@@ -141,7 +146,7 @@ export function ProfileClient() {
       if (Array.isArray(favorites)) setWishlistColors(favorites);
       if (Array.isArray(favoriteProducts)) setWishlistProducts(favoriteProducts);
     });
-  }, [router, authSession, authStatus, loadProfile]);
+  }, [router, userEmail, authStatus, loadProfile]);
 
   if (!mounted) return null;
   if (profileStatus === "loading" || authStatus === "loading") {
