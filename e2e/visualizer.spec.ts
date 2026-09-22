@@ -40,10 +40,7 @@ test("guest can experiment but receives a login prompt when saving", async ({
   await page
     .getByLabel(/Tên thiết kế mới|New design name/i)
     .fill("Visualizer E2E guest");
-  const saveButton = page
-    .getByRole("button", { name: /^Lưu$|^Save$/i })
-    .filter({ visible: true })
-    .first();
+  const saveButton = page.getByTestId("visualizer-save-button");
   await saveButton.scrollIntoViewIfNeeded();
   await expect(saveButton).toBeEnabled();
   await saveButton.click();
@@ -65,7 +62,7 @@ test("customer can save, reopen, rename and delete an owned design", async ({
   await page
     .getByLabel(/Tên thiết kế mới|New design name/i)
     .fill("Visualizer E2E initial");
-  await page.getByRole("button", { name: /^Lưu$|^Save$/i }).click();
+  await page.getByTestId("visualizer-save-button").click();
 
   const nameInput = page.getByLabel(
     /Tên thiết kế Visualizer E2E initial|Design name Visualizer E2E initial/i,

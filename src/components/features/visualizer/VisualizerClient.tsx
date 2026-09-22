@@ -452,10 +452,9 @@ export function VisualizerClient() {
               : "Experiment with photo-realistic pre-rendered palettes. Pick a preset to repaint the space."}
           </p>
         </div>
-
         <div className="mt-fl-lg grid grid-cols-1 items-start gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
-          {/* Stage — 8 of 12, sticky top on mobile for instant visual feedback */}
-          <div className="lg:col-span-8 max-lg:sticky max-lg:top-14 max-lg:z-20 max-lg:bg-atelier-paper max-lg:pt-2 max-lg:pb-2 max-lg:border-b max-lg:border-atelier-rule">
+          {/* Stage — 8 of 12 */}
+          <div className="lg:col-span-8">
             {/* Room switcher — mobile dropdown + desktop hairline tabs */}
             <div className="border-b border-atelier-rule pb-fl-2xs">
               {/* Mobile: Elegant Dropdown selector */}
@@ -674,6 +673,7 @@ export function VisualizerClient() {
                 />
                 <Button
                   type="button"
+                  data-testid="visualizer-save-button"
                   disabled={saving}
                   data-state={saving ? "loading" : undefined}
                   onClick={() => void saveDesign()}
