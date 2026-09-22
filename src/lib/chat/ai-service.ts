@@ -28,6 +28,14 @@ export {
 
 const CONFIG_FILE_PATH = path.join(process.cwd(), "data", "ai-provider-config.json");
 
+/**
+ * Returns true when running on Vercel (read-only filesystem, `data/` not deployed).
+ * Set automatically by Vercel during build and runtime.
+ */
+export function isVercelEnvironment(): boolean {
+  return Boolean(process.env.VERCEL);
+}
+
 export async function getAiProviderConfig(): Promise<AiProviderConfig> {
   const envBaseUrl = process.env.AI_GATEWAY_BASE_URL || "http://127.0.0.1:8317";
   const envApiKey = process.env.AI_GATEWAY_API_KEY || process.env.AI_PROVIDER_API_KEY || "";
@@ -81,6 +89,13 @@ export async function saveAiProviderConfig(config: Partial<AiProviderConfig>): P
     temperature: config.temperature !== undefined ? Number(config.temperature) : current.temperature,
     maxTokens: config.maxTokens !== undefined ? Number(config.maxTokens) : current.maxTokens,
   };
+
+  // On Vercel the filesystem is read-only and data/ is not deployed.
+  // Skip the disk write — the caller receives a "live" in-memory config
+  // built from env vars that were already merged above.
+  if (isVercelEnvironment()) {
+    return updated;
+  }
 
   // Encrypt the API key before persisting to disk
   const encryptedConfig = {

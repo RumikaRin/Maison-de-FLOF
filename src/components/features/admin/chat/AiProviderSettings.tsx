@@ -17,6 +17,7 @@ import {
   Cpu,
   Terminal,
   Sliders,
+  CloudAlert,
 } from "lucide-react";
 import { toast } from "@/components/ui/csp-toast";
 import { useLanguageStore } from "@/store/language-store";
@@ -135,6 +136,7 @@ export function AiProviderSettings() {
   const [testing, setTesting] = useState(false);
   const [discovering, setDiscovering] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [vercelMode, setVercelMode] = useState(false);
 
   const [discoveredModels, setDiscoveredModels] = useState<string[]>([]);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
@@ -147,6 +149,7 @@ export function AiProviderSettings() {
         const res = await fetch("/api/admin/chat/ai-settings");
         if (!res.ok) throw new Error("Không thể tải cấu hình");
         const data = await res.json();
+        if (data.vercelMode) setVercelMode(true);
         if (data.config) {
           setConfig((prev) => ({
             ...prev,
@@ -388,6 +391,74 @@ export function AiProviderSettings() {
                 {testResult.error}
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Vercel Environment Banner ── */}
+      {vercelMode && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <CloudAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 space-y-3">
+              <div>
+                <p className="font-bold text-sm text-amber-900">
+                  {language === "vi"
+                    ? "⚠️ Môi trường Vercel — Cấu hình không lưu được vào file"
+                    : "⚠️ Vercel Environment — File-based config is not available"}
+                </p>
+                <p className="mt-1 text-xs text-amber-800 leading-relaxed">
+                  {language === "vi"
+                    ? "Trên Vercel, thư mục data/ không tồn tại (bị .gitignore) và filesystem là read-only. Cấu hình bạn nhập ở đây chỉ có hiệu lực trong phiên hiện tại. Để lưu vĩnh viễn, hãy cài đặt các biến môi trường sau trong "
+                    : "On Vercel, the data/ directory does not exist (git-ignored) and the filesystem is read-only. Changes made here only last for this session. To persist them, set these environment variables in "}
+                  <a
+                    href="https://vercel.com/dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-semibold text-amber-700 hover:text-amber-900"
+                  >
+                    Vercel Dashboard → Settings → Environment Variables
+                  </a>
+                  .
+                </p>
+              </div>
+
+              {/* Env var table */}
+              <div className="overflow-x-auto rounded-xl border border-amber-200 bg-white">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-amber-100 bg-amber-50/80">
+                      <th className="text-left px-3 py-2 font-bold text-amber-900 whitespace-nowrap">Biến môi trường</th>
+                      <th className="text-left px-3 py-2 font-bold text-amber-900">Giá trị cần điền</th>
+                      <th className="text-left px-3 py-2 font-bold text-amber-900 hidden sm:table-cell">Bắt buộc?</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-50">
+                    <tr className="hover:bg-amber-50/40">
+                      <td className="px-3 py-2 font-mono font-bold text-rose-700 whitespace-nowrap">AI_PROVIDER_API_KEY</td>
+                      <td className="px-3 py-2 text-warm-700">API key của provider (Google, Anthropic, OpenAI...)</td>
+                      <td className="px-3 py-2 hidden sm:table-cell"><span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">Bắt buộc</span></td>
+                    </tr>
+                    <tr className="hover:bg-amber-50/40">
+                      <td className="px-3 py-2 font-mono font-bold text-warm-700 whitespace-nowrap">AI_GATEWAY_BASE_URL</td>
+                      <td className="px-3 py-2 text-warm-600 font-mono text-[11px] break-all">{config.baseUrl || "https://generativelanguage.googleapis.com/v1beta/openai"}</td>
+                      <td className="px-3 py-2 hidden sm:table-cell"><span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Khuyến nghị</span></td>
+                    </tr>
+                    <tr className="hover:bg-amber-50/40">
+                      <td className="px-3 py-2 font-mono font-bold text-warm-700 whitespace-nowrap">AI_GATEWAY_MODEL</td>
+                      <td className="px-3 py-2 text-warm-600 font-mono text-[11px]">{config.model || "gemini-2.5-flash"}</td>
+                      <td className="px-3 py-2 hidden sm:table-cell"><span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Khuyến nghị</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="text-[11px] text-amber-700">
+                💡 {language === "vi"
+                  ? "Sau khi cài đặt env vars → Redeploy trên Vercel → AI sẽ hoạt động ổn định mà không cần cấu hình lại."
+                  : "After setting env vars → Redeploy on Vercel → AI will work stably without reconfiguring."}
+              </p>
+            </div>
           </div>
         </div>
       )}
