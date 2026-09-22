@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { Noto_Sans, Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { SmoothScrollProvider } from "@/providers/smooth-scroll-provider";
@@ -26,20 +25,40 @@ import "./globals.css";
 // Dynamic rendering is handled automatically by the headers() call below.
 // Vercel CDN caching (s-maxage) is set in middleware for public pages.
 
-const noto = Noto_Sans({
-  subsets: ["vietnamese"],
-  weight: ["300", "400", "500", "600", "700"],
+const noto = localFont({
+  src: [
+    {
+      path: "./fonts/noto-sans/noto-sans-vietnamese.woff2",
+      weight: "300 700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/noto-sans/noto-sans-latin.woff2",
+      weight: "300 700",
+      style: "normal",
+    },
+  ],
   variable: "--font-noto",
   display: "swap",
-  adjustFontFallback: true,
+  adjustFontFallback: "Arial",
 });
 
-const playfair = Playfair_Display({
-  subsets: ["vietnamese"],
-  weight: ["400", "500", "600", "700"],
+const playfair = localFont({
+  src: [
+    {
+      path: "./fonts/playfair-display/playfair-display-vietnamese.woff2",
+      weight: "400 700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/playfair-display/playfair-display-latin.woff2",
+      weight: "400 700",
+      style: "normal",
+    },
+  ],
   variable: "--font-playfair",
   display: "swap",
-  adjustFontFallback: true,
+  adjustFontFallback: "Times New Roman",
 });
 
 const bromise = localFont({
