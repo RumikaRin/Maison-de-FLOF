@@ -105,14 +105,7 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
   await page.getByLabel(/Mật khẩu|Password/).fill("Wrong-password-1");
   await page.getByRole("button", { name: /Đăng nhập|Login/i }).click();
   await expect(
-    page
-      .getByTestId("login-error")
-      .or(
-        page
-          .locator("main")
-          .getByRole("alert")
-          .filter({ hasText: /invalid|incorrect|không đúng|thất bại/i }),
-      ),
+    page.locator("main").getByTestId("login-error").first(),
   ).toBeVisible({ timeout: 15000 });
   const loginInlineStyles = await page.locator("[style]").evaluateAll((nodes) =>
     nodes.filter((node) => {
