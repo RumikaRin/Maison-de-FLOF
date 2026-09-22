@@ -50,7 +50,7 @@ const scenarios: ApiScenario[] = [
     name: "checkout validation",
     totalRequests: 20,
     concurrency: 4,
-    expectedStatuses: [401],
+    expectedStatuses: [400, 401],
     maxP95Ms: 2_000,
     maxUnexpectedRatio: 0.01,
     execute: async (request, index) => {

@@ -40,7 +40,7 @@ test("guest can experiment but receives a login prompt when saving", async ({
     .fill("Visualizer E2E guest");
   await page.getByRole("button", { name: /^Lưu$|^Save$/i }).click();
   await expect(
-    page.getByRole("link", { name: /Đăng nhập|Sign in/i }),
+    page.locator("main").getByRole("link", { name: /Đăng nhập|Sign in/i }),
   ).toBeVisible();
 });
 

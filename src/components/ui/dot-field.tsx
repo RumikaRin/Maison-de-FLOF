@@ -144,8 +144,6 @@ export const DotField = memo(function DotField({
       h = rect.height;
       canvasElement.width = w * dpr;
       canvasElement.height = h * dpr;
-      canvasElement.style.width = `${w}px`;
-      canvasElement.style.height = `${h}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       offsetX = rect.left + window.scrollX;
       offsetY = rect.top + window.scrollY;
@@ -238,7 +236,7 @@ export const DotField = memo(function DotField({
       if (glowEl) {
         glowEl.setAttribute("cx", String(mouse.x));
         glowEl.setAttribute("cy", String(mouse.y));
-        glowEl.style.opacity = String(glowOpacity);
+        glowEl.setAttribute("opacity", String(glowOpacity));
       }
       paint();
       if (!visible || document.hidden) {
@@ -305,7 +303,8 @@ export const DotField = memo(function DotField({
             cy="-9999"
             r={glowRadius}
             fill={`url(#${gradientId})`}
-            className="opacity-0 will-change-[opacity]"
+            opacity="0"
+            className="will-change-[opacity]"
           />
         </svg>
       ) : null}

@@ -452,7 +452,7 @@ export function ColorExplorerSection({
                     }}
                     disabled={!commerceAvailable}
                     aria-disabled={!commerceAvailable}
-                    className="min-h-8 whitespace-nowrap text-fl-xs sm:text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-45 md:min-h-6"
+                    className="min-h-11 whitespace-nowrap text-fl-xs sm:text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-45 md:min-h-6"
                   >
                     {language === "vi" ? "Thêm vào giỏ" : "Add to cart"}
                   </button>

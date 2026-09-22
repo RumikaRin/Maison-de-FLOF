@@ -421,7 +421,7 @@ export default function Header() {
               <Link
                 href={localize("/profile")}
                 aria-label={t.headerAccount}
-                className="flex h-9 w-9 items-center justify-center rounded-control bg-atelier-accent text-[11px] font-bold text-atelier-accent-ink shadow-xs xl:hidden active:scale-95"
+                className="flex h-11 w-11 min-h-11 min-w-11 items-center justify-center rounded-control bg-atelier-accent text-[11px] font-bold text-atelier-accent-ink shadow-xs xl:hidden active:scale-95"
               >
                 {initials}
               </Link>
@@ -429,7 +429,7 @@ export default function Header() {
               <Link
                 href={localize("/login")}
                 aria-label={t.headerLogin}
-                className="flex h-9 w-9 items-center justify-center rounded-control border border-atelier-rule bg-atelier-paper-2 text-atelier-ink hover:bg-atelier-paper xl:hidden active:scale-95"
+                className="flex h-11 w-11 min-h-11 min-w-11 items-center justify-center rounded-control border border-atelier-rule bg-atelier-paper-2 text-atelier-ink hover:bg-atelier-paper xl:hidden active:scale-95"
               >
                 <User className="h-4 w-4" />
               </Link>
