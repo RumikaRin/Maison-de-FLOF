@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { ApiError, apiErrorResponse, requireUser } from "@/lib/api-auth";
@@ -6,6 +6,8 @@ import { checkoutSchema } from "@/lib/order-validation";
 import { processCheckout } from "@/services/checkout.service";
 import { getClientIp } from "@/lib/ip";
 import { getOrderAccessWhere } from "@/lib/order-access";
+import { processEmailOutboxRecord } from "@/lib/process-email-outbox";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 async function serializeOrders(
   orders: Awaited<ReturnType<typeof getOrders>>,
@@ -116,10 +118,20 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionUser = await requireUser();
+    let sessionUser: { id: string; email: string } | null = null;
+    try {
+      sessionUser = await requireUser();
+    } catch {
+      sessionUser = null;
+    }
+
     const parsed = checkoutSchema.safeParse(await request.json());
     if (!parsed.success) {
       throw new ApiError(400, "Dữ liệu đặt hàng không hợp lệ");
+    }
+
+    if (!sessionUser && !parsed.data.shipping.email) {
+      throw new ApiError(400, "Vui lòng nhập địa chỉ email để nhận hóa đơn và thông tin đơn hàng");
     }
 
     const input = parsed.data;
@@ -134,6 +146,29 @@ export async function POST(request: NextRequest) {
     const orderData = await getOrders({ id: targetOrderId });
     const [serializedOrder] = await serializeOrders(orderData);
     
+    if (result.newOrderId && input.paymentMethod !== "VNPAY" && serializedOrder) {
+      const orderNumber = serializedOrder.id;
+      after(async () => {
+        try {
+          const pending = await db.emailOutbox.findFirst({
+            where: {
+              type: "ORDER_CONFIRMATION",
+              status: "PENDING",
+              payload: {
+                path: ["orderNumber"],
+                equals: orderNumber,
+              },
+            },
+          });
+          if (pending) {
+            await processEmailOutboxRecord(db, pending, sendOrderConfirmationEmail);
+          }
+        } catch (error) {
+          console.error("Failed to process background email outbox for order:", orderNumber, error);
+        }
+      });
+    }
+
     return NextResponse.json({ 
       success: true, 
       order: serializedOrder,

@@ -20,8 +20,10 @@ export interface PaymentVerificationResult {
   payDate?: string;
 }
 
+export type PaymentCallbackQuery = Record<string, string | number | undefined | string[]>;
+
 export interface PaymentService {
   createPaymentUrl(params: CreatePaymentUrlParams): string;
-  verifyReturn(query: any): PaymentVerificationResult;
-  verifyIpn(query: any): PaymentVerificationResult;
+  verifyReturn(query: PaymentCallbackQuery): PaymentVerificationResult;
+  verifyIpn(query: PaymentCallbackQuery): PaymentVerificationResult;
 }

@@ -338,6 +338,29 @@ export function ProductsClient({
           </div>
         </div>
 
+        {/* MOBILE QUICK FILTER PILLS (1-tap category switcher) */}
+        <div className="no-scrollbar mt-3 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:hidden">
+          {categoryOptions.map((opt) => {
+            const isSelected = selectedCategory === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setSelectedCategory(opt.value)}
+                className={cn(
+                  "min-h-9 shrink-0 whitespace-nowrap rounded-control px-3 text-fl-xs font-medium transition-colors active:scale-95",
+                  isSelected
+                    ? "bg-atelier-ink text-atelier-paper font-semibold shadow-xs"
+                    : "border border-atelier-rule-strong bg-atelier-paper-2 text-atelier-ink-2 hover:text-atelier-ink",
+                )}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* DESKTOP FILTER RAIL (Hidden on mobile) */}
         <div className="mt-fl-md hidden flex-col gap-fl-sm md:flex">
           {/* Toolbar — search, the three secondary facets, and the count */}
@@ -485,7 +508,7 @@ export function ProductsClient({
             transition={{ duration: 0.24 }}
             data-mobile-grid={mobileGridCols}
             className={cn(
-              "mt-fl-sm grid gap-x-fl-md gap-y-fl-lg md:grid-cols-4",
+              "mt-fl-sm grid gap-x-fl-md gap-y-fl-lg md:grid-cols-4 fl-animate-fade-in",
               mobileGridCols === 1 ? "grid-cols-1" : "grid-cols-2",
             )}
           >
@@ -511,7 +534,7 @@ export function ProductsClient({
                     {p.volumeUnit}
                   </p>
                   <Link href={`/products/${p.slug}`} className="mt-fl-2xs block">
-                    <h2 className="truncate font-serif text-fl-md text-atelier-ink">{name}</h2>
+                    <h2 className="truncate font-serif text-fl-sm md:text-fl-md text-atelier-ink">{name}</h2>
                   </Link>
                   <div className="mt-auto flex items-baseline justify-between gap-fl-2xs pt-fl-2xs">
                     <span

@@ -180,7 +180,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </button>
       </div>
 
-      <nav className="admin-sidebar-scroll flex-1 overflow-y-auto px-3 py-4">
+      <nav data-lenis-prevent className="admin-sidebar-scroll flex-1 overflow-y-auto overscroll-contain px-3 py-4">
         {visibleGroups.map((group) => (
           <div key={group.label} className="mb-5 last:mb-0">
             {!isCollapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">{group.label}</p>}
@@ -237,7 +237,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="admin-shell flex min-h-[100dvh] bg-jotun-ivory-100 text-warm-900">
-      <aside className={cn("fixed inset-y-0 left-0 z-40 hidden bg-warm-950 transition-[width] duration-200 lg:block", isCollapsed ? "w-[76px]" : "w-[248px]")}>
+      <aside data-lenis-prevent className={cn("fixed inset-y-0 left-0 z-40 hidden bg-warm-950 transition-[width] duration-200 lg:block", isCollapsed ? "w-[76px]" : "w-[248px]")}>
         {sidebar}
       </aside>
 
@@ -254,6 +254,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="fixed inset-0 z-40 bg-warm-950/45 backdrop-blur-[2px] lg:hidden"
             />
             <safeMotion.aside
+              data-lenis-prevent
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}

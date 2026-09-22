@@ -36,19 +36,20 @@ const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
 
 export function MobileBottomBar() {
   const { language, routePath, localize } = useLocaleNavigation();
+  const policy = getMobileSurfacePolicy(routePath);
   const getCartItemCount = useCartStore((state) => state.getCartItemCount);
   const [cartCount, setCartCount] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const policy = getMobileSurfacePolicy(routePath);
 
   useEffect(() => {
+    if (!policy.bottomNavigation) return;
     setMounted(true);
     setCartCount(getCartItemCount());
     const unsubscribe = useCartStore.subscribe((state) => {
       setCartCount(state.getCartItemCount());
     });
     return () => unsubscribe();
-  }, [getCartItemCount]);
+  }, [getCartItemCount, policy.bottomNavigation]);
 
   if (!policy.bottomNavigation) return null;
 

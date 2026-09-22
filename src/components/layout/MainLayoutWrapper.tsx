@@ -40,7 +40,9 @@ export default function MainLayoutWrapper({ children }: { children: React.ReactN
           : [
               "pt-24",
               policy.bottomNavigation
-                ? "pb-mobile-navigation md:pb-fl-xl"
+                ? policy.contextualAction !== "none"
+                  ? "pb-36 md:pb-fl-xl"
+                  : "pb-mobile-navigation md:pb-fl-xl"
                 : policy.contextualAction !== "none"
                   ? "pb-mobile-action md:pb-fl-xl"
                   : "pb-fl-2xl md:pb-fl-xl",

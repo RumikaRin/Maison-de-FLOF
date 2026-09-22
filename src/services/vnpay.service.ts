@@ -1,25 +1,27 @@
 import { getVnpayInstance } from "@/lib/vnpay";
-import { PaymentService, CreatePaymentUrlParams, PaymentVerificationResult } from "./payment.service";
+import {
+  PaymentService,
+  CreatePaymentUrlParams,
+  PaymentVerificationResult,
+  PaymentCallbackQuery,
+} from "./payment.service";
 
 export class VNPayService implements PaymentService {
   createPaymentUrl(params: CreatePaymentUrlParams): string {
-    const payload: any = {
+    const payload = {
       vnp_Amount: params.amount,
       vnp_IpAddr: params.ipAddr,
       vnp_TxnRef: params.orderId,
       vnp_OrderInfo: params.orderInfo,
       vnp_ReturnUrl: params.returnUrl,
+      ...(params.bankCode ? { vnp_BankCode: params.bankCode } : {}),
     };
-    
-    if (params.bankCode) {
-        payload.vnp_BankCode = params.bankCode;
-    }
 
     return getVnpayInstance().buildPaymentUrl(payload);
   }
 
-  verifyReturn(query: any): PaymentVerificationResult {
-    const verify = getVnpayInstance().verifyReturnUrl(query);
+  verifyReturn(query: PaymentCallbackQuery): PaymentVerificationResult {
+    const verify = getVnpayInstance().verifyReturnUrl(query as any);
     return {
       // The library validates the signature and reports it as `isVerified`,
       // independent of the success response code. Both must hold — otherwise a
@@ -28,25 +30,25 @@ export class VNPayService implements PaymentService {
       isVerified: verify.isVerified,
       isSuccess: verify.isSuccess,
       message: verify.message,
-      orderId: query.vnp_TxnRef,
+      orderId: typeof query.vnp_TxnRef === "string" ? query.vnp_TxnRef : undefined,
       amount: query.vnp_Amount ? Number(query.vnp_Amount) / 100 : undefined,
-      transactionNo: query.vnp_TransactionNo,
-      bankCode: query.vnp_BankCode,
-      payDate: query.vnp_PayDate,
+      transactionNo: typeof query.vnp_TransactionNo === "string" ? query.vnp_TransactionNo : undefined,
+      bankCode: typeof query.vnp_BankCode === "string" ? query.vnp_BankCode : undefined,
+      payDate: typeof query.vnp_PayDate === "string" ? query.vnp_PayDate : undefined,
     };
   }
 
-  verifyIpn(query: any): PaymentVerificationResult {
-    const verify = getVnpayInstance().verifyIpnCall(query);
+  verifyIpn(query: PaymentCallbackQuery): PaymentVerificationResult {
+    const verify = getVnpayInstance().verifyIpnCall(query as any);
     return {
       isVerified: verify.isVerified,
       isSuccess: verify.isSuccess,
       message: verify.message,
-      orderId: query.vnp_TxnRef,
+      orderId: typeof query.vnp_TxnRef === "string" ? query.vnp_TxnRef : undefined,
       amount: query.vnp_Amount ? Number(query.vnp_Amount) / 100 : undefined,
-      transactionNo: query.vnp_TransactionNo,
-      bankCode: query.vnp_BankCode,
-      payDate: query.vnp_PayDate,
+      transactionNo: typeof query.vnp_TransactionNo === "string" ? query.vnp_TransactionNo : undefined,
+      bankCode: typeof query.vnp_BankCode === "string" ? query.vnp_BankCode : undefined,
+      payDate: typeof query.vnp_PayDate === "string" ? query.vnp_PayDate : undefined,
     };
   }
 }

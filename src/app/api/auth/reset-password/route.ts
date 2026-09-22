@@ -4,6 +4,7 @@ import { ApiError, apiErrorResponse } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { passwordSchema } from "@/lib/password-policy";
 import { consumePasswordResetToken } from "@/lib/password-reset";
+import { invalidateUserSessionCache } from "@/lib/auth/session-cache";
 
 const schema = z.object({
   email: z.string().trim().email().transform((v) => v.toLowerCase()),
@@ -34,10 +35,23 @@ export async function POST(request: Request) {
       throw new ApiError(400, "Tài khoản không hỗ trợ đặt lại mật khẩu");
     }
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { password: await bcrypt.hash(parsed.data.password, 12) },
+    const hashedPassword = await bcrypt.hash(parsed.data.password, 12);
+
+    await db.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          sessionVersion: { increment: 1 },
+        },
+      });
+      await tx.authSession.updateMany({
+        where: { userId: user.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
     });
+
+    await invalidateUserSessionCache(user.id);
 
     return Response.json({ success: true, message: "Đặt lại mật khẩu thành công" });
   } catch (error) {

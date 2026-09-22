@@ -379,7 +379,18 @@ export function ProfileClient() {
         {/* Right column settings panels */}
         <div className="flex flex-col gap-fl-md lg:col-span-8">
           {activeTab === "history" && (
-            <OrderHistoryTab orders={orders} language={language} />
+            <OrderHistoryTab
+              orders={orders}
+              language={language}
+              onOrderCancelled={() => {
+                fetch("/api/orders")
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (Array.isArray(data)) setOrders(data);
+                  })
+                  .catch(() => {});
+              }}
+            />
           )}
 
           {activeTab === "profile" && (

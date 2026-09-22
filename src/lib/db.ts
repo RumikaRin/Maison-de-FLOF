@@ -5,11 +5,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function getCleanDatabaseUrl() {
-  const url = process.env.DATABASE_URL;
+  let url = process.env.DATABASE_URL;
   if (!url) return undefined;
   // Neon pooler (-pooler.) does not support SCRAM channel binding (channel_binding=require) via PgBouncer.
   if (url.includes("-pooler.") && url.includes("channel_binding=require")) {
-    return url.replace(/[?&]channel_binding=require/g, "").replace(/\?&/, "?");
+    url = url.replace(/[?&]channel_binding=require/g, "").replace(/\?&/, "?");
+  }
+  // Ensure pgbouncer=true is present when using PgBouncer pooler to prevent prepared statement collisions in Prisma
+  if (url.includes("-pooler.") && !url.includes("pgbouncer=true")) {
+    url += (url.includes("?") ? "&" : "?") + "pgbouncer=true";
   }
   return url;
 }

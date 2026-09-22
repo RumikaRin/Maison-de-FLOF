@@ -9,6 +9,7 @@ import { canSignInWithCredentials } from "@/lib/auth/email-verification";
 import {
   createRegisteredSession,
   validateRegisteredSession,
+  invalidateCachedSession,
 } from "@/lib/auth/session-registry";
 import { writeOperationalLog } from "@/lib/operations/log";
 import { verifyMfaForLogin } from "@/services/mfa.service";
@@ -60,6 +61,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { id: message.token.sessionId, revokedAt: null },
           data: { revokedAt: new Date() },
         });
+        await invalidateCachedSession(message.token.sessionId);
       }
     },
   },

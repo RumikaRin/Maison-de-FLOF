@@ -8,7 +8,7 @@ import {
   Rule,
   TypographicLink,
 } from "@/components/ui/editorial";
-import { SliceImage } from "@/components/ui/slice-image";
+import { CspImage as Image } from "@/components/ui/csp-image";
 import { DotField } from "@/components/ui/dot-field";
 
 /**
@@ -92,14 +92,16 @@ export function StoreOverviewSection() {
 
           <figure className="mt-fl-lg">
             <div className="relative aspect-[16/9] w-full overflow-hidden rounded-surface bg-atelier-paper-2">
-              <SliceImage
+              <Image
                 src="/generated/hero-cinematic.jpg"
                 alt={
                   language === "vi"
                     ? "Không gian sống với sơn FLOF"
                     : "A living space with FLOF paint"
                 }
+                fill
                 sizes="(min-width: 1024px) 60vw, 100vw"
+                className="object-cover"
               />
             </div>
             <figcaption className="mt-fl-2xs border-b border-atelier-rule pb-fl-xs">

@@ -223,8 +223,9 @@ npx --yes vercel@latest env run -e production -- npm run db:status
 
 The repository-owned `vercel.json` schedules:
 
-- `GET /api/cron/process-outbox` at `00:05 UTC` daily.
-- `GET /api/cron/apply-retention` at `00:35 UTC` daily.
+- `GET /api/cron/process-outbox` at `00:05 UTC` daily (`5 0 * * *`).
+- `GET /api/cron/expire-unpaid-orders` at `00:20 UTC` daily (`20 0 * * *`).
+- `GET /api/cron/apply-retention` at `00:35 UTC` daily (`35 0 * * *`).
 
 The call requires:
 

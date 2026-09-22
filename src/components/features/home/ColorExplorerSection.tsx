@@ -1,6 +1,7 @@
 /* Hallmark · genre: editorial · section: colour explorer workspace · knobs: family selector=continuous colour field, stage=7/5, specs=F3 ledger · design-system: design.md · designed-as-app */
 "use client";
 
+import { useRef, useEffect } from "react";
 import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
 import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
@@ -100,6 +101,60 @@ export function ColorExplorerSection({
   const meta = FAMILY_METADATA[currentSwatch.family];
   const rooms = (language === "vi" ? meta?.roomsVi : meta?.roomsEn) ?? [];
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasMovedRef = useRef(false);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        const canScrollLeft = el.scrollLeft > 0;
+        const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+        if ((e.deltaY > 0 && canScrollRight) || (e.deltaY < 0 && canScrollLeft)) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    hasMovedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.25;
+    if (Math.abs(walk) > 4) {
+      hasMovedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+    setTimeout(() => {
+      hasMovedRef.current = false;
+    }, 60);
+  };
+
   return (
     <EditorialSection
       rhythm="base"
@@ -133,9 +188,15 @@ export function ColorExplorerSection({
       {/* Family selector — one continuous colour field, not tabs in a card.
           Each cell IS its colour; the selected cell grows and carries a rule. */}
       <div
+        ref={scrollContainerRef}
+        data-lenis-prevent
         role="group"
         aria-label={language === "vi" ? "Chọn nhóm màu" : "Colour families"}
-        className="fl-stagger mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto no-scrollbar"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+        className="fl-stagger mt-fl-lg flex items-end gap-fl-3xs overflow-x-auto no-scrollbar cursor-grab active:cursor-grabbing select-none touch-pan-x"
       >
         {COLOR_FAMILIES.map((family) => {
           const isSelected = selectedFamily === family.id;
@@ -145,25 +206,26 @@ export function ColorExplorerSection({
               type="button"
               aria-pressed={isSelected}
               onClick={() => {
+                if (hasMovedRef.current) return;
                 setSelectedFamily(family.id);
                 const first = COLOR_SWATCHES.find((c) => c.family === family.id);
                 if (first) setVisWallMainColor(first.hex);
               }}
-              className="group flex min-w-[96px] flex-1 flex-col text-left"
+              className="group flex min-w-[96px] flex-1 flex-col text-left transition-transform duration-fl-fast active:scale-[0.98]"
             >
               <ColorSwatch
                 color={family.hex}
                 className={cn(
-                  "fl-swatch w-full rounded-swatch transition-[height] duration-fl-base ease-fl-out",
-                  isSelected ? "h-20" : "h-12 group-hover:h-16",
+                  "fl-swatch h-14 sm:h-16 w-full rounded-swatch border border-black/5 transition-opacity duration-fl-fast",
+                  isSelected ? "opacity-100" : "opacity-80 hover:opacity-100",
                 )}
               />
               <span
                 className={cn(
-                  "mt-fl-2xs block border-t pr-fl-2xs pt-fl-2xs text-fl-xs",
+                  "mt-fl-2xs block h-10 w-full border-t pr-fl-2xs pt-fl-2xs text-fl-xs leading-snug transition-colors",
                   isSelected
-                    ? "border-atelier-ink font-medium text-atelier-ink"
-                    : "border-transparent text-atelier-ink-2",
+                    ? "border-atelier-ink font-semibold text-atelier-ink"
+                    : "border-atelier-rule/60 text-atelier-ink-2 group-hover:text-atelier-ink",
                 )}
               >
                 {language === "vi" ? family.name : family.nameEn}
@@ -328,7 +390,7 @@ export function ColorExplorerSection({
         </div>
         <Rule className="mt-fl-xs" weight="strong" />
 
-        <div className="no-scrollbar -mx-1 flex snap-x gap-fl-md overflow-x-auto px-1 md:mx-0 md:grid md:grid-cols-4 md:gap-fl-lg md:overflow-visible md:px-0">
+        <div className="grid grid-cols-2 gap-3 sm:gap-fl-md md:grid-cols-4 md:gap-fl-lg">
           {suggestedPaints.map((paint) => {
             const matchingColorCode = paint.colors.find((colorCode) => {
               const colorObj = COLOR_SWATCHES.find((c) => c.code === colorCode);
@@ -341,7 +403,7 @@ export function ColorExplorerSection({
             return (
               <div
                 key={paint.id}
-                className="flex w-[70vw] max-w-[260px] shrink-0 snap-start flex-col pt-fl-sm md:w-auto md:max-w-none"
+                className="flex flex-col pt-fl-sm"
               >
                 <Link
                   href={`/products/${paint.slug}`}
@@ -351,29 +413,29 @@ export function ColorExplorerSection({
                     src={getProductImage(paint.images)}
                     alt={paint.name}
                     fill
-                    sizes="(min-width: 768px) 22vw, 70vw"
+                    sizes="(min-width: 768px) 22vw, 48vw"
                     className="object-contain p-fl-xs"
                   />
                 </Link>
                 <Link href={`/products/${paint.slug}`} className="mt-fl-xs block">
-                  <p className="fl-label">{paint.supplier?.name || "Maison de FLOF"}</p>
-                  <h4 className="mt-0.5 truncate font-serif text-fl-md text-atelier-ink">
+                  <p className="fl-label text-[11px] sm:text-fl-2xs">{paint.supplier?.name || "Maison de FLOF"}</p>
+                  <h4 className="mt-0.5 truncate font-serif text-fl-sm sm:text-fl-md text-atelier-ink">
                     {language === "vi" ? paint.name : paint.nameEn}
                   </h4>
                 </Link>
-                <div className="mt-auto flex items-baseline justify-between gap-fl-2xs border-t border-atelier-rule pt-fl-xs">
+                <div className="mt-auto flex flex-col items-start gap-1 border-t border-atelier-rule pt-fl-xs sm:flex-row sm:items-baseline sm:justify-between sm:gap-fl-2xs">
                   {paint.discountPercent && paint.discountPercent > 0 ? (
                     <span className="flex flex-col">
-                      <span className="text-fl-sm tabular-nums text-atelier-danger">
+                      <span className="text-fl-xs sm:text-fl-sm tabular-nums text-atelier-danger">
                         {formatPrice(paint.price * (1 - paint.discountPercent / 100))}
                         <span className="ml-1 text-fl-2xs">−{paint.discountPercent}%</span>
                       </span>
-                      <span className="text-fl-xs tabular-nums text-atelier-ink-3 line-through">
+                      <span className="text-[11px] tabular-nums text-atelier-ink-3 line-through">
                         {formatPrice(paint.price)}
                       </span>
                     </span>
                   ) : (
-                    <span className="text-fl-sm tabular-nums text-atelier-ink">
+                    <span className="text-fl-xs sm:text-fl-sm tabular-nums text-atelier-ink">
                       {formatPrice(paint.price)}
                     </span>
                   )}
@@ -390,7 +452,7 @@ export function ColorExplorerSection({
                     }}
                     disabled={!commerceAvailable}
                     aria-disabled={!commerceAvailable}
-                    className="min-h-11 whitespace-nowrap text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-45 md:min-h-6"
+                    className="min-h-8 whitespace-nowrap text-fl-xs sm:text-fl-sm font-medium text-atelier-accent underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-fl-fast ease-fl-out hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-45 md:min-h-6"
                   >
                     {language === "vi" ? "Thêm vào giỏ" : "Add to cart"}
                   </button>

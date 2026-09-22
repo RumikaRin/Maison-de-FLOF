@@ -17,7 +17,7 @@ type CheckoutDependencies = {
 
 export async function processCheckout(
   input: z.infer<typeof checkoutSchema>,
-  sessionUser: { id: string; email: string },
+  sessionUser: { id: string; email: string } | null,
   idempotencyKey: string | null,
   ipAddr: string = "127.0.0.1",
   returnUrl: string = "",
@@ -29,6 +29,12 @@ export async function processCheckout(
     throw new ApiError(400, "Thiếu hoặc sai Idempotency-Key");
   }
 
+  const targetEmail = (sessionUser?.email || input.shipping.email || "").toLowerCase().trim();
+  if (!targetEmail) {
+    throw new ApiError(400, "Vui lòng cung cấp email nhận hóa đơn và thông tin đơn hàng");
+  }
+
+  const userIdentifier = sessionUser ? sessionUser.id : `guest:${targetEmail}`;
   const requestHash = hashCheckoutRequest(input);
   
   // 1. Check Idempotency
@@ -38,7 +44,7 @@ export async function processCheckout(
 
   if (existingIdempotency) {
     if (
-      existingIdempotency.userId !== sessionUser.id ||
+      existingIdempotency.userId !== userIdentifier ||
       existingIdempotency.requestHash !== requestHash
     ) {
       throw new ApiError(409, "Idempotency-Key đã được sử dụng cho yêu cầu khác");
@@ -119,71 +125,96 @@ export async function processCheckout(
   try {
     txResult = await database.$transaction(async (tx) => {
       await tx.checkoutIdempotency.create({
-      data: {
-        key: idempotencyKey!,
-        userId: sessionUser.id,
-        requestHash,
-      },
-    });
-
-    const user = await tx.user.findUnique({
-      where: { email: sessionUser.email },
-      include: { customer: true },
-    });
-    if (!user) throw new ApiError(404, "Không tìm thấy tài khoản");
-
-    const customer =
-      user.customer ||
-      (await tx.customer.create({ data: { userId: user.id } }));
-
-    for (const [paintId, quantity] of Object.entries(stockByPaint)) {
-      const updated = await tx.paint.updateMany({
-        where: { id: paintId, isActive: true, stock: { gte: quantity } },
-        data: { stock: { decrement: quantity }, soldCount: { increment: quantity } },
+        data: {
+          key: idempotencyKey!,
+          userId: userIdentifier,
+          requestHash,
+        },
       });
-      if (updated.count !== 1) {
-        const paintName = paintMap.get(paintId)?.name || paintId;
-        throw new ApiError(409, `Sản phẩm "${paintName}" không đủ tồn kho`);
-      }
-    }
 
-    const order = await tx.order.create({
-      data: {
-        orderNumber,
-        customerId: customer.id,
-        status: "PENDING",
-        subtotal,
-        discount,
-        shippingFee,
-        total,
-        couponId: coupon?.id,
-        note: input.note || "",
-        paymentMethod: input.paymentMethod,
-        shippingName: input.shipping.fullName,
-        shippingPhone: input.shipping.phone,
-        shippingEmail: user.email,
-        shippingAddress: [input.shipping.addressLine1, input.shipping.addressLine2]
-          .filter(Boolean)
-          .join(", "),
-        shippingDistrict: input.shipping.district,
-        shippingProvince: input.shipping.province,
-        items: { create: orderItems },
-        statusHistory: {
-          create: {
-            newStatus: "PENDING",
-            changedByEmail: sessionUser.email,
-            note: "Đơn hàng được tạo",
+      let user = await tx.user.findUnique({
+        where: { email: targetEmail },
+        include: { customer: true },
+      });
+
+      if (!user) {
+        let customerRole = await tx.role.findUnique({ where: { type: "CUSTOMER" } });
+        if (!customerRole) {
+          customerRole = await tx.role.findFirst();
+        }
+        if (!customerRole) throw new ApiError(500, "Không tìm thấy vai trò CUSTOMER");
+
+        user = await tx.user.create({
+          data: {
+            email: targetEmail,
+            name: input.shipping.fullName,
+            phone: input.shipping.phone,
+            password: `guest_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            roleId: customerRole.id,
+            customer: { create: { customerType: "RETAIL" } },
+          },
+          include: { customer: true },
+        });
+      }
+
+      const customer =
+        user.customer ||
+        (await tx.customer.create({ data: { userId: user.id } }));
+
+      for (const [paintId, quantity] of Object.entries(stockByPaint)) {
+        const updated = await tx.paint.updateMany({
+          where: { id: paintId, isActive: true, stock: { gte: quantity } },
+          data: { stock: { decrement: quantity }, soldCount: { increment: quantity } },
+        });
+        if (updated.count !== 1) {
+          const paintName = paintMap.get(paintId)?.name || paintId;
+          throw new ApiError(409, `Sản phẩm "${paintName}" không đủ tồn kho`);
+        }
+      }
+
+      let finalNote = input.note || "";
+      if (input.vatInvoice?.requested && input.vatInvoice.taxCode) {
+        const vatNote = `[HÓA ĐƠN VAT]: Cty: ${input.vatInvoice.companyName || "N/A"} - MST: ${input.vatInvoice.taxCode} - ĐC: ${input.vatInvoice.companyAddress || "N/A"}${input.vatInvoice.companyEmail ? ` - Email nhận HĐ: ${input.vatInvoice.companyEmail}` : ""}`;
+        finalNote = finalNote ? `${finalNote} | ${vatNote}` : vatNote;
+      }
+
+      const order = await tx.order.create({
+        data: {
+          orderNumber,
+          customerId: customer.id,
+          status: "PENDING",
+          subtotal,
+          discount,
+          shippingFee,
+          total,
+          couponId: coupon?.id,
+          note: finalNote,
+          paymentMethod: input.paymentMethod,
+          shippingName: input.shipping.fullName,
+          shippingPhone: input.shipping.phone,
+          shippingEmail: targetEmail,
+          shippingAddress: [input.shipping.addressLine1, input.shipping.addressLine2]
+            .filter(Boolean)
+            .join(", "),
+          shippingDistrict: input.shipping.district,
+          shippingProvince: input.shipping.province,
+          items: { create: orderItems },
+          statusHistory: {
+            create: {
+              newStatus: "PENDING",
+              changedByEmail: targetEmail,
+              note: "Đơn hàng được tạo",
+            },
+          },
+          payment: {
+            create: {
+              method: input.paymentMethod,
+              status: "PENDING",
+              amount: total,
+            },
           },
         },
-        payment: {
-          create: {
-            method: input.paymentMethod,
-            status: "PENDING",
-            amount: total,
-          },
-        },
-      },
-    });
+      });
 
     await tx.checkoutIdempotency.update({
       where: { key: idempotencyKey! },
@@ -249,7 +280,7 @@ export async function processCheckout(
         data: {
           type: "ORDER_CONFIRMATION",
           payload: {
-            email: sessionUser.email,
+            email: targetEmail,
             fullName: input.shipping.fullName,
             orderNumber,
             total: Number(total),
@@ -271,7 +302,7 @@ export async function processCheckout(
 
       if (
         concurrent &&
-        concurrent.userId === sessionUser.id &&
+        concurrent.userId === userIdentifier &&
         concurrent.requestHash === requestHash &&
         !concurrent.orderId
       ) {
@@ -285,7 +316,7 @@ export async function processCheckout(
       }
 
       if (
-        concurrent?.userId === sessionUser.id &&
+        concurrent?.userId === userIdentifier &&
         concurrent.requestHash === requestHash &&
         concurrent.orderId
       ) {

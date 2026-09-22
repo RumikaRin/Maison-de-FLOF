@@ -4,7 +4,6 @@ import { CspImage as Image } from "@/components/ui/csp-image";
 import Link from "next/link";
 import { useLanguageStore } from "@/store/language-store";
 import { DrenchBand, Rule, TypographicLink } from "@/components/ui/editorial";
-import { SliceImage } from "@/components/ui/slice-image";
 import { cn } from "@/lib/utils";
 
 const ROOMS = [
@@ -107,17 +106,19 @@ export function VisualizerPromoSection() {
           <div className="lg:col-span-8">
             <Link
               href="/color-visualizer"
-              className="block overflow-hidden rounded-surface"
+              className="group block overflow-hidden rounded-surface"
             >
               <span className="relative block aspect-[16/10] w-full">
-                <SliceImage
+                <Image
                   src="/visualizer_mockup.webp"
                   alt={
                     language === "vi"
                       ? "Giao diện công cụ phối màu"
                       : "Colour visualizer interface"
                   }
+                  fill
                   sizes="(min-width: 1024px) 60vw, 100vw"
+                  className="object-cover transition-transform duration-fl-slow ease-fl-out group-hover:scale-[1.02]"
                 />
               </span>
             </Link>

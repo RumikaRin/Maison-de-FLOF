@@ -52,7 +52,7 @@ export function HeroMetadataBar() {
     <div className="border-b border-atelier-rule bg-atelier-paper">
       <div
         data-fl-io
-        className="fl-stagger mx-auto flex w-full max-w-[100rem] flex-col gap-fl-2xs px-[clamp(1rem,4vw,1.5rem)] py-fl-sm lg:flex-row lg:items-center lg:justify-between"
+        className="fl-stagger mx-auto flex w-full max-w-[100rem] flex-row flex-wrap items-center justify-between gap-x-fl-md gap-y-fl-2xs px-[clamp(1rem,4vw,1.5rem)] py-2.5 sm:py-fl-sm"
       >
         <svg
           aria-hidden="true"

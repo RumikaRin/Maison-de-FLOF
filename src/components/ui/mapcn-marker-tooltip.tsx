@@ -2,6 +2,7 @@
 
 import MapLibreGL, { type MarkerOptions, type PopupOptions } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { MapPinOff } from "lucide-react";
 import {
   createContext,
   forwardRef,
@@ -43,6 +44,17 @@ type MapContextValue = {
 };
 
 const MapContext = createContext<MapContextValue | null>(null);
+
+function isWebGLSupported(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    return Boolean(gl);
+  } catch {
+    return false;
+  }
+}
 
 function getDocumentTheme(): Theme | null {
   if (typeof document === "undefined") return null;
@@ -128,6 +140,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   const [mapInstance, setMapInstance] = useState<MapLibreGL.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
+  const [webglError, setWebglError] = useState<string | null>(null);
   const styleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const internalUpdateRef = useRef(false);
   const resolvedTheme = useResolvedTheme(themeProp);
@@ -151,15 +164,32 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    if (
+      !isWebGLSupported() ||
+      (typeof (MapLibreGL as any).supported === "function" &&
+        !(MapLibreGL as any).supported({ failIfMajorPerformanceCaveat: false }))
+    ) {
+      setWebglError("Trình duyệt không hỗ trợ hoặc đang tắt WebGL.");
+      return;
+    }
+
     const initialOptions = initialOptionsRef.current;
-    const map = new MapLibreGL.Map({
-      container: containerRef.current,
-      style: initialOptions.resolvedTheme === "dark" ? initialOptions.mapStyles.dark : initialOptions.mapStyles.light,
-      renderWorldCopies: false,
-      attributionControl: { compact: true },
-      ...initialOptions.props,
-      ...initialOptions.viewport,
-    });
+    let map: MapLibreGL.Map;
+    try {
+      map = new MapLibreGL.Map({
+        container: containerRef.current,
+        style: initialOptions.resolvedTheme === "dark" ? initialOptions.mapStyles.dark : initialOptions.mapStyles.light,
+        renderWorldCopies: false,
+        attributionControl: { compact: true },
+        ...initialOptions.props,
+        ...initialOptions.viewport,
+      });
+    } catch (err: any) {
+      console.warn("MapLibreGL WebGL context initialization failed:", err);
+      setWebglError(err?.message || "Không thể khởi tạo WebGL context.");
+      return;
+    }
 
     const styleDataHandler = () => {
       clearStyleTimeout();
@@ -175,12 +205,26 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     map.on("move", moveHandler);
     setMapInstance(map);
 
+    const container = containerRef.current;
+    const handleWheel = (e: WheelEvent) => {
+      // Isolate map zooming from page scrolling:
+      // MapLibre processes zoom on canvas. Stopping propagation here prevents
+      // the wheel event from bubbling to window / Lenis, which would scroll the webpage.
+      e.stopPropagation();
+    };
+    container.addEventListener("wheel", handleWheel, { passive: false });
+
     return () => {
+      container.removeEventListener("wheel", handleWheel);
       clearStyleTimeout();
-      map.off("load", loadHandler);
-      map.off("styledata", styleDataHandler);
-      map.off("move", moveHandler);
-      map.remove();
+      try {
+        map.off("load", loadHandler);
+        map.off("styledata", styleDataHandler);
+        map.off("move", moveHandler);
+        map.remove();
+      } catch {
+        // Safe disposal if context was already lost
+      }
       setMapInstance(null);
       setIsLoaded(false);
       setIsStyleLoaded(false);
@@ -228,9 +272,32 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
 
   const contextValue = useMemo(() => ({ map: mapInstance, isLoaded: isLoaded && isStyleLoaded }), [mapInstance, isLoaded, isStyleLoaded]);
 
+  if (webglError) {
+    return (
+      <div className={cn("relative flex h-full min-h-[360px] w-full flex-col items-center justify-center rounded-control border border-atelier-rule bg-atelier-paper-2 p-fl-lg text-center", className)}>
+        <div className="mb-fl-sm flex h-12 w-12 items-center justify-center rounded-full bg-atelier-espresso/10 text-atelier-ink">
+          <MapPinOff className="h-6 w-6 text-atelier-ink-2" aria-hidden="true" />
+        </div>
+        <h3 className="fl-display text-fl-lg font-medium text-atelier-ink">
+          Không thể hiển thị bản đồ WebGL
+        </h3>
+        <p className="mt-fl-2xs max-w-md text-fl-sm text-atelier-ink-2 leading-relaxed">
+          Trình duyệt đang tắt tăng tốc đồ họa phần cứng hoặc môi trường không hỗ trợ WebGL. Bạn vẫn có thể xem danh sách đại lý và thông tin liên hệ đầy đủ ở cột bên cạnh.
+        </p>
+        <p className="mt-fl-xs text-fl-2xs text-atelier-ink-3">
+          Gợi ý: Bật &quot;Use graphics acceleration when available&quot; trong Cài đặt trình duyệt rồi tải lại trang.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <MapContext.Provider value={contextValue}>
-      <div ref={containerRef} className={cn("relative h-full w-full", className)}>
+      <div
+        ref={containerRef}
+        data-lenis-prevent
+        className={cn("relative h-full w-full overscroll-contain", className)}
+      >
         {(!isLoaded || loading) && <DefaultLoader />}
         {mapInstance && children}
       </div>

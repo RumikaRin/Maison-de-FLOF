@@ -32,6 +32,13 @@ export function CheckoutClient() {
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "TRANSFER" | "VNPAY">("COD");
 
+  // VAT Invoice states
+  const [vatRequested, setVatRequested] = useState(false);
+  const [vatCompanyName, setVatCompanyName] = useState("");
+  const [vatTaxCode, setVatTaxCode] = useState("");
+  const [vatCompanyAddress, setVatCompanyAddress] = useState("");
+  const [vatEmail, setVatEmail] = useState("");
+
   // Order status states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
@@ -85,16 +92,6 @@ export function CheckoutClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (authStatus !== "authenticated" || !authSession?.user?.email) {
-      toast.error(
-        language === "vi"
-          ? "Vui lòng đăng nhập trước khi đặt hàng."
-          : "Please sign in before placing an order.",
-      );
-      router.push("/login");
-      return;
-    }
-
     if (items.length === 0) {
       toast.error(language === "vi" ? "Giỏ hàng đang trống." : "Your cart is empty.");
       return;
@@ -107,6 +104,26 @@ export function CheckoutClient() {
           : "Please fill in all required shipping fields."
       );
       return;
+    }
+
+    if (!email || !email.includes("@")) {
+      toast.error(
+        language === "vi"
+          ? "Vui lòng nhập địa chỉ email hợp lệ để nhận hóa đơn và thông tin đơn hàng."
+          : "Please enter a valid email address to receive invoice and order updates."
+      );
+      return;
+    }
+
+    if (vatRequested) {
+      if (!vatTaxCode.trim() || !vatCompanyName.trim() || !vatCompanyAddress.trim()) {
+        toast.error(
+          language === "vi"
+            ? "Vui lòng điền đủ Tên công ty, Mã số thuế và Địa chỉ công ty để xuất hóa đơn VAT."
+            : "Please fill in Company name, Tax code, and Address for VAT invoice."
+        );
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -133,10 +150,20 @@ export function CheckoutClient() {
           shipping: {
             fullName,
             phone,
+            email,
             addressLine1: address,
             district,
             province,
           },
+          vatInvoice: vatRequested
+            ? {
+                requested: true,
+                companyName: vatCompanyName.trim(),
+                taxCode: vatTaxCode.trim(),
+                companyAddress: vatCompanyAddress.trim(),
+                companyEmail: (vatEmail.trim() || email.trim()),
+              }
+            : undefined,
         }),
       });
       const data = await response.json();
@@ -228,6 +255,16 @@ export function CheckoutClient() {
           setPaymentMethod={setPaymentMethod}
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          vatRequested={vatRequested}
+          setVatRequested={setVatRequested}
+          vatCompanyName={vatCompanyName}
+          setVatCompanyName={setVatCompanyName}
+          vatTaxCode={vatTaxCode}
+          setVatTaxCode={setVatTaxCode}
+          vatCompanyAddress={vatCompanyAddress}
+          setVatCompanyAddress={setVatCompanyAddress}
+          vatEmail={vatEmail}
+          setVatEmail={setVatEmail}
         />
 
         <CheckoutOrderSummary
@@ -237,6 +274,7 @@ export function CheckoutClient() {
           discountParam={discountParam}
           shippingFee={shippingFee}
           total={total}
+          province={province}
         />
       </div>
     </div>

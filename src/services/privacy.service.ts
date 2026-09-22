@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { ApiError } from "@/lib/api-auth";
+import { invalidateUserSessionCache } from "@/lib/auth/session-cache";
 
 const DAY_MS = 24 * 60 * 60 * 1_000;
 const GUEST_CHAT_RETENTION_DAYS = 180;
@@ -263,7 +264,7 @@ export async function anonymizeUserData(
   userId: string,
   now = new Date(),
 ) {
-  return database.$transaction(async (transaction) => {
+  const result = await database.$transaction(async (transaction) => {
     const user = await transaction.user.findUnique({
       where: { id: userId },
       include: { customer: { select: { id: true } } },
@@ -396,6 +397,9 @@ export async function anonymizeUserData(
 
     return { userId, anonymizedEmail: identity.email, alreadyAnonymized: false };
   });
+
+  await invalidateUserSessionCache(userId);
+  return result;
 }
 
 export async function applyPrivacyRetention(

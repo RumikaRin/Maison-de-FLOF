@@ -9,6 +9,15 @@ import { requiresPaidBeforeFulfillment } from "@/lib/payment-policy";
 import { cancelOrderWithRestock } from "@/services/order-lifecycle.service";
 import { EmailDeliveryError } from "@/lib/email-delivery";
 import { writeOperationalLog } from "@/lib/operations/log";
+import { z } from "zod";
+import { paymentService } from "@/services/vnpay.service";
+import { getClientIp } from "@/lib/ip";
+
+const orderActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("RETRY_VNPAY") }),
+  z.object({ action: z.literal("SWITCH_TO_COD") }),
+  z.object({ action: z.literal("CANCEL"), reason: z.string().max(200).optional() }),
+]);
 
 export async function GET(
   request: NextRequest,
@@ -196,6 +205,125 @@ export async function PATCH(
       });
     }
     return NextResponse.json({ success: true, status: parsed.data.status });
+  } catch (error) {
+    return apiErrorResponse(error, request);
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ orderNumber: string }> },
+) {
+  try {
+    const user = await requireUser();
+    const { orderNumber } = await params;
+    const body = await request.json();
+    const parsed = orderActionSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ApiError(400, "Thao tác không hợp lệ");
+    }
+
+    const isStaff = user.role === "ADMIN" || user.role === "STAFF";
+    const order = await db.order.findFirst({
+      where: {
+        orderNumber,
+        customer: isStaff ? undefined : { user: { email: user.email } },
+      },
+      include: {
+        items: true,
+        payment: true,
+        customer: { include: { user: true } },
+      },
+    });
+
+    if (!order) {
+      throw new ApiError(404, "Không tìm thấy đơn hàng hoặc bạn không có quyền");
+    }
+
+    if (parsed.data.action === "RETRY_VNPAY") {
+      if (order.status !== "PENDING" || order.payment?.status === "PAID") {
+        throw new ApiError(400, "Đơn hàng này không ở trạng thái chờ thanh toán");
+      }
+      const ipAddr = getClientIp(request);
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const returnUrl = `${appUrl}/api/vnpay/return`;
+      const paymentUrl = paymentService.createPaymentUrl({
+        orderId: order.id,
+        amount: Number(order.total),
+        ipAddr,
+        returnUrl,
+        orderInfo: `Thanh toan lai don hang ${order.orderNumber}`,
+      });
+      return NextResponse.json({ success: true, paymentUrl });
+    }
+
+    if (parsed.data.action === "SWITCH_TO_COD") {
+      if (order.status !== "PENDING" || order.payment?.status === "PAID") {
+        throw new ApiError(400, "Không thể chuyển sang COD cho đơn hàng này");
+      }
+      await db.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: order.id },
+          data: { paymentMethod: "COD" },
+        });
+        await tx.payment.updateMany({
+          where: { orderId: order.id },
+          data: { method: "COD" },
+        });
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: order.id,
+            previousStatus: order.status,
+            newStatus: order.status,
+            changedByEmail: user.email,
+            note: "Chuyển phương thức thanh toán sang COD",
+          },
+        });
+        await tx.emailOutbox.create({
+          data: {
+            type: "ORDER_CONFIRMATION",
+            payload: {
+              email: order.shippingEmail || user.email,
+              fullName: order.shippingName || "Khách hàng",
+              orderNumber: order.orderNumber,
+              total: Number(order.total),
+            },
+          },
+        });
+      });
+      return NextResponse.json({ success: true, paymentMethod: "COD" });
+    }
+
+    if (parsed.data.action === "CANCEL") {
+      const cancelPayload = parsed.data;
+      if (order.status !== "PENDING") {
+        throw new ApiError(400, "Chỉ có thể hủy đơn hàng khi đang ở trạng thái Chờ xử lý (PENDING)");
+      }
+      if (order.payment?.status === "PAID") {
+        throw new ApiError(400, "Đơn hàng đã thanh toán không thể tự hủy trực tiếp");
+      }
+      await db.$transaction(async (tx) => {
+        await cancelOrderWithRestock(
+          tx,
+          {
+            id: order.id,
+            orderNumber: order.orderNumber,
+            status: order.status as OrderStatusValue,
+            couponId: order.couponId,
+            paymentMethod: order.paymentMethod,
+            items: order.items,
+            payment: order.payment,
+          },
+          {
+            changedByEmail: user.email,
+            note: cancelPayload.reason || "Khách hàng hủy đơn",
+          },
+        );
+      });
+      return NextResponse.json({ success: true, status: "CANCELLED" });
+    }
+
+    throw new ApiError(400, "Hành động không được hỗ trợ");
   } catch (error) {
     return apiErrorResponse(error, request);
   }

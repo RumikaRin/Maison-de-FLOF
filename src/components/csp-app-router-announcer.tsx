@@ -1,24 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 /**
- * CSP-safe replacement for Next's route announcer, aliased in over
- * `next/dist/client/components/app-router-announcer` (see next.config.ts).
+ * CSP-safe route announcer mounted in RootLayout for screen reader accessibility.
  *
- * Next's own announcer renders `null` on the server and only creates its live
- * region client-side, through a portal. This replacement previously rendered
- * the `<div>` unconditionally, so whenever the server bundle resolved Next's
- * original module while the client bundle resolved this one, the server HTML
- * and the first client render disagreed and React threw hydration error #418
- * on every page load.
- *
- * Rendering nothing until mounted makes the first client render identical to
- * the server output no matter which module each bundle picked up. The live
- * region only has to exist for post-navigation announcements, so deferring it
- * by one tick costs nothing.
+ * Rendering nothing until mounted ensures identical server and initial client
+ * renders to avoid hydration mismatches. When navigation occurs (detected via
+ * pathname or tree change), it announces the new page title or primary heading.
  */
-export function AppRouterAnnouncer({ tree }: { tree: unknown }) {
+export function AppRouterAnnouncer({ tree }: { tree?: unknown } = {}) {
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const previousTitle = useRef<string | undefined>(undefined);
@@ -39,7 +32,7 @@ export function AppRouterAnnouncer({ tree }: { tree: unknown }) {
       setAnnouncement(currentTitle);
     }
     previousTitle.current = currentTitle;
-  }, [tree]);
+  }, [pathname, tree]);
 
   if (!mounted) return null;
 

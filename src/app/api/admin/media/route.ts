@@ -27,12 +27,37 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const actor = await requireStaff();
-    const parsed = uploadSchema.safeParse(await request.json());
-    if (!parsed.success) throw new ApiError(400, "Ảnh không hợp lệ hoặc vượt quá 8 MB");
+    let fileName: string;
+    let fileBuffer: Buffer | string;
+    let mimeType: string | undefined;
+
+    const reqContentType = request.headers.get("content-type") || "";
+    if (reqContentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const file = formData.get("file");
+      if (!file || !(file instanceof File)) {
+        throw new ApiError(400, "Vui lòng chọn tệp ảnh để tải lên");
+      }
+      if (!file.type.startsWith("image/")) {
+        throw new ApiError(400, "Tệp tải lên phải là định dạng hình ảnh");
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        throw new ApiError(400, "Dung lượng ảnh không được vượt quá 8 MB");
+      }
+      fileName = file.name || "image.png";
+      mimeType = file.type;
+      fileBuffer = Buffer.from(await file.arrayBuffer());
+    } else {
+      const parsed = uploadSchema.safeParse(await request.json());
+      if (!parsed.success) throw new ApiError(400, "Ảnh không hợp lệ hoặc vượt quá 8 MB");
+      fileName = parsed.data.fileName;
+      fileBuffer = parsed.data.dataUrl;
+    }
 
     const result = await uploadImageToBlob({
-      fileName: parsed.data.fileName,
-      dataUrlOrBuffer: parsed.data.dataUrl,
+      fileName,
+      dataUrlOrBuffer: fileBuffer,
+      contentType: mimeType,
       folder: "flof",
     });
 

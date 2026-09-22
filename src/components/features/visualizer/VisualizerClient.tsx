@@ -7,6 +7,7 @@ import { CspImage as Image } from "@/components/ui/csp-image";
 import { useLanguageStore } from "@/store/language-store";
 import { useTrans } from "@/lib/dictionary";
 import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 import { safeMotion, AnimatePresence, useReducedMotion } from "@/components/ui/motion-safe";
 import { ColorSwatch } from "@/components/ui/color-swatch";
 import { toast } from "@/components/ui/csp-toast";
@@ -383,12 +384,12 @@ export function VisualizerClient() {
 
       {/* Photographic fold — the room photograph is the hero; text sits on it,
           left-biased. The load fade is motion primitive 1 of 2 for this page. */}
-      <section className="fl-photo-fold fl-photo-plate flex min-h-[420px] w-full items-end overflow-hidden bg-atelier-espresso md:h-[56vh] md:max-h-[640px]">
+      <section className="fl-photo-fold fl-photo-plate flex min-h-[300px] w-full items-end overflow-hidden bg-atelier-espresso md:min-h-[420px] md:h-[56vh] md:max-h-[640px]">
         <safeMotion.div
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0"
+          className="absolute inset-0 fl-animate-fade-in"
         >
           <Image
             src="/facade_sage.webp"
@@ -451,48 +452,85 @@ export function VisualizerClient() {
         </div>
 
         <div className="mt-fl-lg grid grid-cols-1 items-start gap-y-fl-lg lg:grid-cols-12 lg:gap-x-fl-lg">
-          {/* Stage — 8 of 12 */}
-          <div className="lg:col-span-8">
-            {/* Room switcher — restrained editorial controls on a hairline */}
-            <div className="flex flex-wrap items-baseline justify-between gap-x-fl-md gap-y-fl-2xs border-b border-atelier-rule pb-fl-2xs">
-              <div
-                role="group"
-                aria-label={t.selectSpace}
-                className="no-scrollbar -mx-1 flex gap-fl-md overflow-x-auto px-1"
-              >
-                {rooms.map((room) => {
-                  const isActive = activeRoomId === room.id;
-                  return (
-                    <button
-                      key={room.id}
-                      type="button"
-                      aria-pressed={isActive}
-                      onClick={() => {
-                        setActiveRoomId(room.id);
-                      }}
-                      className={cn( "min-h-11 shrink-0 whitespace-nowrap border-b-2 pb-fl-3xs text-fl-sm transition-colors duration-fl-fast ease-fl-out md:min-h-6",
-                        isActive
-                          ? "border-atelier-ink font-medium text-atelier-ink"
-                          : "border-transparent text-atelier-ink-2 hover:text-atelier-ink",
-                      )}
-                    >
-                      {language === "vi" ? room.name : room.nameEn}
-                    </button>
-                  );
-                })}
+          {/* Stage — 8 of 12, sticky top on mobile for instant visual feedback */}
+          <div className="lg:col-span-8 max-lg:sticky max-lg:top-14 max-lg:z-20 max-lg:bg-atelier-paper max-lg:pt-2 max-lg:pb-2 max-lg:border-b max-lg:border-atelier-rule">
+            {/* Room switcher — mobile dropdown + desktop hairline tabs */}
+            <div className="border-b border-atelier-rule pb-fl-2xs">
+              {/* Mobile: Elegant Dropdown selector */}
+              <div className="flex items-center justify-between gap-3 md:hidden">
+                <div className="relative flex-1">
+                  <label htmlFor="mobile-room-select" className="sr-only">
+                    {t.selectSpace}
+                  </label>
+                  <select
+                    id="mobile-room-select"
+                    value={activeRoomId}
+                    onChange={(e) => setActiveRoomId(e.target.value)}
+                    className="w-full appearance-none rounded-control border border-atelier-rule bg-atelier-paper-2 py-2 pl-3 pr-8 text-fl-sm font-medium text-atelier-ink shadow-xs focus:border-atelier-ink focus:outline-none"
+                  >
+                    {rooms.map((room) => (
+                      <option key={room.id} value={room.id}>
+                        {language === "vi" ? room.name : room.nameEn}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-atelier-ink-2"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  aria-label={language === "vi" ? "Đặt lại bảng màu" : "Reset palette"}
+                  className="min-h-10 shrink-0 whitespace-nowrap px-2 text-fl-sm text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast hover:text-atelier-ink"
+                >
+                  {language === "vi" ? "Đặt lại" : "Reset"}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleReset}
-                aria-label={language === "vi" ? "Đặt lại bảng màu" : "Reset palette"}
-                className="min-h-11 shrink-0 whitespace-nowrap text-fl-sm text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink md:min-h-6"
-              >
-                {language === "vi" ? "Đặt lại" : "Reset"}
-              </button>
+
+              {/* Desktop: restrained editorial controls on a hairline */}
+              <div className="hidden md:flex flex-wrap items-baseline justify-between gap-x-fl-md gap-y-fl-2xs">
+                <div
+                  role="group"
+                  aria-label={t.selectSpace}
+                  className="no-scrollbar -mx-1 flex gap-fl-md overflow-x-auto px-1"
+                >
+                  {rooms.map((room) => {
+                    const isActive = activeRoomId === room.id;
+                    return (
+                      <button
+                        key={room.id}
+                        type="button"
+                        aria-pressed={isActive}
+                        onClick={() => {
+                          setActiveRoomId(room.id);
+                        }}
+                        className={cn(
+                          "min-h-6 shrink-0 whitespace-nowrap border-b-2 pb-fl-3xs text-fl-sm transition-colors duration-fl-fast ease-fl-out",
+                          isActive
+                            ? "border-atelier-ink font-medium text-atelier-ink"
+                            : "border-transparent text-atelier-ink-2 hover:text-atelier-ink",
+                        )}
+                      >
+                        {language === "vi" ? room.name : room.nameEn}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  aria-label={language === "vi" ? "Đặt lại bảng màu" : "Reset palette"}
+                  className="min-h-6 shrink-0 whitespace-nowrap text-fl-sm text-atelier-ink-2 underline decoration-1 underline-offset-4 transition-colors duration-fl-fast ease-fl-out hover:text-atelier-ink"
+                >
+                  {language === "vi" ? "Đặt lại" : "Reset"}
+                </button>
+              </div>
             </div>
 
             {/* The stage. State crossfade — motion primitive 2 of 2 for this page. */}
-            <div className="relative mt-fl-sm aspect-[4/3] w-full overflow-hidden rounded-surface bg-atelier-paper-2 sm:aspect-[16/10]">
+            <div className="relative mt-fl-sm aspect-[4/3] max-lg:aspect-[16/10] max-lg:max-h-[34vh] w-full overflow-hidden rounded-surface bg-atelier-paper-2 sm:aspect-[16/10]">
               <AnimatePresence mode="wait">
                 <safeMotion.div
                   key={`${activeRoom.id}-${currentCombo.id}`}
@@ -500,7 +538,7 @@ export function VisualizerClient() {
                   animate={{ opacity: 1 }}
                   exit={reduceMotion ? undefined : { opacity: 0 }}
                   transition={{ duration: 0.24 }}
-                  className="absolute inset-0"
+                  className="absolute inset-0 fl-animate-fade-in"
                 >
                   <Image
                     src={imageSrc}
@@ -513,41 +551,54 @@ export function VisualizerClient() {
               </AnimatePresence>
             </div>
 
-            {/* Caption under the plate, editorial-figure style — no floating chip */}
+            {/* Caption under the plate, editorial-figure style */}
             <div className="flex flex-wrap items-baseline justify-between gap-fl-2xs border-b border-atelier-rule py-fl-xs">
-              <p className="text-fl-sm text-atelier-ink">
+              <p className="text-fl-sm text-atelier-ink font-medium">
                 {language === "vi"
                   ? `${activeRoom.name} · ${currentCombo.nameVi}`
                   : `${activeRoom.nameEn} · ${currentCombo.name}`}
               </p>
-              <p className="fl-label">
-                {language === "vi" ? currentCombo.theme : currentCombo.themeEn}
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="fl-label">
+                  {language === "vi" ? currentCombo.theme : currentCombo.themeEn}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  {surfaces.map((s, idx) => (
+                    <ColorSwatch
+                      key={idx}
+                      color={s.color}
+                      className="h-3 w-3 rounded-full border border-atelier-rule shrink-0"
+                    />
+                  ))}
+                </span>
+              </div>
             </div>
 
-            {/* Current shades — flat ledger keyed to the selected palette */}
-            <SpecLedger
-              className="mt-fl-sm border-t-0"
-              columns={4}
-              rows={[
-                ...surfaces.map((surface) => ({
-                  label: surface.label,
-                  value: (
-                    <span className="inline-flex items-center gap-fl-2xs">
-                      <ColorSwatch
-                        color={surface.color}
-                        className="fl-swatch h-4 w-4 shrink-0 rounded-swatch"
-                      />
-                      <span className="tabular-nums">{surface.color}</span>
-                    </span>
-                  ),
-                })),
-                {
-                  label: language === "vi" ? "Bộ phối" : "Palette",
-                  value: language === "vi" ? currentCombo.nameVi : currentCombo.name,
-                },
-              ]}
-            />
+            {/* Current shades — flat ledger on desktop */}
+            <div className="hidden lg:block">
+              <SpecLedger
+                className="mt-fl-sm border-t-0"
+                columns={4}
+                rows={[
+                  ...surfaces.map((surface) => ({
+                    label: surface.label,
+                    value: (
+                      <span className="inline-flex items-center gap-fl-2xs">
+                        <ColorSwatch
+                          color={surface.color}
+                          className="fl-swatch h-4 w-4 shrink-0 rounded-swatch"
+                        />
+                        <span className="tabular-nums">{surface.color}</span>
+                      </span>
+                    ),
+                  })),
+                  {
+                    label: language === "vi" ? "Bộ phối" : "Palette",
+                    value: language === "vi" ? currentCombo.nameVi : currentCombo.name,
+                  },
+                ]}
+              />
+            </div>
           </div>
 
           {/* Controls — 4 of 12, restrained rows on hairlines, no nested cards */}

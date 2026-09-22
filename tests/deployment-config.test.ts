@@ -6,7 +6,7 @@ type VercelConfig = {
   crons?: Array<{ path?: string; schedule?: string }>;
 };
 
-test("Vercel config schedules only governed non-VNPay maintenance crons", async () => {
+test("Vercel config schedules governed maintenance and outbox crons", async () => {
   const source = await readFile(
     new URL("../vercel.json", import.meta.url),
     "utf8",
@@ -19,6 +19,10 @@ test("Vercel config schedules only governed non-VNPay maintenance crons", async 
       schedule: "5 0 * * *",
     },
     {
+      path: "/api/cron/expire-unpaid-orders",
+      schedule: "20 0 * * *",
+    },
+    {
       path: "/api/cron/apply-retention",
       schedule: "35 0 * * *",
     },
@@ -26,6 +30,6 @@ test("Vercel config schedules only governed non-VNPay maintenance crons", async 
 
   for (const cron of config.crons ?? []) {
     assert.equal(cron.schedule?.trim().split(/\s+/).length, 5);
-    assert.doesNotMatch(cron.path ?? "", /vnpay|expire-unpaid-orders/i);
+    assert.doesNotMatch(cron.path ?? "", /\/vnpay\//i);
   }
 });

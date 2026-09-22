@@ -15,6 +15,12 @@ test("every public write has a separate bounded distributed policy", () => {
     limit: 5,
     windowMs: 60_000,
   });
+  assert.deepEqual(getRateLimitPolicy("/api/chat/ai", "POST"), {
+    keyPrefix: "ai-chat",
+    limiter: "publicWrite",
+    limit: 20,
+    windowMs: 60_000,
+  });
   assert.equal(getRateLimitPolicy("/api/reviews", "POST")?.keyPrefix, "review");
   assert.equal(
     getRateLimitPolicy("/api/auth/register", "POST")?.keyPrefix,

@@ -1,9 +1,11 @@
 /* Hallmark · genre: editorial · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
 "use client";
 
+import { useMemo } from "react";
 import { CspImage as Image } from "@/components/ui/csp-image";
 import { getProductImage } from "@/lib/product-image";
 import { cn, formatPrice } from "@/lib/utils";
+import { calculateCarrierQuotes } from "@/lib/logistics-calculator";
 
 interface CheckoutOrderSummaryProps {
   language: string;
@@ -12,6 +14,7 @@ interface CheckoutOrderSummaryProps {
   discountParam: number;
   shippingFee: number;
   total: number;
+  province?: string;
 }
 
 function OrderSummaryBody({
@@ -21,8 +24,13 @@ function OrderSummaryBody({
   discountParam,
   shippingFee,
   total,
+  province = "",
   className,
 }: CheckoutOrderSummaryProps & { className?: string }) {
+  const carrierQuotes = useMemo(
+    () => calculateCarrierQuotes(items, province),
+    [items, province],
+  );
   return (
     <div className={cn("rounded-surface bg-atelier-paper-2 p-fl-md text-atelier-ink", className)}>
       <ul className="max-h-[300px] overflow-y-auto border-t border-atelier-rule">
@@ -93,6 +101,44 @@ function OrderSummaryBody({
           <dd className="text-fl-xl font-medium tabular-nums">{formatPrice(total)}</dd>
         </div>
       </dl>
+
+      {items.length > 0 && (
+        <div className="mt-fl-sm rounded-surface border border-atelier-rule bg-atelier-paper p-fl-xs text-fl-xs">
+          <div className="mb-fl-2xs flex items-center justify-between font-medium text-atelier-ink">
+            <span>
+              {language === "vi"
+                ? "Cước đối tác vận chuyển tham khảo"
+                : "Courier reference estimates"}
+            </span>
+            <span className="text-[11px] text-atelier-ink-2">
+              ~{carrierQuotes.totalWeightKg} kg
+            </span>
+          </div>
+          <div className="space-y-1">
+            {carrierQuotes.quotes.map((q) => (
+              <div
+                key={q.carrierId}
+                className="flex items-center justify-between text-[11px]"
+              >
+                <span className="font-medium text-atelier-ink">
+                  {q.shortName}{" "}
+                  <span className="font-normal text-atelier-ink-2">
+                    ({q.estimatedDays})
+                  </span>
+                </span>
+                <span className="tabular-nums font-medium text-atelier-ink">
+                  {formatPrice(q.estimatedFee)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-fl-2xs text-[10px] text-atelier-ink-2">
+            {language === "vi"
+              ? "* FLOF hỗ trợ Miễn phí vận chuyển toàn quốc cho đơn hàng từ 500.000đ."
+              : "* Free nationwide shipping applied for orders over 500,000 VND."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

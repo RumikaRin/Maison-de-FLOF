@@ -42,21 +42,21 @@ export default function AdminImagesPage() {
     }
     setUploading(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const formData = new FormData();
+      formData.append("file", file);
+
       const response = await fetch("/api/admin/media", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dataUrl, fileName: file.name }),
+        body: formData,
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Không thể tải ảnh lên");
       setMedia((current) => [data, ...current]);
-      toast.success(language === "vi" ? "Đã tải ảnh lên Cloudinary." : "Image uploaded to Cloudinary.");
+      toast.success(
+        language === "vi"
+          ? "Đã tải ảnh lên thư viện thành công."
+          : "Image uploaded successfully."
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể tải ảnh lên");
     } finally {

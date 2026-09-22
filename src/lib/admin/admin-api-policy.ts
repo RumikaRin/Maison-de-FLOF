@@ -83,6 +83,14 @@ export const ADMIN_API_POLICIES: readonly AdminApiPolicy[] = [
     "db-integration",
   ),
   read("/api/admin/chat/conversations/[id]", staff, "db-integration"),
+  read("/api/admin/chat/ai-settings", staff),
+  mutation("/api/admin/chat/ai-settings", "POST", admin),
+  mutation("/api/admin/chat/ai-settings/test", "POST", admin),
+  mutation("/api/admin/chat/ai-settings/models", "POST", admin),
+  read("/api/admin/chat/ai-knowledge", staff),
+  mutation("/api/admin/chat/ai-knowledge", "POST", admin),
+  mutation("/api/admin/chat/ai-knowledge/[id]", "PATCH", admin),
+  mutation("/api/admin/chat/ai-knowledge/[id]", "DELETE", admin),
 
   read("/api/admin/collections"),
   mutation(

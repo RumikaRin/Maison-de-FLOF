@@ -7,6 +7,7 @@ import {
   encodeBase32,
   verifyTotpCode,
 } from "@/lib/auth/totp";
+import { invalidateUserSessionCache } from "@/lib/auth/session-cache";
 
 const RECOVERY_CODE_COUNT = 10;
 
@@ -146,5 +147,6 @@ export async function disableMfa(userId: string, code: string) {
       data: { sessionVersion: { increment: 1 } },
     }),
   ]);
+  await invalidateUserSessionCache(userId);
   return true;
 }

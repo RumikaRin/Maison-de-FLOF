@@ -5,6 +5,10 @@
       "schedule": "5 0 * * *"
     },
     {
+      "path": "/api/cron/expire-unpaid-orders",
+      "schedule": "20 0 * * *"
+    },
+    {
       "path": "/api/cron/apply-retention",
       "schedule": "35 0 * * *"
     }
