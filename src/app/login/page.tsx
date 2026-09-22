@@ -25,14 +25,17 @@ export default function LoginPage() {
   const [mfaCode, setMfaCode] = useState("");
   const [showMfaChallenge, setShowMfaChallenge] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
 
     if (!email || !password) {
-      toast.error(
-        language === "vi" ? "Vui lòng nhập đầy đủ email và mật khẩu." : "Please enter your email and password."
-      );
+      const msg =
+        language === "vi" ? "Vui lòng nhập đầy đủ email và mật khẩu." : "Please enter your email and password.";
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
@@ -50,9 +53,10 @@ export default function LoginPage() {
       // other route to it. The label states it is only needed when 2FA is on,
       // so this does not imply the code was the reason for *this* failure.
       setShowMfaChallenge(true);
-      toast.error(
-        language === "vi" ? "Email hoặc mật khẩu không chính xác." : "Incorrect email or password."
-      );
+      const msg =
+        language === "vi" ? "Email hoặc mật khẩu không chính xác." : "Incorrect email or password.";
+      setErrorMessage(msg);
+      toast.error(msg);
       setIsLoading(false);
       return;
     }
@@ -94,6 +98,15 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleLogin} className="mt-fl-md flex flex-col gap-fl-sm">
+          {errorMessage ? (
+            <div
+              role="alert"
+              data-testid="login-error"
+              className="rounded-control border border-atelier-danger bg-atelier-danger/5 px-fl-sm py-fl-xs text-fl-sm text-atelier-danger"
+            >
+              {errorMessage}
+            </div>
+          ) : null}
           <div className="flex flex-col gap-fl-2xs">
             <Label htmlFor="login-email">Email</Label>
             <Input

@@ -40,8 +40,12 @@ test("guest can experiment but receives a login prompt when saving", async ({
   await page
     .getByLabel(/Tên thiết kế mới|New design name/i)
     .fill("Visualizer E2E guest");
-  const saveButton = page.getByRole("button", { name: /^Lưu$|^Save$/i });
+  const saveButton = page
+    .getByRole("button", { name: /^Lưu$|^Save$/i })
+    .filter({ visible: true })
+    .first();
   await saveButton.scrollIntoViewIfNeeded();
+  await expect(saveButton).toBeEnabled();
   await saveButton.click();
   await expect(
     page.getByTestId("visualizer-login-link").or(

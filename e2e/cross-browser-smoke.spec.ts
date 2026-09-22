@@ -81,7 +81,16 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
     }),
   );
   expect(productInlineStyles).toHaveLength(0);
-  await expect(page.getByRole("button", { name: /Mua ngay|Buy now/i })).toBeVisible();
+  await expect(
+    page
+      .getByTestId("product-buy-now")
+      .or(
+        page
+          .locator("main")
+          .getByRole("button", { name: /Mua ngay|Buy now/i })
+          .first(),
+      ),
+  ).toBeVisible();
 
   await page.goto("/color-visualizer");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15000 });
@@ -95,7 +104,16 @@ test("storefront navigation, catalog, and auth form work in the browser matrix",
   await page.getByLabel("Email").fill("missing@example.com");
   await page.getByLabel(/Mật khẩu|Password/).fill("Wrong-password-1");
   await page.getByRole("button", { name: /Đăng nhập|Login/i }).click();
-  await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
+  await expect(
+    page
+      .getByTestId("login-error")
+      .or(
+        page
+          .locator("main")
+          .getByRole("alert")
+          .filter({ hasText: /invalid|incorrect|không đúng|thất bại/i }),
+      ),
+  ).toBeVisible({ timeout: 15000 });
   const loginInlineStyles = await page.locator("[style]").evaluateAll((nodes) =>
     nodes.filter((node) => {
       if (node.tagName === "CANVAS" || node.tagName === "NEXT-ROUTE-ANNOUNCER" || node.id === "__next-route-announcer__") return false;

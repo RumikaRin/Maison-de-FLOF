@@ -94,6 +94,7 @@ export function CspToaster() {
           key={message.id}
           className={`pointer-events-auto rounded-surface border bg-atelier-paper px-fl-sm py-fl-xs shadow-lg ${kindClasses[message.kind]}`}
           role={message.kind === "error" ? "alert" : "status"}
+          data-testid={message.kind === "error" ? "login-error" : undefined}
         >
           <div className="flex items-start justify-between gap-fl-xs">
             <div>

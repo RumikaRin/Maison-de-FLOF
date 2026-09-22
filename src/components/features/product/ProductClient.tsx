@@ -442,6 +442,7 @@ export function ProductClient({
             </button>
             <button
               type="button"
+              data-testid="product-buy-now"
               onClick={handleBuyNow}
               className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-control bg-atelier-ink px-fl-lg py-fl-xs text-fl-sm font-medium text-atelier-paper transition-colors duration-fl-fast ease-fl-out hover:bg-atelier-espresso"
             >

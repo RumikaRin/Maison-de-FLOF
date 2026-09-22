@@ -165,7 +165,7 @@ type VisualizerDesign = {
 export function VisualizerClient() {
   const { language } = useLanguageStore();
   const t = useTrans(language);
-  const { status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const reduceMotion = useReducedMotion();
 
   const [rooms, setRooms] = useState<VisualizerRoom[]>([]);
@@ -306,8 +306,10 @@ export function VisualizerClient() {
   }));
 
   async function saveDesign() {
-    if (sessionStatus !== "authenticated") {
+    if (saving) return;
+    if (sessionStatus !== "authenticated" || !session?.user) {
       setLoginPrompt(true);
+      setSaving(false);
       return;
     }
     setSaving(true);
