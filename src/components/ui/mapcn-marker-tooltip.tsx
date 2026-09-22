@@ -1,6 +1,7 @@
 "use client";
 
-import MapLibreGL, { type MarkerOptions, type PopupOptions } from "maplibre-gl";
+import * as MapLibreGL from "maplibre-gl";
+import type { MarkerOptions, PopupOptions } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { MapPinOff } from "lucide-react";
 import {
@@ -165,10 +166,13 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   useEffect(() => {
     if (!containerRef.current) return;
 
+    const maplibreAny = MapLibreGL as unknown as Record<string, unknown>;
     if (
       !isWebGLSupported() ||
-      (typeof (MapLibreGL as any).supported === "function" &&
-        !(MapLibreGL as any).supported({ failIfMajorPerformanceCaveat: false }))
+      (typeof maplibreAny["supported"] === "function" &&
+        !(maplibreAny["supported"] as (opts: { failIfMajorPerformanceCaveat: boolean }) => boolean)({
+          failIfMajorPerformanceCaveat: false,
+        }))
     ) {
       setWebglError("Trình duyệt không hỗ trợ hoặc đang tắt WebGL.");
       return;
