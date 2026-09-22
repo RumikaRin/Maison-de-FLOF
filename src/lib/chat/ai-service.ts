@@ -40,6 +40,8 @@ export async function getAiProviderConfig(): Promise<AiProviderConfig> {
   const envBaseUrl = process.env.AI_GATEWAY_BASE_URL || "http://127.0.0.1:8317";
   const envApiKey = process.env.AI_GATEWAY_API_KEY || process.env.AI_PROVIDER_API_KEY || "";
   const envModel = process.env.AI_GATEWAY_MODEL || "claude-sonnet-4-6";
+  const envMaxTokens = process.env.AI_GATEWAY_MAX_TOKENS ? Number(process.env.AI_GATEWAY_MAX_TOKENS) : 800;
+  const envTemperature = process.env.AI_GATEWAY_TEMPERATURE ? Number(process.env.AI_GATEWAY_TEMPERATURE) : 0.8;
 
   try {
     const raw = await readFile(CONFIG_FILE_PATH, "utf-8");
@@ -56,8 +58,8 @@ export async function getAiProviderConfig(): Promise<AiProviderConfig> {
       streamIdleTimeout: parsed.streamIdleTimeout ?? 300,
       customHeaders: parsed.customHeaders || {},
       systemPrompt: parsed.systemPrompt || DEFAULT_SYSTEM_PROMPT,
-      temperature: parsed.temperature ?? 0.7,
-      maxTokens: parsed.maxTokens ?? 500,
+      temperature: parsed.temperature ?? envTemperature,
+      maxTokens: parsed.maxTokens ?? envMaxTokens,
     };
   } catch {
     return {
@@ -69,8 +71,8 @@ export async function getAiProviderConfig(): Promise<AiProviderConfig> {
       streamIdleTimeout: 300,
       customHeaders: {},
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
-      temperature: 0.7,
-      maxTokens: 500,
+      temperature: envTemperature,
+      maxTokens: envMaxTokens,
     };
   }
 }

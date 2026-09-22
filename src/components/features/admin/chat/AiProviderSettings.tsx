@@ -449,6 +449,16 @@ export function AiProviderSettings() {
                       <td className="px-3 py-2 text-warm-600 font-mono text-[11px]">{config.model || "gemini-2.5-flash"}</td>
                       <td className="px-3 py-2 hidden sm:table-cell"><span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Khuyến nghị</span></td>
                     </tr>
+                    <tr className="hover:bg-amber-50/40">
+                      <td className="px-3 py-2 font-mono font-bold text-warm-700 whitespace-nowrap">AI_GATEWAY_MAX_TOKENS</td>
+                      <td className="px-3 py-2 text-warm-600 font-mono text-[11px]">{config.maxTokens || 800}</td>
+                      <td className="px-3 py-2 hidden sm:table-cell"><span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Khuyến nghị</span></td>
+                    </tr>
+                    <tr className="hover:bg-amber-50/40">
+                      <td className="px-3 py-2 font-mono font-bold text-warm-700 whitespace-nowrap">AI_GATEWAY_TEMPERATURE</td>
+                      <td className="px-3 py-2 text-warm-600 font-mono text-[11px]">{config.temperature ?? 0.8}</td>
+                      <td className="px-3 py-2 hidden sm:table-cell"><span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Tuỳ chọn</span></td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
