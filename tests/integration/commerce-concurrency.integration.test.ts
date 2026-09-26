@@ -12,28 +12,42 @@ async function cleanup() {
     where: { key: { startsWith: keyPrefix } },
     select: { orderId: true },
   });
-  const orderIds = keys.flatMap(({ orderId }) => orderId ? [orderId] : []);
-  const orderNumbers = await database.order.findMany({
-    where: { id: { in: orderIds } },
-    select: { orderNumber: true },
+  const keyOrderIds = keys.flatMap(({ orderId }) => (orderId ? [orderId] : []));
+
+  await database.checkoutIdempotency.deleteMany({
+    where: { key: { startsWith: keyPrefix } },
   });
-  await database.$transaction([
-    database.orderStatusHistory.deleteMany({ where: { orderId: { in: orderIds } } }),
-    database.inventoryTransaction.deleteMany({ where: { referenceId: { in: orderIds } } }),
-    database.orderItem.deleteMany({ where: { orderId: { in: orderIds } } }),
-    database.payment.deleteMany({ where: { orderId: { in: orderIds } } }),
-    database.checkoutIdempotency.deleteMany({
-      where: { key: { startsWith: keyPrefix } },
-    }),
-    database.emailOutbox.deleteMany({
-      where: {
-        OR: orderNumbers.map(({ orderNumber }) => ({
-          payload: { path: ["orderNumber"], equals: orderNumber },
-        })),
-      },
-    }),
-    database.order.deleteMany({ where: { id: { in: orderIds } } }),
-  ]);
+
+  const orders = await database.order.findMany({
+    where: {
+      OR: [
+        { id: { in: keyOrderIds } },
+        { note: { startsWith: keyPrefix } },
+      ],
+    },
+    select: { id: true, orderNumber: true },
+  });
+
+  if (orders.length > 0) {
+    const orderIds = orders.map((o) => o.id);
+    const orderNumbers = orders.map((o) => o.orderNumber);
+
+    await database.$transaction([
+      database.orderStatusHistory.deleteMany({ where: { orderId: { in: orderIds } } }),
+      database.inventoryTransaction.deleteMany({ where: { referenceId: { in: orderIds } } }),
+      database.orderItem.deleteMany({ where: { orderId: { in: orderIds } } }),
+      database.payment.deleteMany({ where: { orderId: { in: orderIds } } }),
+      database.emailOutbox.deleteMany({
+        where: {
+          OR: orderNumbers.map((orderNumber) => ({
+            payload: { path: ["orderNumber"], equals: orderNumber },
+          })),
+        },
+      }),
+      database.order.deleteMany({ where: { id: { in: orderIds } } }),
+    ]);
+  }
+
   await database.paint.update({
     where: { sku: P1_FIXTURES.productSku },
     data: { stock: 20, soldCount: 0 },

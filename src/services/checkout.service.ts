@@ -316,19 +316,12 @@ export async function processCheckout(
         where: { key: idempotencyKey! },
       });
 
-      if (
-        concurrent &&
-        concurrent.userId === userIdentifier &&
-        concurrent.requestHash === requestHash &&
-        !concurrent.orderId
-      ) {
-        for (let i = 0; i < 3; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          concurrent = await database.checkoutIdempotency.findUnique({
-            where: { key: idempotencyKey! },
-          });
-          if (concurrent?.orderId) break;
-        }
+      for (let i = 0; i < 20 && (!concurrent || !concurrent.orderId); i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        concurrent = await database.checkoutIdempotency.findUnique({
+          where: { key: idempotencyKey! },
+        });
+        if (concurrent?.orderId) break;
       }
 
       if (
