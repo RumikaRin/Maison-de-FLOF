@@ -15,6 +15,12 @@ type CheckoutDependencies = {
   database?: typeof db;
 };
 
+export type ProcessCheckoutResult = {
+  newOrderId?: string;
+  existingOrderId?: string;
+  paymentUrl?: string;
+};
+
 export async function processCheckout(
   input: z.infer<typeof checkoutSchema>,
   sessionUser: { id: string; email: string } | null,
@@ -22,7 +28,7 @@ export async function processCheckout(
   ipAddr: string = "127.0.0.1",
   returnUrl: string = "",
   dependencies: CheckoutDependencies = {},
-) {
+): Promise<ProcessCheckoutResult> {
   const database = dependencies.database ?? db;
 
   if (!isValidIdempotencyKey(idempotencyKey)) {
@@ -69,7 +75,10 @@ export async function processCheckout(
       }
     }
     // Return existing order ID to caller to serialize
-    return { existingOrderId: existingIdempotency.orderId, paymentUrl };
+    return {
+      existingOrderId: existingIdempotency.orderId,
+      ...(paymentUrl !== undefined ? { paymentUrl } : {}),
+    };
   }
 
   // 2. Validate Products & Stock
@@ -308,15 +317,17 @@ export async function processCheckout(
       return { orderId: order.id, orderNumber: order.orderNumber, total: Number(total) };
     });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    const isP2002 =
+      (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") ||
+      (typeof error === "object" && error !== null && ("code" in error ? (error as any).code === "P2002" : false)) ||
+      String(error).includes("CheckoutIdempotency_key_key");
+
+    if (isP2002) {
       let concurrent = await database.checkoutIdempotency.findUnique({
         where: { key: idempotencyKey! },
       });
 
-      for (let i = 0; i < 20 && (!concurrent || !concurrent.orderId); i++) {
+      for (let i = 0; i < 30 && (!concurrent || !concurrent.orderId); i++) {
         await new Promise((resolve) => setTimeout(resolve, 100));
         concurrent = await database.checkoutIdempotency.findUnique({
           where: { key: idempotencyKey! },
@@ -325,10 +336,13 @@ export async function processCheckout(
       }
 
       if (
-        concurrent?.userId === userIdentifier &&
-        concurrent.requestHash === requestHash &&
-        concurrent.orderId
+        concurrent &&
+        (concurrent.userId !== userIdentifier || concurrent.requestHash !== requestHash)
       ) {
+        throw new ApiError(409, "Idempotency-Key đã được sử dụng cho yêu cầu khác");
+      }
+
+      if (concurrent?.orderId) {
         let paymentUrl: string | undefined;
         if (input.paymentMethod === "VNPAY") {
           const order = await database.order.findUnique({
@@ -345,7 +359,10 @@ export async function processCheckout(
             });
           }
         }
-        return { existingOrderId: concurrent.orderId, paymentUrl };
+        return {
+          existingOrderId: concurrent.orderId,
+          ...(paymentUrl !== undefined ? { paymentUrl } : {}),
+        };
       }
     }
     throw error;
@@ -363,5 +380,8 @@ export async function processCheckout(
     });
   }
 
-  return { newOrderId: txResult.orderId, paymentUrl };
+  return {
+    newOrderId: txResult.orderId,
+    ...(paymentUrl !== undefined ? { paymentUrl } : {}),
+  };
 }
