@@ -59,6 +59,17 @@ test("shiftHue rotates color degrees on HSL cylinder", () => {
   assert.equal(triadic.length, 2);
 });
 
+test("harmony pairs on grey stay two distinct hexes", () => {
+  const grey = "#bfbfbf";
+  const analogous = getAnalogousColors(grey);
+  assert.equal(analogous.length, 2);
+  assert.notEqual(analogous[0].toLowerCase(), analogous[1].toLowerCase());
+
+  const triadic = getTriadicColors(grey);
+  assert.equal(triadic.length, 2);
+  assert.notEqual(triadic[0].toLowerCase(), triadic[1].toLowerCase());
+});
+
 test("colorDistance computes Euclidean RGB delta", () => {
   assert.equal(colorDistance("#ffffff", "#ffffff"), 0);
   const distance = colorDistance("#000000", "#ffffff");

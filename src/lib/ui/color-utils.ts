@@ -118,19 +118,28 @@ export function shiftHue(hex: string, amount: number): string {
   return hslToHex(newHue, hsl.s, hsl.l);
 }
 
-// Get complementary color (180 degrees shift)
+function harmonyPair(hex: string, degA: number, degB: number): string[] {
+  const a = shiftHue(hex, degA);
+  const b = shiftHue(hex, degB);
+  if (a !== b) return [a, b];
+  // Achromatic / near-grey: hue is a no-op after 8-bit rounding.
+  const { h, s, l } = hexToHsl(hex);
+  return [
+    hslToHex(h, s, Math.max(0, l - 12)),
+    hslToHex(h, s, Math.min(100, l + 12)),
+  ];
+}
+
 export function getComplementaryColors(hex: string): string[] {
   return [shiftHue(hex, 180)];
 }
 
-// Get analogous colors (+30 and -30 degrees shift)
 export function getAnalogousColors(hex: string): string[] {
-  return [shiftHue(hex, -30), shiftHue(hex, 30)];
+  return harmonyPair(hex, -30, 30);
 }
 
-// Get triadic colors (+120 and -120 degrees shift)
 export function getTriadicColors(hex: string): string[] {
-  return [shiftHue(hex, -120), shiftHue(hex, 120)];
+  return harmonyPair(hex, -120, 120);
 }
 
 // Calculate color distance (Euclidean RGB)
