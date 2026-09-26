@@ -83,6 +83,9 @@ export async function listBlobImages(prefix = "flof/"): Promise<BlobResource[]> 
 
 export async function deleteBlobImage(urlOrPath: string): Promise<{ success: boolean }> {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!urlOrPath.startsWith("flof/") && !urlOrPath.includes("/flof/")) {
+    throw new Error("Cannot delete blob outside flof/ folder");
+  }
   if (token) {
     await del(urlOrPath, { token });
   }

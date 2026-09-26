@@ -1,17 +1,18 @@
-import { getVnpayInstance } from "@/lib/vnpay";
-import {
+import { getVnpayInstance } from "../lib/vnpay.ts";
+import type {
   PaymentService,
   CreatePaymentUrlParams,
   PaymentVerificationResult,
   PaymentCallbackQuery,
-} from "./payment.service";
+} from "./payment.service.ts";
 
 export class VNPayService implements PaymentService {
   createPaymentUrl(params: CreatePaymentUrlParams): string {
+    const txnRef = params.txnRef || `${params.orderId}_${Date.now()}`;
     const payload = {
       vnp_Amount: params.amount,
       vnp_IpAddr: params.ipAddr,
-      vnp_TxnRef: params.orderId,
+      vnp_TxnRef: txnRef,
       vnp_OrderInfo: params.orderInfo,
       vnp_ReturnUrl: params.returnUrl,
       ...(params.bankCode ? { vnp_BankCode: params.bankCode } : {}),
@@ -22,6 +23,8 @@ export class VNPayService implements PaymentService {
 
   verifyReturn(query: PaymentCallbackQuery): PaymentVerificationResult {
     const verify = getVnpayInstance().verifyReturnUrl(query as any);
+    const rawTxnRef = typeof query.vnp_TxnRef === "string" ? query.vnp_TxnRef : undefined;
+    const orderId = rawTxnRef ? rawTxnRef.replace(/_\d+$/, "") : undefined;
     return {
       // The library validates the signature and reports it as `isVerified`,
       // independent of the success response code. Both must hold — otherwise a
@@ -30,7 +33,7 @@ export class VNPayService implements PaymentService {
       isVerified: verify.isVerified,
       isSuccess: verify.isSuccess,
       message: verify.message,
-      orderId: typeof query.vnp_TxnRef === "string" ? query.vnp_TxnRef : undefined,
+      orderId,
       amount: query.vnp_Amount ? Number(query.vnp_Amount) / 100 : undefined,
       transactionNo: typeof query.vnp_TransactionNo === "string" ? query.vnp_TransactionNo : undefined,
       bankCode: typeof query.vnp_BankCode === "string" ? query.vnp_BankCode : undefined,
@@ -40,11 +43,13 @@ export class VNPayService implements PaymentService {
 
   verifyIpn(query: PaymentCallbackQuery): PaymentVerificationResult {
     const verify = getVnpayInstance().verifyIpnCall(query as any);
+    const rawTxnRef = typeof query.vnp_TxnRef === "string" ? query.vnp_TxnRef : undefined;
+    const orderId = rawTxnRef ? rawTxnRef.replace(/_\d+$/, "") : undefined;
     return {
       isVerified: verify.isVerified,
       isSuccess: verify.isSuccess,
       message: verify.message,
-      orderId: typeof query.vnp_TxnRef === "string" ? query.vnp_TxnRef : undefined,
+      orderId,
       amount: query.vnp_Amount ? Number(query.vnp_Amount) / 100 : undefined,
       transactionNo: typeof query.vnp_TransactionNo === "string" ? query.vnp_TransactionNo : undefined,
       bankCode: typeof query.vnp_BankCode === "string" ? query.vnp_BankCode : undefined,

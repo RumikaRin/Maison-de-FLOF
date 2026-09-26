@@ -40,12 +40,39 @@ function parseUpdate(input: VisualizerDesignUpdate) {
   return result.data;
 }
 
-async function requireActiveRoom(database: PrismaClient, roomId: string) {
-  const room = await database.visualizerRoom.findFirst({
-    where: { id: roomId, isActive: true },
+async function requireActiveRoom(database: PrismaClient, roomId: string): Promise<string> {
+  let room = await database.visualizerRoom.findFirst({
+    where: {
+      OR: [{ id: roomId }, { slug: roomId }],
+      isActive: true,
+    },
     select: { id: true },
   });
+
+  if (!room) {
+    const fallback = FALLBACK_VISUALIZER_ROOMS.find(
+      (r) => (r.id === roomId || r.slug === roomId) && r.isActive,
+    );
+    if (fallback) {
+      room = await database.visualizerRoom.upsert({
+        where: { id: fallback.id },
+        update: { isActive: true },
+        create: {
+          id: fallback.id,
+          slug: fallback.slug,
+          name: fallback.name,
+          nameEn: fallback.nameEn,
+          baseImage: fallback.baseImage,
+          isActive: true,
+          sortOrder: fallback.sortOrder,
+        },
+        select: { id: true },
+      });
+    }
+  }
+
   if (!room) throw new ApiError(404, "Không tìm thấy không gian phối màu");
+  return room.id;
 }
 
 const FALLBACK_VISUALIZER_ROOMS = [
@@ -117,11 +144,11 @@ export async function createVisualizerDesign(
   input: VisualizerDesignInput,
 ) {
   const data = parseCreate(input);
-  await requireActiveRoom(database, data.roomId);
+  const roomId = await requireActiveRoom(database, data.roomId);
   return database.visualizerDesign.create({
     data: {
       userId,
-      roomId: data.roomId,
+      roomId,
       name: data.name,
       palette: data.palette,
     },
@@ -140,12 +167,12 @@ export async function updateVisualizerDesign(
   input: VisualizerDesignUpdate,
 ) {
   const data = parseUpdate(input);
-  if (data.roomId) await requireActiveRoom(database, data.roomId);
+  const roomId = data.roomId ? await requireActiveRoom(database, data.roomId) : undefined;
   const updated = await database.visualizerDesign.updateMany({
     where: { id, userId },
     data: {
       name: data.name,
-      roomId: data.roomId,
+      roomId,
       palette: data.palette,
     },
   });

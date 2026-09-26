@@ -10,8 +10,17 @@ import {
 } from "@/lib/storage/blob-storage";
 
 const uploadSchema = z.object({
-  dataUrl: z.string().startsWith("data:image/").max(12_000_000),
-  fileName: z.string().trim().min(1).max(160),
+  dataUrl: z
+    .string()
+    .startsWith("data:image/")
+    .max(12_000_000)
+    .refine((val) => !val.startsWith("data:image/svg+xml"), "Không hỗ trợ tệp SVG"),
+  fileName: z
+    .string()
+    .trim()
+    .min(1)
+    .max(160)
+    .refine((name) => !name.toLowerCase().endsWith(".svg"), "Không hỗ trợ tệp SVG"),
 });
 
 export async function GET() {
@@ -38,8 +47,12 @@ export async function POST(request: NextRequest) {
       if (!file || !(file instanceof File)) {
         throw new ApiError(400, "Vui lòng chọn tệp ảnh để tải lên");
       }
-      if (!file.type.startsWith("image/")) {
-        throw new ApiError(400, "Tệp tải lên phải là định dạng hình ảnh");
+      if (
+        !file.type.startsWith("image/") ||
+        file.type === "image/svg+xml" ||
+        file.name.toLowerCase().endsWith(".svg")
+      ) {
+        throw new ApiError(400, "Tệp tải lên phải là định dạng hình ảnh và không hỗ trợ SVG");
       }
       if (file.size > 8 * 1024 * 1024) {
         throw new ApiError(400, "Dung lượng ảnh không được vượt quá 8 MB");
@@ -83,7 +96,9 @@ export async function DELETE(request: NextRequest) {
   try {
     const admin = await requirePermission("MEDIA_DELETE");
     const publicId = new URL(request.url).searchParams.get("publicId");
-    if (!publicId) throw new ApiError(400, "Mã ảnh không hợp lệ");
+    if (!publicId || (!publicId.startsWith("flof/") && !publicId.includes("/flof/"))) {
+      throw new ApiError(400, "Mã ảnh không hợp lệ hoặc nằm ngoài phạm vi cho phép");
+    }
 
     await deleteBlobImage(publicId);
 

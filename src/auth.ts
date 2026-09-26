@@ -67,6 +67,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     ...authConfig.callbacks,
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        const email = user.email?.toLowerCase();
+        if (email) {
+          const existing = await db.user.findUnique({
+            where: { email },
+            include: { role: true, mfaCredential: true },
+          });
+          if (existing?.role?.type === "ADMIN" && existing.mfaCredential) {
+            writeOperationalLog("warn", "auth.oauth.admin_mfa_blocked", { email });
+            return false;
+          }
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         const currentUser = await db.user.findUnique({

@@ -31,6 +31,9 @@ export async function cancelOrderWithRestock(
   if (!canTransitionOrderStatus(order.status, "CANCELLED")) {
     throw new ApiError(409, `Không thể hủy đơn ở trạng thái ${order.status}`);
   }
+  if (order.payment?.status === "PAID") {
+    throw new ApiError(409, "Phải hoàn tiền trước khi hủy đơn đã thanh toán");
+  }
 
   const updated = await tx.order.updateMany({
     where: { id: order.id, status: order.status },
@@ -149,6 +152,16 @@ export async function markPaymentPaidAndConfirmOrder(options: {
   let transitionedToPaid = false;
 
   await db.$transaction(async (tx) => {
+    // 1. Update Order status first (Order lock before Payment lock)
+    const confirmed = await tx.order.updateMany({
+      where: { id: order.id, status: "PENDING" },
+      data: { status: "CONFIRMED" },
+    });
+    if (confirmed.count !== 1) {
+      throw new ApiError(409, "Đơn hàng đã được xử lý hoặc bị hủy bởi yêu cầu khác");
+    }
+
+    // 2. Update Payment status to PAID
     const paid = await tx.payment.updateMany({
       where: { id: order.payment!.id, status: "PENDING" },
       data: {
@@ -159,28 +172,21 @@ export async function markPaymentPaidAndConfirmOrder(options: {
       },
     });
     if (paid.count !== 1) {
-      return;
+      throw new ApiError(409, "Thanh toán không ở trạng thái chờ thanh toán");
     }
     transitionedToPaid = true;
 
-    const confirmed = await tx.order.updateMany({
-      where: { id: order.id, status: "PENDING" },
-      data: { status: "CONFIRMED" },
+    await tx.orderStatusHistory.create({
+      data: {
+        orderId: order.id,
+        previousStatus: "PENDING",
+        newStatus: "CONFIRMED",
+        changedByEmail: options.confirmedBy || "system:vnpay",
+        note: options.transactionCode
+          ? `Thanh toán thành công (${options.transactionCode})`
+          : "Thanh toán thành công",
+      },
     });
-
-    if (confirmed.count === 1) {
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId: order.id,
-          previousStatus: "PENDING",
-          newStatus: "CONFIRMED",
-          changedByEmail: options.confirmedBy || "system:vnpay",
-          note: options.transactionCode
-            ? `Thanh toán thành công (${options.transactionCode})`
-            : "Thanh toán thành công",
-        },
-      });
-    }
 
     if (options.enqueueConfirmationEmail) {
       const email = order.shippingEmail || order.customer.user.email;

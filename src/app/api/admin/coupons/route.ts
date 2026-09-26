@@ -22,6 +22,9 @@ function validateCoupon(data: z.infer<typeof couponSchema>) {
   if (data.type === "PERCENTAGE" && data.value > 100) {
     throw new ApiError(400, "Coupon phần trăm không được vượt quá 100%");
   }
+  if (data.maxSpend !== null && data.maxSpend !== undefined && data.maxSpend < data.minSpend) {
+    throw new ApiError(400, "Giá trị đơn hàng tối đa phải lớn hơn hoặc bằng giá trị tối thiểu");
+  }
 }
 
 function serializeCoupon(coupon: {

@@ -25,22 +25,37 @@ export async function POST(request: Request) {
       );
     }
     const existing = await db.user.findUnique({ where: { email: parsed.data.email } });
-    if (existing) throw new ApiError(409, "Email đã được đăng ký");
+    const isGuestShadowUser = Boolean(existing?.password && existing.password.startsWith("guest_"));
+    if (existing && !isGuestShadowUser) {
+      throw new ApiError(409, "Email đã được đăng ký");
+    }
     const customerRole = await db.role.findUnique({ where: { type: "CUSTOMER" } });
     if (!customerRole) throw new ApiError(500, "Role CUSTOMER chưa được khởi tạo");
 
     const password = await bcrypt.hash(parsed.data.password, 12);
     const { user, verification } = await db.$transaction(async (transaction) => {
-      const createdUser = await transaction.user.create({
-        data: {
-          name: parsed.data.name,
-          email: parsed.data.email,
-          password,
-          privacyConsentAt: new Date(),
-          roleId: customerRole.id,
-          customer: { create: { customerType: "RETAIL" } },
-        },
-      });
+      let createdUser;
+      if (existing && isGuestShadowUser) {
+        createdUser = await transaction.user.update({
+          where: { id: existing.id },
+          data: {
+            name: parsed.data.name,
+            password,
+            privacyConsentAt: new Date(),
+          },
+        });
+      } else {
+        createdUser = await transaction.user.create({
+          data: {
+            name: parsed.data.name,
+            email: parsed.data.email,
+            password,
+            privacyConsentAt: new Date(),
+            roleId: customerRole.id,
+            customer: { create: { customerType: "RETAIL" } },
+          },
+        });
+      }
       const createdVerification = await createEmailVerificationToken(
         transaction,
         createdUser.email,

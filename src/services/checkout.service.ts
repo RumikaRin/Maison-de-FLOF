@@ -52,8 +52,24 @@ export async function processCheckout(
     if (!existingIdempotency.orderId) {
       throw new ApiError(409, "Yêu cầu đặt hàng đang được xử lý");
     }
+    let paymentUrl: string | undefined;
+    if (input.paymentMethod === "VNPAY") {
+      const order = await database.order.findUnique({
+        where: { id: existingIdempotency.orderId },
+        include: { payment: true },
+      });
+      if (order && order.payment?.method === "VNPAY" && order.payment.status === "PENDING") {
+        paymentUrl = paymentService.createPaymentUrl({
+          orderId: order.id,
+          amount: Number(order.total),
+          ipAddr,
+          returnUrl,
+          orderInfo: `Thanh toan don hang ${order.orderNumber}`,
+        });
+      }
+    }
     // Return existing order ID to caller to serialize
-    return { existingOrderId: existingIdempotency.orderId };
+    return { existingOrderId: existingIdempotency.orderId, paymentUrl };
   }
 
   // 2. Validate Products & Stock
@@ -320,7 +336,23 @@ export async function processCheckout(
         concurrent.requestHash === requestHash &&
         concurrent.orderId
       ) {
-        return { existingOrderId: concurrent.orderId };
+        let paymentUrl: string | undefined;
+        if (input.paymentMethod === "VNPAY") {
+          const order = await database.order.findUnique({
+            where: { id: concurrent.orderId },
+            include: { payment: true },
+          });
+          if (order && order.payment?.method === "VNPAY" && order.payment.status === "PENDING") {
+            paymentUrl = paymentService.createPaymentUrl({
+              orderId: order.id,
+              amount: Number(order.total),
+              ipAddr,
+              returnUrl,
+              orderInfo: `Thanh toan don hang ${order.orderNumber}`,
+            });
+          }
+        }
+        return { existingOrderId: concurrent.orderId, paymentUrl };
       }
     }
     throw error;

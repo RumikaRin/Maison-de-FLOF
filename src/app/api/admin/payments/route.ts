@@ -50,7 +50,7 @@ export async function PATCH(request: Request) {
       include: { order: true },
     });
     if (!payment) throw new ApiError(404, "Không tìm thấy thanh toán");
-    if (payment.method !== "TRANSFER") {
+    if (parsed.data.action === "CONFIRM" && payment.method !== "TRANSFER") {
       throw new ApiError(400, "Chỉ đối soát thủ công cho đơn chuyển khoản");
     }
     if (parsed.data.action === "REFUND") {

@@ -1,9 +1,17 @@
 import { z } from "zod";
 import { apiErrorResponse, requireAdmin, ApiError } from "@/lib/api-auth";
-import { discoverAiModels, getAiProviderConfig } from "@/lib/chat/ai-service";
+import { discoverAiModels, getAiProviderConfig, isSafeAiBaseUrl } from "@/lib/chat/ai-service";
 
 const discoverySchema = z.object({
-  baseUrl: z.string().trim().optional(),
+  baseUrl: z
+    .string()
+    .trim()
+    .url("Base URL phải là một URL hợp lệ")
+    .refine(
+      (url) => isSafeAiBaseUrl(url),
+      "Base URL không an toàn hoặc trỏ tới địa chỉ IP nội bộ / metadata bị cấm",
+    )
+    .optional(),
   apiKey: z.string().optional(),
   authScheme: z.enum(["bearer", "x-api-key"]).optional(),
   customHeaders: z.record(z.string()).optional(),
@@ -20,10 +28,15 @@ export async function POST(request: Request) {
     }
 
     const current = await getAiProviderConfig();
+    const isDifferentHost =
+      Boolean(parsed.data.baseUrl &&
+      parsed.data.baseUrl.trim() !== "" &&
+      parsed.data.baseUrl.trim() !== current.baseUrl);
+
     const apiKeyToUse =
       parsed.data.apiKey !== undefined && parsed.data.apiKey !== ""
         ? parsed.data.apiKey
-        : current.apiKey;
+        : (isDifferentHost ? undefined : current.apiKey);
 
     const result = await discoverAiModels({
       ...parsed.data,

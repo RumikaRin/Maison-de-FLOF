@@ -358,8 +358,13 @@ export async function anonymizeUserData(
       });
     }
 
+    const userEmailLower = user.email.toLowerCase();
     await transaction.verificationToken.deleteMany({
-      where: { identifier: { contains: user.email.toLowerCase() } },
+      where: {
+        identifier: {
+          in: [userEmailLower, `pwd_reset:${userEmailLower}`],
+        },
+      },
     });
     await transaction.account.deleteMany({ where: { userId } });
     await transaction.session.deleteMany({ where: { userId } });

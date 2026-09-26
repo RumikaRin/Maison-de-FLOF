@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguageStore } from "@/store/language-store";
 import { passwordPolicyMessage, isPasswordStrong } from "@/lib/password-policy";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { toast } from "@/components/ui/csp-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,8 +49,10 @@ function ResetPasswordForm() {
       const data = await res.json();
       if (!res.ok) {
         toast.error(
-          data.error ||
-            (language === "vi" ? "Đặt lại mật khẩu thất bại." : "Password reset failed."),
+          getApiErrorMessage(
+            data,
+            language === "vi" ? "Đặt lại mật khẩu thất bại." : "Password reset failed.",
+          ),
         );
         setIsLoading(false);
         return;

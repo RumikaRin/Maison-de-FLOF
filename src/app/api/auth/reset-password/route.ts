@@ -22,11 +22,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const valid = await consumePasswordResetToken(parsed.data.email, parsed.data.token);
-    if (!valid) {
-      throw new ApiError(400, "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
-    }
-
     const user = await db.user.findUnique({
       where: { email: parsed.data.email },
       select: { id: true, password: true },
@@ -38,6 +33,11 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(parsed.data.password, 12);
 
     await db.$transaction(async (tx) => {
+      const valid = await consumePasswordResetToken(parsed.data.email, parsed.data.token, tx);
+      if (!valid) {
+        throw new ApiError(400, "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
+      }
+
       await tx.user.update({
         where: { id: user.id },
         data: {

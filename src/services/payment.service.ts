@@ -5,6 +5,7 @@ export interface CreatePaymentUrlParams {
   returnUrl: string;
   orderInfo: string;
   bankCode?: string; // Optional: To directly select bank in VNPay
+  txnRef?: string; // Optional: Custom unique transaction reference (e.g. for retries)
 }
 
 export interface PaymentVerificationResult {

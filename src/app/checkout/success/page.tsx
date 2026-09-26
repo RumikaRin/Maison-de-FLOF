@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { createOrderAccessToken } from "@/lib/security/order-token";
 import { CheckoutSuccessWrapper } from "./CheckoutSuccessWrapper";
 
 export default async function CheckoutSuccessPage({
@@ -8,7 +9,7 @@ export default async function CheckoutSuccessPage({
   searchParams: Promise<{ orderId?: string; vnpay_status?: string }>;
 }) {
   const { orderId, vnpay_status } = await searchParams;
-  
+
   if (!orderId) {
     redirect("/checkout");
   }
@@ -22,9 +23,12 @@ export default async function CheckoutSuccessPage({
     redirect("/checkout");
   }
 
+  const orderToken = createOrderAccessToken(order.id, order.orderNumber);
+
   return (
-    <CheckoutSuccessWrapper 
+    <CheckoutSuccessWrapper
       orderNumber={order.orderNumber}
+      orderToken={orderToken}
       fullName={order.shippingName || order.customer.user.name || "Khách hàng"}
       phone={order.shippingPhone || order.customer.user.phone || ""}
       paymentMethod={order.paymentMethod}

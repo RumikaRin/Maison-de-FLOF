@@ -27,6 +27,14 @@ export async function processEmailOutboxRecord(
   sendOrderConfirmation: OrderConfirmationSender,
   currentTime = () => new Date(),
 ) {
+  const claim = await database.emailOutbox.updateMany({
+    where: { id: record.id, status: { in: ["PENDING", "FAILED"] } },
+    data: { status: "PROCESSING", updatedAt: currentTime() },
+  });
+  if (claim.count === 0) {
+    return { id: record.id, status: "SKIPPED" as const };
+  }
+
   try {
     await dispatchOutboxRecord(record, sendOrderConfirmation);
     await database.emailOutbox.update({

@@ -34,10 +34,14 @@ export async function createPasswordResetToken(email: string) {
   return { rawToken, expires, email: normalized };
 }
 
-export async function consumePasswordResetToken(email: string, rawToken: string) {
+export async function consumePasswordResetToken(
+  email: string,
+  rawToken: string,
+  database: any = db,
+) {
   const identifier = passwordResetIdentifier(email);
   const tokenHash = hashResetToken(rawToken);
-  const record = await db.verificationToken.findUnique({
+  const record = await database.verificationToken.findUnique({
     where: {
       identifier_token: {
         identifier,
@@ -48,7 +52,7 @@ export async function consumePasswordResetToken(email: string, rawToken: string)
 
   if (!record || record.expires < new Date()) {
     if (record) {
-      await db.verificationToken
+      await database.verificationToken
         .delete({
           where: { identifier_token: { identifier, token: tokenHash } },
         })
@@ -57,7 +61,7 @@ export async function consumePasswordResetToken(email: string, rawToken: string)
     return false;
   }
 
-  await db.verificationToken.delete({
+  await database.verificationToken.delete({
     where: { identifier_token: { identifier, token: tokenHash } },
   });
   return true;

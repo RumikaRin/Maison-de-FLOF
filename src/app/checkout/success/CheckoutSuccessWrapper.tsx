@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 
 interface CheckoutSuccessWrapperProps {
   orderNumber: string;
+  orderToken?: string;
   fullName: string;
   phone: string;
   paymentMethod: string;
@@ -19,6 +20,7 @@ interface CheckoutSuccessWrapperProps {
 
 export function CheckoutSuccessWrapper({
   orderNumber,
+  orderToken,
   fullName,
   phone,
   paymentMethod,
@@ -29,6 +31,11 @@ export function CheckoutSuccessWrapper({
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSwitchedToCod, setIsSwitchedToCod] = useState(false);
+
+  const authHeaders = {
+    "Content-Type": "application/json",
+    ...(orderToken ? { "x-order-token": orderToken } : {}),
+  };
 
   useEffect(() => {
     if (vnpayStatus === "failed" || vnpayStatus === "error") {
@@ -45,7 +52,7 @@ export function CheckoutSuccessWrapper({
     try {
       const res = await fetch(`/api/orders/${orderNumber}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ action: "RETRY_VNPAY" }),
       });
       const data = await res.json();
@@ -71,7 +78,7 @@ export function CheckoutSuccessWrapper({
     try {
       const res = await fetch(`/api/orders/${orderNumber}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ action: "SWITCH_TO_COD" }),
       });
       const data = await res.json();
@@ -109,7 +116,7 @@ export function CheckoutSuccessWrapper({
     try {
       const res = await fetch(`/api/orders/${orderNumber}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           action: "CANCEL",
           reason: "Khách hàng hủy đơn sau khi thanh toán thất bại",

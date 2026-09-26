@@ -65,24 +65,12 @@ function withSecurityHeaders<T extends Response>(response: T, nonce: string) {
 }
 
 /**
- * Apply Vercel CDN caching headers to public page responses.
- * s-maxage=300 → Vercel Edge caches the HTML for 5 minutes.
- * stale-while-revalidate=600 → serves stale content while revalidating in the background.
- * Browser cache is set to 0 so users always get a CDN-fresh copy.
+ * Caching policy: Do NOT set `public, s-maxage` on HTML responses carrying
+ * per-request CSP nonces. If CDN caches the HTML body with nonce A, subsequent
+ * requests receive a freshly generated nonce B in the CSP header from Middleware,
+ * causing browsers to reject all scripts and freezing client-side hydration.
  */
-function withCdnCache<T extends Response>(response: T, pathname: string) {
-  const isPublicPage =
-    !pathname.startsWith("/api") &&
-    !pathname.startsWith("/admin") &&
-    !pathname.startsWith("/profile") &&
-    !pathname.startsWith("/checkout") &&
-    !pathname.startsWith("/cart");
-  if (isPublicPage) {
-    response.headers.set(
-      "Cache-Control",
-      "public, s-maxage=300, stale-while-revalidate=600",
-    );
-  }
+function withCdnCache<T extends Response>(response: T, _pathname: string) {
   return response;
 }
 

@@ -37,13 +37,13 @@ export default function DealerMap({ dealers, language, viewport }: DealerMapProp
           </MarkerContent>
           <MarkerTooltip>
             <div className="max-w-[220px] p-2 text-left">
-              <p className="mb-1 text-xs font-bold text-warm-900">
+              <p className="mb-1 text-xs font-bold text-background">
                 {language === "vi" ? dealer.name : dealer.nameEn || dealer.name}
               </p>
-              <p className="mb-1 text-[10px] leading-tight text-warm-600">
+              <p className="mb-1 text-[10px] leading-tight text-background/80">
                 {language === "vi" ? dealer.address : dealer.addressEn || dealer.address}
               </p>
-              <p className="font-mono text-[9px] text-warm-500">{dealer.phone}</p>
+              <p className="font-mono text-[9px] text-background/70">{dealer.phone}</p>
             </div>
           </MarkerTooltip>
         </MapMarker>

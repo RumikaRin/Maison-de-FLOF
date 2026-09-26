@@ -375,7 +375,7 @@ export function CartClient() {
       {policy.contextualAction === "cart-checkout" && items.length > 0 && (
         <div
           data-mobile-action="cart-checkout"
-          className="fixed inset-x-0 bottom-mobile-navigation z-30 flex items-center justify-between gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper/95 px-[clamp(1rem,4vw,1.5rem)] py-2.5 shadow-[0_-4px_16px_rgb(0_0_0/0.06)] backdrop-blur-md md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-fl-sm border-t border-atelier-rule-strong bg-atelier-paper/95 px-[clamp(1rem,4vw,1.5rem)] py-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgb(0_0_0/0.06)] backdrop-blur-md md:hidden"
         >
           <div className="min-w-0 flex-1">
             <p className="fl-label text-[10px] text-atelier-ink-2">{language === "vi" ? "Tổng cộng" : "Total"}</p>

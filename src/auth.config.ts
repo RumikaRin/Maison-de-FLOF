@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth";
 import { stripLocalePrefix } from "@/lib/locale";
 
 export const authConfig = {
+  secret: process.env.AUTH_SECRET,
   pages: {
     signIn: "/login",
   },

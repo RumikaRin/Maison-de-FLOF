@@ -229,12 +229,16 @@ export async function discoverAiModels(
 ): Promise<{ success: true; models: string[] } | { success: false; error: string }> {
   const active = await getAiProviderConfig();
   const baseUrl = config.baseUrl || active.baseUrl || "http://127.0.0.1:8317";
-  const apiKey = config.apiKey !== undefined ? config.apiKey : active.apiKey;
+  if (!isSafeAiBaseUrl(baseUrl)) {
+    return { success: false, error: "Base URL không an toàn hoặc bị cấm" };
+  }
+  const isDifferentHost = Boolean(config.baseUrl && config.baseUrl !== active.baseUrl);
+  const apiKey = config.apiKey !== undefined ? config.apiKey : (isDifferentHost ? undefined : active.apiKey);
   const authScheme = config.authScheme || active.authScheme;
   const customHeaders = config.customHeaders || active.customHeaders;
 
   const endpoint = resolveModelsUrl(baseUrl);
-  const headers = buildInferenceHeaders({ apiKey, authScheme, customHeaders });
+  const headers = buildInferenceHeaders({ apiKey: apiKey || "", authScheme, customHeaders });
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);

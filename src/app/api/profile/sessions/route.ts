@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ApiError, apiErrorResponse, requireUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
+import { invalidateCachedSession, invalidateUserSessionCache } from "@/lib/auth/session-cache";
 
 const revokeSchema = z
   .object({
@@ -67,6 +68,12 @@ export async function DELETE(request: Request) {
     });
     if (!parsed.data.allOthers && result.count === 0) {
       throw new ApiError(404, "Không tìm thấy phiên đăng nhập");
+    }
+
+    if (parsed.data.id) {
+      await invalidateCachedSession(parsed.data.id);
+    } else {
+      await invalidateUserSessionCache(user.id);
     }
 
     return Response.json({ success: true, revoked: result.count });

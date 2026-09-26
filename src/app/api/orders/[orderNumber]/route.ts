@@ -12,6 +12,7 @@ import { writeOperationalLog } from "@/lib/operations/log";
 import { z } from "zod";
 import { paymentService } from "@/services/vnpay.service";
 import { getClientIp } from "@/lib/ip";
+import { verifyOrderAccessToken } from "@/lib/security/order-token";
 
 const orderActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("RETRY_VNPAY") }),
@@ -24,14 +25,17 @@ export async function GET(
   { params }: { params: Promise<{ orderNumber: string }> },
 ) {
   try {
-    const user = await requireUser();
     const { orderNumber } = await params;
-    const isStaff = user.role === "ADMIN" || user.role === "STAFF";
-    const order = await db.order.findFirst({
-      where: {
-        orderNumber,
-        customer: isStaff ? undefined : { user: { email: user.email } },
-      },
+    const orderToken = request.headers.get("x-order-token");
+    let user = null;
+    try {
+      user = await requireUser();
+    } catch {
+      // Guest
+    }
+
+    const order = await db.order.findUnique({
+      where: { orderNumber },
       include: {
         customer: { include: { user: true } },
         address: true,
@@ -41,6 +45,14 @@ export async function GET(
       },
     });
     if (!order) throw new ApiError(404, "Không tìm thấy đơn hàng");
+
+    const isStaff = user?.role === "ADMIN" || user?.role === "STAFF";
+    const isOwner = Boolean(user && order.customer.user.email.toLowerCase() === user.email.toLowerCase());
+    const isTokenValid = Boolean(orderToken && verifyOrderAccessToken(order.id, order.orderNumber, orderToken));
+
+    if (!isStaff && !isOwner && !isTokenValid) {
+      throw new ApiError(user ? 403 : 401, "Bạn không có quyền xem đơn hàng này");
+    }
 
     return NextResponse.json({
       id: order.orderNumber,
@@ -215,7 +227,6 @@ export async function POST(
   { params }: { params: Promise<{ orderNumber: string }> },
 ) {
   try {
-    const user = await requireUser();
     const { orderNumber } = await params;
     const body = await request.json();
     const parsed = orderActionSchema.safeParse(body);
@@ -223,12 +234,16 @@ export async function POST(
       throw new ApiError(400, "Thao tác không hợp lệ");
     }
 
-    const isStaff = user.role === "ADMIN" || user.role === "STAFF";
-    const order = await db.order.findFirst({
-      where: {
-        orderNumber,
-        customer: isStaff ? undefined : { user: { email: user.email } },
-      },
+    const orderToken = request.headers.get("x-order-token");
+    let user = null;
+    try {
+      user = await requireUser();
+    } catch {
+      // Guest
+    }
+
+    const order = await db.order.findUnique({
+      where: { orderNumber },
       include: {
         items: true,
         payment: true,
@@ -239,6 +254,16 @@ export async function POST(
     if (!order) {
       throw new ApiError(404, "Không tìm thấy đơn hàng hoặc bạn không có quyền");
     }
+
+    const isStaff = user?.role === "ADMIN" || user?.role === "STAFF";
+    const isOwner = Boolean(user && order.customer.user.email.toLowerCase() === user.email.toLowerCase());
+    const isTokenValid = Boolean(orderToken && verifyOrderAccessToken(order.id, order.orderNumber, orderToken));
+
+    if (!isStaff && !isOwner && !isTokenValid) {
+      throw new ApiError(user ? 403 : 401, "Bạn không có quyền thao tác trên đơn hàng này");
+    }
+
+    const actorEmail = user ? user.email : (order.shippingEmail || "guest");
 
     if (parsed.data.action === "RETRY_VNPAY") {
       if (order.status !== "PENDING" || order.payment?.status === "PAID") {
@@ -262,10 +287,13 @@ export async function POST(
         throw new ApiError(400, "Không thể chuyển sang COD cho đơn hàng này");
       }
       await db.$transaction(async (tx) => {
-        await tx.order.update({
-          where: { id: order.id },
+        const updated = await tx.order.updateMany({
+          where: { id: order.id, status: "PENDING", paymentMethod: { not: "COD" } },
           data: { paymentMethod: "COD" },
         });
+        if (updated.count !== 1) {
+          throw new ApiError(409, "Đơn hàng đã được cập nhật trước đó");
+        }
         await tx.payment.updateMany({
           where: { orderId: order.id },
           data: { method: "COD" },
@@ -275,7 +303,7 @@ export async function POST(
             orderId: order.id,
             previousStatus: order.status,
             newStatus: order.status,
-            changedByEmail: user.email,
+            changedByEmail: actorEmail,
             note: "Chuyển phương thức thanh toán sang COD",
           },
         });
@@ -283,8 +311,8 @@ export async function POST(
           data: {
             type: "ORDER_CONFIRMATION",
             payload: {
-              email: order.shippingEmail || user.email,
-              fullName: order.shippingName || "Khách hàng",
+              email: order.shippingEmail || order.customer.user.email,
+              fullName: order.shippingName || order.customer.user.name || "Khách hàng",
               orderNumber: order.orderNumber,
               total: Number(order.total),
             },
@@ -315,8 +343,8 @@ export async function POST(
             payment: order.payment,
           },
           {
-            changedByEmail: user.email,
-            note: cancelPayload.reason || "Khách hàng hủy đơn",
+            changedByEmail: actorEmail,
+            note: cancelPayload.reason || "Khách hàng tự hủy đơn",
           },
         );
       });

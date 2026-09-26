@@ -59,11 +59,13 @@ export async function POST(request: NextRequest) {
     const role = await db.role.findUnique({ where: { type: parsed.data.role } });
     if (!role) throw new ApiError(500, "Role chưa được khởi tạo");
 
+    const isPrivileged = parsed.data.role === "ADMIN" || parsed.data.role === "STAFF";
     const user = await db.user.create({
       data: {
         name: parsed.data.name,
         email: parsed.data.email,
         password: await bcrypt.hash(parsed.data.password, 12),
+        emailVerified: isPrivileged ? new Date() : null,
         roleId: role.id,
         customer:
           parsed.data.role === "CUSTOMER" ? { create: { customerType: "RETAIL" } } : undefined,
@@ -104,10 +106,12 @@ export async function PATCH(request: NextRequest) {
           create: { userId: target.id, customerType: "RETAIL" },
         });
       }
+      const isPrivileged = parsed.data.role === "ADMIN" || parsed.data.role === "STAFF";
       const updatedUser = await tx.user.update({
         where: { id: target.id },
         data: {
           roleId: role.id,
+          ...(isPrivileged && !target.emailVerified ? { emailVerified: new Date() } : {}),
           ...(target.roleId === role.id
             ? {}
             : { sessionVersion: { increment: 1 } }),

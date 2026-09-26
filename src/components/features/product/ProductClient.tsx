@@ -11,6 +11,7 @@ import { useCartStore } from "@/store/cart-store";
 import { PaintColor } from "@/types";
 import { cn, formatPrice } from "@/lib/utils";
 import { getProductImage } from "@/lib/product-image";
+import { getApiErrorMessage } from "@/lib/api-error-contract";
 import { toast } from "@/components/ui/csp-toast";
 import {
   getComplementaryColors,
@@ -188,7 +189,7 @@ export function ProductClient({
         body: JSON.stringify({ paintId: paint.id }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể cập nhật sản phẩm yêu thích");
+      if (!response.ok) throw new Error(getApiErrorMessage(data, "Không thể cập nhật sản phẩm yêu thích"));
       setIsFavorite(data.favorited);
       toast.success(
         data.favorited
@@ -216,7 +217,7 @@ export function ProductClient({
         body: JSON.stringify({ paintId: paint.id, rating: reviewRating, comment: reviewComment }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể gửi đánh giá");
+      if (!response.ok) throw new Error(getApiErrorMessage(data, "Không thể gửi đánh giá"));
       setReviews((current) => [data, ...current.filter((review) => review.id !== data.id)]);
       setReviewComment("");
       toast.success(language === "vi" ? "Đã lưu đánh giá của bạn." : "Your review was saved.");

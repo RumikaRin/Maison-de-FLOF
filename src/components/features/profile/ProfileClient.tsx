@@ -266,7 +266,7 @@ export function ProfileClient() {
         body: JSON.stringify({ currentPassword: oldPassword, newPassword }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể đổi mật khẩu");
+      if (!response.ok) throw new Error(getApiErrorMessage(data, "Không thể đổi mật khẩu"));
       toast.success(language === "vi" ? "Đổi mật khẩu thành công!" : "Password changed successfully!");
       setOldPassword("");
       setNewPassword("");
@@ -300,7 +300,7 @@ export function ProfileClient() {
         body: JSON.stringify(addressInput),
       });
       const saved = await response.json();
-      if (!response.ok) throw new Error(saved.error || "Không thể lưu địa chỉ");
+      if (!response.ok) throw new Error(getApiErrorMessage(saved, "Không thể lưu địa chỉ"));
       const refreshed = await fetch("/api/profile/addresses").then((res) => res.json());
       setAddresses(refreshed);
       syncProfileAddressFromDefault(refreshed);

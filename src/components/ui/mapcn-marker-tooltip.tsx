@@ -417,13 +417,33 @@ function MarkerTooltip({ children, className, ...popupOptions }: MarkerTooltipPr
   useEffect(() => {
     if (!map) return;
     tooltip.setDOMContent(container);
-    const handleMouseEnter = () => tooltip.setLngLat(marker.getLngLat()).addTo(map);
-    const handleMouseLeave = () => tooltip.remove();
-    marker.getElement()?.addEventListener("mouseenter", handleMouseEnter);
-    marker.getElement()?.addEventListener("mouseleave", handleMouseLeave);
+    const handleOpen = () => tooltip.setLngLat(marker.getLngLat()).addTo(map);
+    const handleClose = () => tooltip.remove();
+    const handleToggle = () => {
+      if (tooltip.isOpen()) {
+        tooltip.remove();
+      } else {
+        tooltip.setLngLat(marker.getLngLat()).addTo(map);
+      }
+    };
+
+    const el = marker.getElement();
+    el?.addEventListener("mouseenter", handleOpen);
+    el?.addEventListener("mouseleave", handleClose);
+    el?.addEventListener("click", handleToggle);
+    el?.addEventListener("focus", handleOpen);
+    el?.addEventListener("blur", handleClose);
+    if (el) {
+      el.setAttribute("tabindex", "0");
+      el.setAttribute("role", "button");
+      el.setAttribute("aria-label", "Xem chi tiết");
+    }
     return () => {
-      marker.getElement()?.removeEventListener("mouseenter", handleMouseEnter);
-      marker.getElement()?.removeEventListener("mouseleave", handleMouseLeave);
+      el?.removeEventListener("mouseenter", handleOpen);
+      el?.removeEventListener("mouseleave", handleClose);
+      el?.removeEventListener("click", handleToggle);
+      el?.removeEventListener("focus", handleOpen);
+      el?.removeEventListener("blur", handleClose);
       tooltip.remove();
     };
   }, [container, map, marker, tooltip]);
